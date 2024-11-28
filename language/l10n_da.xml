@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+	<texts>
+		<text name="shop_configuration_text" text="Autoload"/>
+		<text name="configuration_universalAutoload" text="Universal Autoload"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_LOADING" text="Skift pålæsning"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_BALE_COLLECTION" text="Automatisk Balle Læsnings Mode"/>
+		<text name="input_UNIVERSALAUTOLOAD_UNLOAD_ALL" text="Aflæs"/>
+		<text name="input_UNIVERSALAUTOLOAD_UNLOAD_ALL_FORCE" text="Tvungen aflæs"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_TIPSIDE" text="Skift aflæsnings side"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_FILTER" text="Skift læsnings type"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_HORIZONTAL" text="Skift horisontal læsning"/>
+		<text name="input_UNIVERSALAUTOLOAD_CYCLE_MATERIAL_FW" text="Skift valgt materiale type (næste)"/>
+		<text name="input_UNIVERSALAUTOLOAD_CYCLE_MATERIAL_BW" text="Skift valgt materiale type (forrige)"/>
+		<text name="input_UNIVERSALAUTOLOAD_SELECT_ALL_MATERIALS" text="Vælg alle materiale typer"/>
+		<text name="input_UNIVERSALAUTOLOAD_CYCLE_CONTAINER_FW" text="Skift valgt container type (næste)"/>
+		<text name="input_UNIVERSALAUTOLOAD_CYCLE_CONTAINER_BW" text="Skift valgr container type (forrige)"/>
+		<text name="input_UNIVERSALAUTOLOAD_SELECT_ALL_CONTAINERS" text="Vælg alle container typer"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_BELTS" text="Spænd/frigør spænde stropper"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_DOOR" text="Åben/luk bag dør"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_CURTAIN" text="Åben/luk side"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_SHOW_DEBUG" text="Fuld debug mode"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_SHOW_LOADING" text="Simpel debug mode"/>
+
+		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Aflæsnings området er blokeret. Ryd venligst området."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Ingen kompitable typer er til rådighed for læsning eller aflæsning."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Læsnings område er fuld. Kan ikke læsse flere i denne størrelse."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Du kan ikke pålæsse. Du skal holde helt stille for at læsse."/>
+		
+		<text name="universalAutoload_tipside" text="Aflæsnings side"/>
+		<text name="universalAutoload_left" text="Venstre"/>
+		<text name="universalAutoload_right" text="Højre"/>
+		<text name="universalAutoload_none" text="ingen"/>
+		<text name="universalAutoload_loadingFilter" text="Læsnings filter"/>
+		<text name="universalAutoload_loadingMethod" text="Læsnings Metode"/>
+		<text name="universalAutoload_layer" text="Lag"/>
+		<text name="universalAutoload_stack" text="Stakke"/>
+		<text name="universalAutoload_fullOnly" text="Kun Fuld"/>
+		<text name="universalAutoload_loadAny" text="Alt"/>
+		<text name="universalAutoload_startLoading" text="Start læsning"/>
+		<text name="universalAutoload_stopLoading" text="Stop læsning"/>
+		<text name="universalAutoload_unloadAll" text="Aflæs"/>
+		<text name="universalAutoload_unloadAllForce" text="Tvungen aflæs"/>
+		<text name="universalAutoload_baleMode" text="Auto-Balle Mode"/>
+		<text name="universalAutoload_enabled" text="Til"/>
+		<text name="universalAutoload_disabled" text="Fra"/>
+		<text name="universalAutoload_activate" text="Aktiver"/>
+		<text name="universalAutoload_deactivate" text="Deaktiver"/>
+		<text name="universalAutoload_materialType" text="Materiale type"/>
+		<text name="universalAutoload_containerType" text="Container type"/>
+		<text name="universalAutoload_ALL" text="Alle"/>
+		<text name="universalAutoload_LIQUID_TANK" text="IBC Tanke"/>
+		<text name="universalAutoload_EURO_PALLET" text="Euro Paller"/>
+		<text name="universalAutoload_PIONEER_PALLET" text="Pioneer Paller"/>
+		<text name="universalAutoload_BIGBAG_PALLET" text="Bigbag Paller"/>
+		<text name="universalAutoload_BIGBAG" text="Bigbag"/>
+		<text name="universalAutoload_POTATOBOX" text="Kartoffel Boks"/>
+		<text name="universalAutoload_BALE" text="Balle"/>
+		<text name="universalAutoload_ROUND_BALE" text="Rund balle"/>
+		<text name="universalAutoload_SQUARE_BALE" text="Firkantet balle"/>
+		<text name="universalAutoload_LOGS" text="Stammer"/>
+    </texts>
+</l10n>

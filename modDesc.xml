@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="92">
+
+    <author>loki_79</author>
+    <version>0.0.0.1</version>
+    
+    <title>
+        <en>Universal Autoload</en>
+        <!-- <de>Universal Autoload</de> -->
+        <fr>Autoload Universel</fr>
+        <ru>Универсальная Автозагрузка</ru>
+        <nl>Universele Autoload</nl>
+        <cz>Univerzální Autoload</cz>
+        <pl>Universalne Autoładowanie</pl>
+        <es>Autoload Universal</es>
+        <br>Carregamento Automático Universal</br>
+        <tr>Evrensel Otomatik Yükleme</tr>
+        <cs>通用自动装载</cs>
+    </title>
+    
+    <description>
+<en><![CDATA[Autoloading specialisation for flatbed trailers.  This automatically modifies the actual base game trailers, and will be applied to any new or existing trailers on your farm.  Please see the included read-me file for instructions on adding to your own mod trailers or pallets.
+
+Features:
+- Loads any compatible pallet/container types (see list below)
+- Loads lumber to any supported forestry vehicles
+- Installed automatically on any compatible trailers (see list below)
+- Load and Unload by selected material or container type
+- Can also restrict loading to full pallets only
+- Select 'ALL' to load mixed types in sequence 
+- Mixed pallets are loaded in size order for best packing efficiency
+- Can interact with trailers when player is on foot (even when not attached to a vehicle)
+
+Special Features for 'KRONE Trailer Profi Liner'
+- Load/Unload only available on the side that curtain is open
+- Rear loading directly from forklift
+- Rear door and curtain can be opened and closed by player on foot
+
+Configured for the following container types:
+- BigBags
+- BigBag Pallets
+- Euro Pallets
+- IBC Liquid Tanks
+- Square Bales
+- Potato Boxes (requires mod: Seed Potato Pack)
+
+Configured for the following trailers:
+- Brantner DD 24073/2 XXL (bale trailer)
+- Bremer Transportwagen TP 500 S
+- BÖCKMANN MH-AL 4320/35
+- BÖCKMANN KK 3018/27 H
+- Demco Steel Drop Deck
+- Farmtech DPW 1800 (standard)
+- Fliegl DTS 5.9
+- KRONE Trailer Profi Liner
+- Kröger PWO 24
+- LODE KING Renown Drop Deck
+- Welger DK 115 (bale trailer)
+- Salek ANS-1900 (bale trailer)
+
+Configured for the following vehicles:
+- Lizard Pickup 1986
+- Lizard Pickup 2017
+- Mahindra Retriever
+- JohnDeer XUV865M
+- Kubota RTV-XG850
+- Kubota RTV-X1140
+- Antonio Carraro Tigrecar 3200
+- Train (vehicle carriage)
+
+Configured for the following Platinum DLC vehicles:
+- Train (planks, flatBed & timber carriages)
+- Volvo SM 462
+- Pfanzelt P13 4272
+- Schwarzmüller Timber Trailer
+- Schwarzmüller Timber Trailer Semi
+- Schwarzmüller Low Loader 4A
+- Schwarzmüller Low Loader 3A
+
+]]>
+</en>
+
+<de><![CDATA[Fügt die automatische Ladefähigkeit für Transportanhänger und Pritschen hinzu.  Die Änderung gilt automatisch für alle kompatiblen Grundausrüstungen im Spiel. Sie wird sowohl für die bereits auf deiner Farm vorhandenen Geräte als auch für zukünftige Käufe angewendet. Die README-Datei enthält die notwendigen Hinweise, um Ihre eigenen modellierten Anhänger oder Paletten hinzuzufügen.
+
+Funktionen:
+- Lädt jede Art von kompatiblen Paletten oder Containern (siehe Liste unten)
+- Lädt Holz auf beliebige Forstfahrzeuge
+- Wird automatisch auf allen kompatiblen Anhängern installiert (siehe Liste unten)
+- Be- und Entladen durch Auswahl der Warenart oder des Containertyps
+- Möglichkeit, nur vollständig gefüllte Paletten zu laden
+- Modus 'Alle', um alle gemischten Typen nacheinander zu laden
+- Die Paletten werden in der Reihenfolge ihrer Größe geladen, um den Lagerraum zu optimieren
+- Kann auch verwendet werden, wenn man zu Fuß neben dem Gerät steht (auch wenn das Gerät nicht angehängt ist)
+
+Sonderfunktionen für den Anhänger 'KRONE Trailer Profi Liner'
+- Be- und Entladen nur von der Öffnungsseite der Plane aus nutzbar
+- Beladen von der Rückseite bei Verwendung eines Gabelstaplers
+- Die Hecktür und die Plane können auch bedient werden, wenn man zu Fuß daneben steht
+
+Liste der kompatiblen Behältertypen: 
+- BigBags
+- BigBag Paletten
+- Europaletten
+- IBC Flüssigkeitsbehälter
+- Quadratballen
+- Palox Kartoffel (erfordert Mod: Seed Potato Pack).
+
+Liste der kompatiblen Anhänger und Pritschen: 
+- Brantner DD 24073/2 XXL (Ballenpritsche)
+- Bremer Transportwagen TP 500 S
+- BÖCKMANN MH-AL 4320/35
+- BÖCKMANN KK 3018/27 H
+- Demco Steel Drop Deck
+- Farmtech DPW 1800 (Standard)
+- Fliegl DTS 5.9
+- KRONE Trailer Profi Liner
+- Kröger PWO 24
+- LODE KING Renown Drop Deck
+- Welger DK 115 (Ballenpritsche)
+- Salek ANS-1900 (Ballenpritsche)
+
+Liste der kompatiblen Fahrzeuge:
+- Lizard Pickup 1986
+- Lizard Pickup 2017
+- Mahindra Retriever
+- JohnDeer XUV865M
+- Kubota RTV-XG850
+- Kubota RTV-X1140
+- Zug (Fahrzeugwagen)
+
+]]>
+</de>
+    </description>
+    
+    <multiplayer supported="true" />
+    <iconFilename>icon_UniversalAutoload.dds</iconFilename>
+    
+    <extraSourceFiles>
+        <sourceFile filename="UniversalAutoloadInstaller.lua" />
+    </extraSourceFiles>
+    
+    <l10n filenamePrefix="language/l10n" />
+    
+    <actions>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_LOADING" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_UNLOAD_ALL" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_TIPSIDE" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_FILTER" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_HORIZONTAL" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_CYCLE_MATERIAL_FW" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_CYCLE_MATERIAL_BW" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_SELECT_ALL_MATERIALS" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_CYCLE_CONTAINER_FW" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_CYCLE_CONTAINER_BW" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_SELECT_ALL_CONTAINERS" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_BELTS" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_DOOR" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_CURTAIN" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_SHOW_DEBUG" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_SHOW_LOADING" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+        <action name="UNIVERSALAUTOLOAD_TOGGLE_BALE_COLLECTION" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
+    </actions>
+    
+    <inputBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_LOADING" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_r" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_UNLOAD_ALL" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_i" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_TIPSIDE" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_u" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_FILTER" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_o" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_HORIZONTAL" >
+            <binding device="KB_MOUSE_DEFAULT" input="" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_CYCLE_MATERIAL_FW" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_y" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_CYCLE_MATERIAL_BW" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_y" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_SELECT_ALL_MATERIALS" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_y" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_CYCLE_CONTAINER_FW" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_t" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_CYCLE_CONTAINER_BW" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_t" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_SELECT_ALL_CONTAINERS" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_t" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_BELTS" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_l" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_DOOR" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_x" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_CURTAIN" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_z" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_SHOW_DEBUG" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_lshift KEY_f12" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_SHOW_LOADING" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_f12" />
+        </actionBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_BALE_COLLECTION" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_lshift KEY_r" />
+        </actionBinding>
+    </inputBinding>
+
+</modDesc>
