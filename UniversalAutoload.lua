@@ -30,7 +30,7 @@ UniversalAutoload.MAX_LAYER_COUNT = 20
 UniversalAutoload.ROTATED_BALE_FACTOR = 0.75
 --0.85355339
 
-UniversalAutoload.showLoading = true
+UniversalAutoload.showLoading = false
 
 local debugKeys = false
 local debugSchema = false
@@ -1279,7 +1279,7 @@ function UniversalAutoload:onLoad(savegame)
 					
 				for selectedConfigs, config in pairs(configGroup) do
 					if not spec.loadArea then
-						local selectedConfigsList = selectedConfigs:split(",")
+						local selectedConfigsList = tostring(selectedConfigs):split(",")
 						for _, configListPart in pairs(selectedConfigsList) do
 							if tostring(configListPart) == UniversalAutoload.ALL or tostring(configId):find(tostring(configListPart)) then
 								print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
