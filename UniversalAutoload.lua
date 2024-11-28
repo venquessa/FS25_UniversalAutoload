@@ -2604,8 +2604,8 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								if spec.firstAttemptToLoad and not spec.baleCollectionMode and not self:ualGetIsMoving() then
 									--UNABLE_TO_LOAD_OBJECT
 									UniversalAutoload.showWarningMessage(self, 3)
-									spec.partiallyUnloaded = true
-									spec.resetLoadingPattern = true
+									-- spec.partiallyUnloaded = true
+									-- spec.resetLoadingPattern = true
 								end
 								if debugLoading then print("STOP LOADING") end
 								UniversalAutoload.stopLoading(self)
@@ -4567,6 +4567,7 @@ function UniversalAutoload:removeLoadedObject(object)
 			if debugLoading then print("FULLY UNLOADED..") end
 			UniversalAutoload.resetLoadingArea(self)
 		else
+			if debugLoading then print("PARTIALLY UNLOADED..") end
 			spec.partiallyUnloaded = true
 		end
 		if debugLoading then
