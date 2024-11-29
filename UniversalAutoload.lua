@@ -1100,10 +1100,14 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 				spec.objectsToUnload = {}
 				spec.currentLoadingPlace = nil
 				if spec.totalUnloadCount == 0 then
-					if debugLoading then print("FULLY UNLOADED...") end
+					--if debugLoading then
+						print("FULLY UNLOADED...")
+					--end
 					UniversalAutoload.resetLoadingArea(self)
 				else
-					if debugLoading then print("PARTIALLY UNLOADED...") end
+					--if debugLoading then
+						print("PARTIALLY UNLOADED...")
+					--end
 					spec.partiallyUnloaded = true
 				end
 			else
@@ -3463,9 +3467,9 @@ function UniversalAutoload:createLoadingPlace(containerType)
 			containerType = containerType,
 		}
 		
-		print("offsetX: " .. tostring(offset.x))
-		print("offsetY: " .. tostring(offset.y))
-		print("offsetZ: " .. tostring(offset.z))
+		-- print("offsetX: " .. tostring(offset.x))
+		-- print("offsetY: " .. tostring(offset.y))
+		-- print("offsetZ: " .. tostring(offset.z))
 		
 		-- DebugUtil.printTableRecursively(loadPlace, "--", 0, 1)
 		-- DebugUtil.printTableRecursively(containerType, "--", 0, 1)
@@ -3516,8 +3520,8 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 		if debugLoading then
 			print("")
 			print("===============================")
-			print("["..self.rootNode.."] FIND LOADING PLACE FOR "..containerType.name)
 		end
+		print("["..self.rootNode.."] FIND LOADING PLACE FOR "..containerType.name)
 		
 		if spec.isLogTrailer then
 			spec.resetLoadingPattern = true
@@ -3616,10 +3620,12 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 							(containerSizeX <= thisLoadPlace.sizeX and containerSizeZ <= thisLoadPlace.sizeZ)
 						local containerStackBelowLimit = (spec.currentLoadHeight == 0) or
 							(spec.currentLoadHeight + containerSizeY <= maxLoadAreaHeight)
-						print("containerFitsInLoadSpace = " .. tostring(containerFitsInLoadSpace))
-						print("containerStackBelowLimit = " .. tostring(containerStackBelowLimit))
-						print("layerOverMaxHeight = " .. tostring(layerOverMaxHeight))
-						print("currentLoadHeight = " .. tostring(spec.currentLoadHeight))
+						if debugLoading then 
+							print("containerFitsInLoadSpace = " .. tostring(containerFitsInLoadSpace))
+							print("containerStackBelowLimit = " .. tostring(containerStackBelowLimit))
+							print("layerOverMaxHeight = " .. tostring(layerOverMaxHeight))
+							print("currentLoadHeight = " .. tostring(spec.currentLoadHeight))
+						end
 	
 						if containerFitsInLoadSpace then
 							
@@ -5046,18 +5052,26 @@ function UniversalAutoload.getContainerType(object)
 		
 		print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
 		if isPallet or isBale then
-			print("object is valid")
 			if isPallet then
+				print("Pallet")
 				-- DebugUtil.printTableRecursively(object.size or {}, "  ", 0, 1)
 				print("  width: " .. object.size.width)
 				print("  height: " .. object.size.height)
 				print("  length: " .. object.size.length)
 			elseif isBale then
-				print("  width: " .. object.width)
-				print("  height: " .. object.height)
-				print("  length: " .. object.length)
+				if isRoundbale then
+					print("Round Bale")
+					print("  width: " .. object.width)
+					print("  height: " .. object.diameter)
+					print("  length: " .. object.diameter)
+				else
+					print("Square Bale")
+					print("  width: " .. object.width)
+					print("  height: " .. object.height)
+					print("  length: " .. object.length)
+				end
 			end
-
+			
 			local boundingBox = BoundingBox.new(object)
 			local size = boundingBox:getSize()
 			local offset = boundingBox:getOffset()
