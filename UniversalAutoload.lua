@@ -1328,7 +1328,8 @@ function UniversalAutoload:onLoad(savegame)
 				UniversalAutoloadManager.lastShopVehicle = nil
 			end
 			
-			if shopSpec and spec.selectedConfigs == shopSpec.selectedConfigs then
+			if shopSpec and UniversalAutoloadManager.shopConfig and spec.selectedConfigs == shopSpec.selectedConfigs then
+				
 				print("CLONE SETTINGS FROM SHOP VEHICLE")
 				local shopVolume = UniversalAutoloadManager.shopConfig.loadingVolume
 				
@@ -1346,19 +1347,18 @@ function UniversalAutoload:onLoad(savegame)
 					}
 					spec.loadArea[i] = shopSpec.loadArea[i]
 				end
-				
-				DebugUtil.printTableRecursively(spec, "  --", 0, 2)
+				-- DebugUtil.printTableRecursively(spec, "  --", 0, 2)
 
-			end
-
-			if UniversalAutoload.VEHICLES_LOOKUP[self] == nil then
-				UniversalAutoload.VEHICLES_LOOKUP[self] = {}
-				if debugVehicles then print(self:getFullName() .. ": UAL DETECTED") end
-				if self.addDeleteListener then
-					self:addDeleteListener(self, "ualOnDeleteVehicle_Callback")
+				if UniversalAutoload.VEHICLES_LOOKUP[self] == nil then
+					UniversalAutoload.VEHICLES_LOOKUP[self] = {}
+					if debugVehicles then print(self:getFullName() .. ": UAL DETECTED") end
+					if self.addDeleteListener then
+						self:addDeleteListener(self, "ualOnDeleteVehicle_Callback")
+					end
 				end
-			end
 			
+			end
+
 		end
 		
 		if xmlFile then
