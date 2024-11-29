@@ -27,8 +27,7 @@ UniversalAutoload.SPACING = 0.0
 UniversalAutoload.DELAY_TIME = 200
 UniversalAutoload.LOG_SPACE = 0.25
 UniversalAutoload.MAX_LAYER_COUNT = 20
-UniversalAutoload.ROTATED_BALE_FACTOR = 0.75
---0.85355339
+UniversalAutoload.ROTATED_BALE_FACTOR = 0.85355339
 
 UniversalAutoload.showLoading = false
 
@@ -3268,15 +3267,15 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	local containerSizeY = containerType.sizeY
 	local containerSizeZ = containerType.sizeZ
 	local containerFlipYZ = containerType.flipYZ
-	local isRoundbale = containerType.isRoundBale
+	local isRoundbale = containerType.isRoundbale
 	
 	--TEST FOR ROUNDBALE PACKING
-	if isRoundBale then
+	if isRoundbale == true then
 		if spec.useHorizontalLoading then
 		-- LONGWAYS ROUNDBALE STACKING
 			containerSizeY = containerType.sizeZ
 			containerSizeZ = containerType.sizeY
-			containerFlipYZ = false
+			--containerFlipYZ = false
 		end
 	end
 	
@@ -3546,7 +3545,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 				local containerFlipYZ = containerType.flipYZ
 
 				--TEST FOR ROUNDBALE PACKING
-				if containerType.isBale and containerType.sizeX==containerType.sizeZ then
+				if containerType.isBale and containerType.isRoundbale then
 					if spec.useHorizontalLoading then
 					-- LONGWAYS ROUNDBALE STACKING
 						containerSizeY = containerType.sizeZ * UniversalAutoload.ROTATED_BALE_FACTOR
@@ -3616,7 +3615,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 						if debugLoading then print("TRY NEW LOAD PLACE..") end
 					
 						local containerFitsInLoadSpace = spec.isLogTrailer or 
-							(thisLoadPlace.useRoundbalePacking and containerSizeX==containerSizeZ) or
+							(thisLoadPlace.useRoundbalePacking and containerType.isRoundbale) or
 							(containerSizeX <= thisLoadPlace.sizeX and containerSizeZ <= thisLoadPlace.sizeZ)
 						local containerStackBelowLimit = (spec.currentLoadHeight == 0) or
 							(spec.currentLoadHeight + containerSizeY <= maxLoadAreaHeight)
@@ -5044,7 +5043,7 @@ function UniversalAutoload.getContainerType(object)
 	if objectType == nil and not UniversalAutoload.INVALID_OBJECTS[name] then
 		
 		local isBale = object.isRoundbale ~= nil
-		local isRoundBale = object.isRoundbale == true
+		local isRoundbale = object.isRoundbale == true
 		local isPallet = object.specializationsByName
 					 and object.specializationsByName.pallet
 					 and object.specializationsByName.fillUnit
@@ -5115,17 +5114,25 @@ function UniversalAutoload.getContainerType(object)
 			newType.offset = offset
 			newType.isBale = isBale
 			newType.isRoundbale = isRoundbale
-			newType.flipYZ = isBale and isRoundBale
+			newType.flipYZ = false
 			newType.neverStack = (containerType == "BIGBAG") or false
 			newType.neverRotate = false
 			newType.alwaysRotate = false
 			newType.frontOffset = 0
-			newType.width = math.min(newType.sizeX, newType.sizeZ)
-			newType.length = math.max(newType.sizeX, newType.sizeZ)
+			
+			if isRoundbale == true then
+				print("Round Bale flipYZ")
+				newType.flipYZ = true
+				newType.sizeY = size.z + UniversalAutoload.SPACING
+				newType.sizeZ = size.y + UniversalAutoload.SPACING
+			end
 			
 			if isPallet then
 				newType.offset.y = -((size.y/2) - offset.y)
 			end
+			
+			newType.width = math.min(newType.sizeX, newType.sizeZ)
+			newType.length = math.max(newType.sizeX, newType.sizeZ)
 				
 			print(string.format("  >> %s [%.3f, %.3f, %.3f] - %s", newType.name,
 				newType.sizeX, newType.sizeY, newType.sizeZ, containerType ))
