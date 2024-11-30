@@ -1371,7 +1371,7 @@ end
 function UniversalAutoload:updateLoadAreaTransformGroups()
 	local spec = self.spec_universalAutoload
 	
-	if not spec.loadArea then
+	if not spec.loadArea or #spec.loadArea == 0 then
 		print("LoadArea NOT created")
 		return
 	end
@@ -1564,7 +1564,7 @@ function UniversalAutoload:onLoad(savegame)
 	end
 
 	if self.isServer and self.propertyState ~= VehiclePropertyState.SHOP_CONFIG then
-		print("INITIALISE UAL VEHICLE (ONLOAD) " ..tostring(self.rootNode))
+		print("INITIALISE UAL VEHICLE (ON LOAD) " ..tostring(self.rootNode))
 		
 		UniversalAutoload.VEHICLES[self] = self
 		if self.addDeleteListener then
@@ -1580,6 +1580,16 @@ function UniversalAutoload:onLoad(savegame)
 
 		--create transform groups for triggers
 		UniversalAutoload.initialiseTransformGroups(self)
+		
+		if spec.loadArea and #spec.loadArea > 0 then
+			print("INITIALISE UAL VEHICLE (ON LOAD 2) " ..tostring(self.rootNode))
+			UniversalAutoload.updateLoadAreaTransformGroups(self)
+			UniversalAutoload.updateLoadingTriggers(self)
+			UniversalAutoload.updateWidthAxis(self)
+			UniversalAutoload.updateLengthAxis(self)
+			UniversalAutoload.updateHeightAxis(self)
+			spec.initialised = true
+		end
 	
 		--server only
 		spec.isLoading = false
