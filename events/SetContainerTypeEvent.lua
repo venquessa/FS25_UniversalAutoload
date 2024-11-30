@@ -38,7 +38,7 @@ function SetContainerTypeEvent.sendEvent(vehicle, typeIndex, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Set Container Type Event")
-			g_server:broadcastEvent(SetContainerTypeEvent.new(vehicle, typeIndex), nil, nil, object)
+			g_server:broadcastEvent(SetContainerTypeEvent.new(vehicle, typeIndex), nil, nil, vehicle)
 		else
 			--print("client: Set Container Type Event")
 			g_client:getServerConnection():sendEvent(SetContainerTypeEvent.new(vehicle, typeIndex))

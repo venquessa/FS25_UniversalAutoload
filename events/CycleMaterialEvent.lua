@@ -38,7 +38,7 @@ function CycleMaterialEvent.sendEvent(vehicle, direction, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Cycle Material Event")
-			g_server:broadcastEvent(CycleMaterialEvent.new(vehicle, direction), nil, nil, object)
+			g_server:broadcastEvent(CycleMaterialEvent.new(vehicle, direction), nil, nil, vehicle)
 		else
 			--print("client: Cycle Material Event")
 			g_client:getServerConnection():sendEvent(CycleMaterialEvent.new(vehicle, direction))

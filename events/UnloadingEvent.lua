@@ -38,7 +38,7 @@ function StartUnloadingEvent.sendEvent(vehicle, force, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Start Unloading Event")
-			g_server:broadcastEvent(StartUnloadingEvent.new(vehicle, force), nil, nil, object)
+			g_server:broadcastEvent(StartUnloadingEvent.new(vehicle, force), nil, nil, vehicle)
 		else
 			--print("client: Start Unloading Event")
 			g_client:getServerConnection():sendEvent(StartUnloadingEvent.new(vehicle, force))

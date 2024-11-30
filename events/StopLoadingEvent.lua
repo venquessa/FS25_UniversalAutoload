@@ -38,7 +38,7 @@ function StopLoadingEvent.sendEvent(vehicle, force, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Stop Loading Event")
-			g_server:broadcastEvent(StopLoadingEvent.new(vehicle, force), nil, nil, object)
+			g_server:broadcastEvent(StopLoadingEvent.new(vehicle, force), nil, nil, vehicle)
 		else
 			--print("client: Stop Loading Event")
 			g_client:getServerConnection():sendEvent(StopLoadingEvent.new(vehicle, force))

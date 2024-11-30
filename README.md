@@ -1,8 +1,7 @@
 # FS25_UniversalAutoload
 ---------------------------------------------------
-First release v0.0.0.1  **ALPHA**
+DEVELOPMENT RELEASE - Please test and leave any bug reports or feedback.
 ---------------------------------------------------
-FIRST PUBLIC RELEASE. Most things that I've tried are working so far BUT there are likely to be many bugs.  Please test and leave any bug reports or feedback.
 
 SUMMARY:
 - Single player is working as it should for BALES, PALLETS and BIG-BAGS

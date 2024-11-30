@@ -38,7 +38,7 @@ function StartLoadingEvent.sendEvent(vehicle, force, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Start Loading Event")
-			g_server:broadcastEvent(StartLoadingEvent.new(vehicle, force), nil, nil, object)
+			g_server:broadcastEvent(StartLoadingEvent.new(vehicle, force), nil, nil, vehicle)
 		else
 			--print("client: Start Loading Event")
 			g_client:getServerConnection():sendEvent(StartLoadingEvent.new(vehicle, force))

@@ -38,7 +38,7 @@ function SetFilterEvent.sendEvent(vehicle, state, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Set state Event")
-			g_server:broadcastEvent(SetFilterEvent.new(vehicle, state), nil, nil, object)
+			g_server:broadcastEvent(SetFilterEvent.new(vehicle, state), nil, nil, vehicle)
 		else
 			--print("client: Set state Event")
 			g_client:getServerConnection():sendEvent(SetFilterEvent.new(vehicle, state))

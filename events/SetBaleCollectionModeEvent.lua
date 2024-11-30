@@ -38,7 +38,7 @@ function SetBaleCollectionModeEvent.sendEvent(vehicle, baleCollectionMode, noEve
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Set BaleCollectionMode Event")
-			g_server:broadcastEvent(SetBaleCollectionModeEvent.new(vehicle, baleCollectionMode), nil, nil, object)
+			g_server:broadcastEvent(SetBaleCollectionModeEvent.new(vehicle, baleCollectionMode), nil, nil, vehicle)
 		else
 			--print("client: Set BaleCollectionMode Event")
 			g_client:getServerConnection():sendEvent(SetBaleCollectionModeEvent.new(vehicle, baleCollectionMode))

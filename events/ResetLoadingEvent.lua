@@ -35,7 +35,7 @@ function ResetLoadingEvent.sendEvent(vehicle, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Reset Loading Event")
-			g_server:broadcastEvent(ResetLoadingEvent.new(vehicle), nil, nil, object)
+			g_server:broadcastEvent(ResetLoadingEvent.new(vehicle), nil, nil, vehicle)
 		else
 			--print("client: Reset Loading Event")
 			g_client:getServerConnection():sendEvent(ResetLoadingEvent.new(vehicle))

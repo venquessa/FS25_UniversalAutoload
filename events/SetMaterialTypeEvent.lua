@@ -38,7 +38,7 @@ function SetMaterialTypeEvent.sendEvent(vehicle, typeIndex, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Set Material Type Event")
-			g_server:broadcastEvent(SetMaterialTypeEvent.new(vehicle, typeIndex), nil, nil, object)
+			g_server:broadcastEvent(SetMaterialTypeEvent.new(vehicle, typeIndex), nil, nil, vehicle)
 		else
 			--print("client: Set Material Type Event")
 			g_client:getServerConnection():sendEvent(SetMaterialTypeEvent.new(vehicle, typeIndex))

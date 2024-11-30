@@ -19,7 +19,6 @@ UniversalAutoload.containerKey = "universalAutoload.containerConfigurations.cont
 UniversalAutoload.containerSchemaKey = "universalAutoload.containerConfigurations.container(?)"
 
 UniversalAutoload.OBJECTS_LOOKUP = {}
-UniversalAutoload.VEHICLES_LOOKUP = {}
 UniversalAutoload.SPLITSHAPES_LOOKUP = {}
 
 UniversalAutoload.ALL = "ALL"
@@ -64,6 +63,7 @@ source(g_currentModDirectory.."events/StopLoadingEvent.lua")
 source(g_currentModDirectory.."events/UnloadingEvent.lua")
 source(g_currentModDirectory.."events/UpdateActionEvents.lua")
 source(g_currentModDirectory.."events/WarningMessageEvent.lua")
+source(g_currentModDirectory.."events/ChangeSettingsEvent.lua")
 
 
 -- REQUIRED SPECIALISATION FUNCTIONS
@@ -208,7 +208,7 @@ function UniversalAutoload.registerEventListeners(vehicleType)
 end
 
 function UniversalAutoload.removeEventListeners(vehicleType)
-	-- print("REMOVE EVENT LISTENERS")
+	print("REMOVE EVENT LISTENERS")
 	
 	SpecializationUtil.removeEventListener(vehicleType, "onLoad", UniversalAutoload)
 	SpecializationUtil.removeEventListener(vehicleType, "onPostLoad", UniversalAutoload)
@@ -998,7 +998,7 @@ function UniversalAutoload:createSortedObjectsToLoad(availableObjects)
 	for _, object in pairs(availableObjects or {}) do
 	
 		local node = UniversalAutoload.getObjectPositionNode(object)
-		if UniversalAutoload.isValidForLoading(self, object) and node~=nil then
+		if node~=nil and UniversalAutoload.isValidForLoading(self, object) then
 		
 			local containerType = UniversalAutoload.getContainerType(object)
 			local x, y, z = localToLocal(node, spec.loadArea[1].startNode, 0, 0, 0)
@@ -1234,407 +1234,347 @@ function UniversalAutoload:updatePlayerTriggerState(playerId, inTrigger, noEvent
 	UniversalAutoload.PlayerTriggerEvent.sendEvent(self, playerId, inTrigger, noEventSend)
 end
 
+function UniversalAutoload:initialiseTransformGroups(actualRootNode)
+	local spec = self.spec_universalAutoload
+
+	local actualRootNode = actualRootNode or self.rootNode
+	-- local actualRootNode = (self.spec_tensionBelts and self.spec_tensionBelts.rootNode) or self.rootNode
+	-- if spec.offsetRoot then
+		-- local otherOffset = self.i3dMappings[spec.offsetRoot]
+		-- if otherOffset then
+			-- actualRootNode = otherOffset.nodeId or actualRootNode
+		-- end
+	-- end
+
+	spec.loadVolume = {}
+	spec.loadVolume.actualRootNode = actualRootNode
+	
+	spec.loadVolume.rootNode = createTransformGroup("loadVolumeCentre")
+	link(actualRootNode, spec.loadVolume.rootNode)
+
+	spec.loadVolume.startNode = createTransformGroup("loadVolumeStart")
+	link(actualRootNode, spec.loadVolume.startNode)
+	
+	spec.loadVolume.endNode = createTransformGroup("loadVolumeEnd")
+	link(actualRootNode, spec.loadVolume.endNode)
+
+	-- load trigger i3d file
+	local i3dFilename = UniversalAutoload.path .. "triggers/UniversalAutoloadTriggers.i3d"
+	local triggersRootNode, sharedLoadRequestId = g_i3DManager:loadSharedI3DFile(i3dFilename, false, false)
+
+	-- create triggers
+	spec.triggersByName = {}
+	local unloadingTrigger = {}
+	unloadingTrigger.node = I3DUtil.getChildByName(triggersRootNode, "unloadingTrigger")
+	if unloadingTrigger.node then
+		unloadingTrigger.name = "unloadingTrigger"
+		link(spec.loadVolume.rootNode, unloadingTrigger.node)
+		table.insert(spec.triggers, unloadingTrigger)
+		addTrigger(unloadingTrigger.node, "ualUnloadingTrigger_Callback", self)
+		spec.triggersByName["unloadingTrigger"] = unloadingTrigger
+		print("  created" .. unloadingTrigger.name)
+	end
+
+	local playerTrigger = {}
+	playerTrigger.node = I3DUtil.getChildByName(triggersRootNode, "playerTrigger")
+	if playerTrigger.node then
+		playerTrigger.name = "playerTrigger"
+		link(spec.loadVolume.rootNode, playerTrigger.node)
+		table.insert(spec.triggers, playerTrigger)
+		addTrigger(playerTrigger.node, "ualPlayerTrigger_Callback", self)
+		spec.triggersByName["playerTrigger"] = playerTrigger
+		print("  created" .. playerTrigger.name)
+	end
+
+	local leftPickupTrigger = {}
+	leftPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "leftPickupTrigger")
+	if leftPickupTrigger.node then
+		leftPickupTrigger.name = "leftPickupTrigger"
+		link(spec.loadVolume.rootNode, leftPickupTrigger.node)
+		table.insert(spec.triggers, leftPickupTrigger)
+		addTrigger(leftPickupTrigger.node, "ualLoadingTrigger_Callback", self)
+		spec.triggersByName["leftPickupTrigger"] = leftPickupTrigger
+		print("  created" .. leftPickupTrigger.name)
+	end
+
+	local rightPickupTrigger = {}
+	rightPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rightPickupTrigger")
+	if rightPickupTrigger.node then
+		rightPickupTrigger.name = "rightPickupTrigger"
+		link(spec.loadVolume.rootNode, rightPickupTrigger.node)
+		table.insert(spec.triggers, rightPickupTrigger)
+		addTrigger(rightPickupTrigger.node, "ualLoadingTrigger_Callback", self)
+		spec.triggersByName["rightPickupTrigger"] = rightPickupTrigger
+		print("  created" .. rightPickupTrigger.name)
+	end
+
+	local rearPickupTrigger = {}
+	rearPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rearPickupTrigger")
+	if rearPickupTrigger.node then
+		rearPickupTrigger.name = "rearPickupTrigger"
+		link(spec.loadVolume.rootNode, rearPickupTrigger.node)
+		table.insert(spec.triggers, rearPickupTrigger)
+		addTrigger(rearPickupTrigger.node, "ualLoadingTrigger_Callback", self)
+		spec.triggersByName["rearPickupTrigger"] = rearPickupTrigger
+		print("  created" .. rearPickupTrigger.name)
+	end
+
+	local frontPickupTrigger = {}
+	frontPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "frontPickupTrigger")
+	if frontPickupTrigger.node then
+		frontPickupTrigger.name = "frontPickupTrigger"
+		link(spec.loadVolume.rootNode, frontPickupTrigger.node)
+		table.insert(spec.triggers, frontPickupTrigger)
+		addTrigger(frontPickupTrigger.node, "ualLoadingTrigger_Callback", self)
+		spec.triggersByName["frontPickupTrigger"] = frontPickupTrigger
+		print("  created" .. frontPickupTrigger.name)
+	end
+
+	local rearAutoTrigger = {}
+	rearAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rearAutoTrigger")
+	if rearAutoTrigger.node then
+		rearAutoTrigger.name = "rearAutoTrigger"
+		link(spec.loadVolume.rootNode, rearAutoTrigger.node)
+		table.insert(spec.triggers, rearAutoTrigger)
+		addTrigger(rearAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
+		spec.rearTriggerId = rearAutoTrigger.node
+		spec.triggersByName["rearAutoTrigger"] = rearAutoTrigger
+		print("  created" .. rearAutoTrigger.name)
+	end
+
+	local leftAutoTrigger = {}
+	leftAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "leftAutoTrigger")
+	if leftAutoTrigger.node then
+		leftAutoTrigger.name = "leftAutoTrigger"
+		link(spec.loadVolume.rootNode, leftAutoTrigger.node)
+		table.insert(spec.triggers, leftAutoTrigger)
+		addTrigger(leftAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
+		spec.triggersByName["leftAutoTrigger"] = leftAutoTrigger
+		print("  created" .. leftAutoTrigger.name)
+	end
+	
+	local rightAutoTrigger = {}
+	rightAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rightAutoTrigger")
+	if rightAutoTrigger.node then
+		rightAutoTrigger.name = "rightAutoTrigger"
+		link(spec.loadVolume.rootNode, rightAutoTrigger.node)
+		table.insert(spec.triggers, rightAutoTrigger)
+		addTrigger(rightAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
+		spec.triggersByName["rightAutoTrigger"] = rightAutoTrigger 
+		print("  created" .. rightAutoTrigger.name)
+	end
+	
+	delete(triggersRootNode)
+	
+end
+
+function UniversalAutoload:updateLoadAreaTransformGroups()
+	local spec = self.spec_universalAutoload
+	
+	if not spec.loadArea then
+		print("LoadArea NOT created")
+		return
+	end
+
+	local x0, y0, z0 = math.huge, math.huge, math.huge
+	local x1, y1, z1 = -math.huge, -math.huge, -math.huge
+
+	for i, loadArea in pairs(spec.loadArea) do
+		-- create bounding box for loading area
+		local offset = loadArea.offset
+		local loadAreaRoot = spec.loadVolume.actualRootNode
+		-- if spec.loadArea[i].offsetRoot then
+			-- local otherOffset = self.i3dMappings[spec.loadArea[i].offsetRoot]
+			-- if otherOffset then
+				-- loadAreaRoot = otherOffset.nodeId or loadAreaRoot
+			-- end
+		-- end
+		loadArea.rootNode = createTransformGroup("LoadAreaCentre")
+		link(loadAreaRoot, loadArea.rootNode)
+		setTranslation(loadArea.rootNode, offset[1], offset[2], offset[3])
+
+		loadArea.startNode = createTransformGroup("LoadAreaStart")
+		link(loadAreaRoot, loadArea.startNode)
+		setTranslation(loadArea.startNode, offset[1], offset[2], offset[3]+(loadArea.length/2))
+
+		loadArea.endNode = createTransformGroup("LoadAreaEnd")
+		link(loadAreaRoot, loadArea.endNode)
+		setTranslation(loadArea.endNode, offset[1], offset[2], offset[3]-(loadArea.length/2))
+
+		-- measure bounding box for all loading areas
+		if x0 > offset[1]-(loadArea.width/2) then x0 = offset[1]-(loadArea.width/2) end
+		if x1 < offset[1]+(loadArea.width/2) then x1 = offset[1]+(loadArea.width/2) end
+		if y0 > offset[2] then y0 = offset[2] end
+		if y1 < offset[2]+(loadArea.height) then y1 = offset[2]+(loadArea.height) end
+		if z0 > offset[3]-(loadArea.length/2) then z0 = offset[3]-(loadArea.length/2) end
+		if z1 < offset[3]+(loadArea.length/2) then z1 = offset[3]+(loadArea.length/2) end
+	end
+	
+	spec.loadVolume.width = x1-x0
+	spec.loadVolume.height = y1-y0
+	spec.loadVolume.length = z1-z0
+	
+	local offsetX, offsetY, offsetZ = (x0+x1)/2, y0, (z0+z1)/2
+
+	setTranslation(spec.loadVolume.rootNode, offsetX, offsetY, offsetZ)
+	setTranslation(spec.loadVolume.startNode, offsetX, offsetY, offsetZ+(spec.loadVolume.length/2))
+	setTranslation(spec.loadVolume.endNode, offsetX, offsetY, offsetZ-(spec.loadVolume.length/2))
+
+end
+
+function UniversalAutoload:updateLoadingTriggers()
+	local spec = self.spec_universalAutoload
+	
+	-- create triggers
+	local unloadingTrigger = spec.triggersByName["unloadingTrigger"]
+	if unloadingTrigger then
+		local sideBoundary = 0
+		local rearBoundary = 0
+		if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
+			sideBoundary = spec.loadVolume.width/4
+		end
+		if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
+			rearBoundary = spec.loadVolume.width/4
+		end
+		setRotation(unloadingTrigger.node, 0, 0, 0)
+		setTranslation(unloadingTrigger.node, 0, spec.loadVolume.height/2, rearBoundary/2)
+		setScale(unloadingTrigger.node, spec.loadVolume.width-sideBoundary, spec.loadVolume.height, spec.loadVolume.length-rearBoundary)
+		print("  updated" .. unloadingTrigger.name)
+	end
+	
+	local playerTrigger = spec.triggersByName["playerTrigger"]
+	if playerTrigger then
+		setRotation(playerTrigger.node, 0, 0, 0)
+		setTranslation(playerTrigger.node, 0, spec.loadVolume.height/2, 0)
+		setScale(playerTrigger.node, 5*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+2*spec.loadVolume.width)
+		print("  updated" .. playerTrigger.name)
+	end
+
+	if not UniversalAutoload.manualLoadingOnly then
+
+		local leftPickupTrigger = spec.triggersByName["leftPickupTrigger"]
+		if leftPickupTrigger then
+			local width, height, length = 1.66*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+spec.loadVolume.width/2
+			setRotation(leftPickupTrigger.node, 0, 0, 0)
+			setTranslation(leftPickupTrigger.node, 1.1*(width+spec.loadVolume.width)/2, 0, 0)
+			setScale(leftPickupTrigger.node, width, height, length)
+			print("  updated" .. leftPickupTrigger.name)
+		end
+		
+		local rightPickupTrigger = spec.triggersByName["rightPickupTrigger"]
+		if rightPickupTrigger then
+			local width, height, length = 1.66*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+spec.loadVolume.width/2
+			setRotation(rightPickupTrigger.node, 0, 0, 0)
+			setTranslation(rightPickupTrigger.node, -1.1*(width+spec.loadVolume.width)/2, 0, 0)
+			setScale(rightPickupTrigger.node, width, height, length)
+			print("  updated" .. rightPickupTrigger.name)
+		end
+		
+		if spec.rearUnloadingOnly then
+			local rearPickupTrigger = spec.triggersByName["rearPickupTrigger"]
+			if rearPickupTrigger then
+				local squareSide = spec.loadVolume.length+spec.loadVolume.width
+				local width, height, length = squareSide, 2*spec.loadVolume.height, 0.8*squareSide
+				setRotation(rearPickupTrigger.node, 0, 0, 0)
+				setTranslation(rearPickupTrigger.node, 0, 0, -1.1*(length+spec.loadVolume.length)/2)
+				setScale(rearPickupTrigger.node, width, height, length)
+				print("  updated" .. rearPickupTrigger.name)
+			end
+		end
+		
+		if spec.frontUnloadingOnly then
+			local frontPickupTrigger = spec.triggersByName["frontPickupTrigger"]
+			if frontPickupTrigger then
+				local squareSide = spec.loadVolume.length+spec.loadVolume.width
+				local width, height, length = squareSide, 2*spec.loadVolume.height, 0.8*squareSide
+				setRotation(frontPickupTrigger.node, 0, 0, 0)
+				setTranslation(frontPickupTrigger.node, 0, 0, 1.1*(length+spec.loadVolume.length)/2)
+				setScale(frontPickupTrigger.node, width, height, length)
+				print("  updated" .. frontPickupTrigger.name)
+			end
+		end
+	end
+	
+	if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
+		local rearAutoTrigger = spec.triggersByName["rearAutoTrigger"]
+		if rearAutoTrigger then
+			local depth = 0.05
+			local recess = spec.loadVolume.width/4
+			local boundary = spec.loadVolume.width/4
+			local width, height, length = spec.loadVolume.width-boundary, spec.loadVolume.height, depth
+			setRotation(rearAutoTrigger.node, 0, 0, 0)
+			setTranslation(rearAutoTrigger.node, 0, spec.loadVolume.height/2, recess-(spec.loadVolume.length/2)-depth )
+			setScale(rearAutoTrigger.node, width, height, length)
+			print("  updated" .. rearAutoTrigger.name)
+		end
+	end
+	
+	if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
+		local depth = 0.05
+		local recess = spec.loadVolume.width/7
+		local boundary = 2*spec.loadVolume.width/3
+		local width, height, length = depth, spec.loadVolume.height, spec.loadVolume.length-boundary
+			
+		local leftAutoTrigger = spec.triggersByName["leftAutoTrigger"]
+		if leftAutoTrigger then
+			setRotation(leftAutoTrigger.node, 0, 0, 0)
+			setTranslation(leftAutoTrigger.node, 2*depth+(spec.loadVolume.width/2)-recess, spec.loadVolume.height/2, 0)
+			setScale(leftAutoTrigger.node, width, height, length)
+			print("  updated" .. leftAutoTrigger.name)
+		end
+		local rightAutoTrigger = spec.triggersByName["rightAutoTrigger"]
+		if rightAutoTrigger then
+			setRotation(rightAutoTrigger.node, 0, 0, 0)
+			setTranslation(rightAutoTrigger.node, -(2*depth+(spec.loadVolume.width/2)-recess), spec.loadVolume.height/2, 0)
+			setScale(rightAutoTrigger.node, width, height, length)
+			print("  updated" .. rightAutoTrigger.name)
+		end
+	end
+	
+end
+
 
 -- MAIN "ON LOAD" INITIALISATION FUNCTION
 function UniversalAutoload:onLoad(savegame)
 	
 	self.spec_universalAutoload = self[UniversalAutoload.specName]
 	local spec = self.spec_universalAutoload
+
+	local isValidForAutoload = UniversalAutoloadManager.getIsValidForAutoload(self)
+	if not isValidForAutoload then
+		print(self:getFullName() .. ": NOT VALID FOR UAL")
+		UniversalAutoload.removeEventListeners(self)
+		spec.isAutoloadAvailable = false
+		return
+	end
+
+	spec.isAutoloadAvailable = true
+	local configurationAdded = UniversalAutoloadManager.handleNewVehicleCreation(self)
 	
-	if self.isServer then
-
-		if self.spec_tensionBelts and self.spec_tensionBelts.hasTensionBelts then
-			local nBelts = #self.spec_tensionBelts.sortedBelts
-			if debugVehicles then print(self:getFullName() .. ": UAL - tension belts (" .. nBelts .. ")") end
-			if nBelts >= 2 then
-				spec.hasTensionBelts = true
-				spec.isAutoloadAvailable = true
-			else
-				if debugVehicles then print("Not enough tension belts for UAL (" .. nBelts .. ")") end
-			end
-		end
-		
-		if self.spec_fillVolume and #self.spec_fillVolume.volumes > 0 then
-			if debugVehicles then print(self:getFullName() .. ": UAL - fill volumes") end
-			for i, fillVolume in ipairs(self.spec_fillVolume.volumes) do
-				local capacity = self:getFillUnitCapacity(fillVolume.fillUnitIndex)
-				if debugVehicles then print("  [" .. i .. "] = " .. capacity) end
-			end
-			spec.hasFillVolume = true
-			-- spec.isAutoloadAvailable = false
-		end
-		
-		
-		local configId, configName, description = UniversalAutoloadManager.getValidConfigurationId(self, useConfigName)
-		
-		if spec.isAutoloadAvailable and configId then
-			print("UniversalAutoload - supported vehicle: "..self:getFullName().." #"..configId.." ("..description..")" )
-			
-			local configFileName = self.configFileName
-			local configGroup = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName]
-			if configGroup then
-				if debugVehicles then 
-					print("AVAILABLE CONFIGS: (from local settings)")
-					for selectedConfigs, config in pairs(configGroup) do
-						print("  >> " .. tostring(selectedConfigs))
-					end
-				end
-					
-				for selectedConfigs, config in pairs(configGroup) do
-					if not spec.loadArea then
-						local selectedConfigsList = tostring(selectedConfigs):split(",")
-						for _, configListPart in pairs(selectedConfigsList) do
-							if tostring(configListPart) == UniversalAutoload.ALL or tostring(configId):find(tostring(configListPart)) then
-								print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
-								-- DebugUtil.printTableRecursively(config, "  --", 0, 1)
-								spec.loadedVehicleConfig = {
-									configFileName = configFileName,
-									selectedConfigs = selectedConfigs,
-								}
-								
-								for id, value in pairs(deepCopy(config)) do
-									spec[id] = value
-								end
-							end
-						end
-					end
-				end
-				
-				if not spec.loadArea then
-					print("*** NO MATCHING LOCAL CONFIG - #"..configId.." ("..description..") ***")
-				end
-			else
-				print("*** NO LOCAL CONFIGS AVAILABLE - #"..configId.." ("..description..") ***")
-			end
-		else
-			print("*** UNSUPPORTED CONFIG - #"..tostring(configId).." ("..tostring(description)..") ***")
-		end
-		
-		if self.propertyState == VehiclePropertyState.SHOP_CONFIG then
-			print("CREATE SHOP VEHICLE: " .. self:getFullName())
-			if debugVehicles then print("UniversalAutoload - IN SHOP: "..self.configFileName ) end
-			spec.isInsideShop = true
-			UniversalAutoloadManager.shopVehicle = self
-			return
-		elseif self.propertyState == VehiclePropertyState.OWNED then
-			print("CREATE REAL VEHICLE: " .. self:getFullName())
-			if debugVehicles then print("UniversalAutoload - ON LOAD: "..self.configFileName ) end
-			spec.isInsideShop = false
-			
-			local shopSpec = nil
-			if UniversalAutoloadManager.shopVehicle then
-				print("SHOP VEHICLE STILL EXISTS " .. UniversalAutoloadManager.shopVehicle.rootNode )
-				shopSpec = UniversalAutoloadManager.shopVehicle.spec_universalAutoload
-			elseif UniversalAutoloadManager.lastShopVehicle then
-				print("WORKSHOP VEHICLE STILL EXISTS " .. UniversalAutoloadManager.lastShopVehicle.rootNode )
-				shopSpec = UniversalAutoloadManager.lastShopVehicle.spec_universalAutoload
-				UniversalAutoloadManager.lastShopVehicle = nil
-			end
-			
-			if shopSpec and UniversalAutoloadManager.shopConfig and spec.selectedConfigs == shopSpec.selectedConfigs then
-				
-				print("CLONE SETTINGS FROM SHOP VEHICLE")
-				local shopVolume = UniversalAutoloadManager.shopConfig.loadingVolume
-				
-				print("TO DO: import the rest of the parameters here...")
-				spec.loadArea = spec.loadArea or {}
-				shopSpec.loadArea = shopSpec.loadArea or {}
-				for i, boundingBox in (shopVolume.bbs) do
-					local s = boundingBox:getSize()
-					local o = boundingBox:getOffset()
-					shopSpec.loadArea[i] = {
-						width = s.x,
-						height = s.y,
-						length = s.z,
-						offset = {o.x, o.y-s.y/2, o.z},
-					}
-					spec.loadArea[i] = shopSpec.loadArea[i]
-				end
-				-- DebugUtil.printTableRecursively(spec, "  --", 0, 2)
-
-				if UniversalAutoload.VEHICLES_LOOKUP[self] == nil then
-					UniversalAutoload.VEHICLES_LOOKUP[self] = {}
-					if debugVehicles then print(self:getFullName() .. ": UAL DETECTED") end
-					if self.addDeleteListener then
-						self:addDeleteListener(self, "ualOnDeleteVehicle_Callback")
-					end
-				end
-			
-			end
-
-		end
-		
-		if xmlFile then
-			xmlFile:delete()
-		end
-
-		if spec.loadArea and spec.loadArea[1] and spec.loadArea[1].offset
-		and spec.loadArea[1].width and spec.loadArea[1].length and spec.loadArea[1].height then
-			if debugVehicles then print("Universal Autoload Enabled: " .. self:getFullName()) end
-			spec.isAutoloadAvailable = true
-			if self.propertyState ~= VehiclePropertyState.SHOP_CONFIG then
-				UniversalAutoload.VEHICLES[self] = self
-			end
-		else
-			if debugVehicles then print("Universal Autoload DISABLED: " .. self:getFullName()) end
-			UniversalAutoload.removeEventListeners(self)
-			spec.isAutoloadAvailable = false
-			return
-		end
+	if configurationAdded then
+		print(self:getFullName() .. ": UAL ACTIVATED")
+	else
+		print(self:getFullName() .. ": UAL SETTINGS WERE NOT ADDED")
 	end
 
 	if self.isServer and self.propertyState ~= VehiclePropertyState.SHOP_CONFIG then
-
+		print("INITIALISE UAL VEHICLE (ONLOAD)")
+		
+		UniversalAutoload.VEHICLES[self] = self
+		if self.addDeleteListener then
+			self:addDeleteListener(self, "ualOnDeleteVehicle_Callback")
+		end
+		
 		--initialise server only arrays
 		spec.triggers = {}
 		spec.loadedObjects = {}
 		spec.availableObjects = {}
 		spec.autoLoadingObjects = {}
 		spec.objectToLoadingAreaIndex = {}
-		
-		local x0, y0, z0 = math.huge, math.huge, math.huge
-		local x1, y1, z1 = -math.huge, -math.huge, -math.huge
-		
-		local actualRootNode = self.rootNode
-		-- local actualRootNode = (self.spec_tensionBelts and self.spec_tensionBelts.rootNode) or self.rootNode
-		-- if spec.offsetRoot then
-			-- local otherOffset = self.i3dMappings[spec.offsetRoot]
-			-- if otherOffset then
-				-- actualRootNode = otherOffset.nodeId or actualRootNode
-			-- end
-		-- end
-		
-		for i, loadArea in pairs(spec.loadArea) do
-			-- create bounding box for loading area
-			local offset = loadArea.offset
-			local loadAreaRoot = actualRootNode
-			-- if spec.loadArea[i].offsetRoot then
-				-- local otherOffset = self.i3dMappings[spec.loadArea[i].offsetRoot]
-				-- if otherOffset then
-					-- loadAreaRoot = otherOffset.nodeId or actualRootNode
-				-- end
-			-- end
-			loadArea.rootNode = createTransformGroup("LoadAreaCentre")
-			link(loadAreaRoot, loadArea.rootNode)
-			setTranslation(loadArea.rootNode, offset[1], offset[2], offset[3])
 
-			loadArea.startNode = createTransformGroup("LoadAreaStart")
-			link(loadAreaRoot, loadArea.startNode)
-			setTranslation(loadArea.startNode, offset[1], offset[2], offset[3]+(loadArea.length/2))
-
-			loadArea.endNode = createTransformGroup("LoadAreaEnd")
-			link(loadAreaRoot, loadArea.endNode)
-			setTranslation(loadArea.endNode, offset[1], offset[2], offset[3]-(loadArea.length/2))
-
-			-- measure bounding box for all loading areas
-			if x0 > offset[1]-(loadArea.width/2) then x0 = offset[1]-(loadArea.width/2) end
-			if x1 < offset[1]+(loadArea.width/2) then x1 = offset[1]+(loadArea.width/2) end
-			if y0 > offset[2] then y0 = offset[2] end
-			if y1 < offset[2]+(loadArea.height) then y1 = offset[2]+(loadArea.height) end
-			if z0 > offset[3]-(loadArea.length/2) then z0 = offset[3]-(loadArea.length/2) end
-			if z1 < offset[3]+(loadArea.length/2) then z1 = offset[3]+(loadArea.length/2) end
-		end
+		--create transform groups for triggers
+		UniversalAutoload.initialiseTransformGroups(self)
 	
-		-- create bounding box for all loading areas
-		spec.loadVolume = {}
-		spec.loadVolume.width = x1-x0
-		spec.loadVolume.height = y1-y0
-		spec.loadVolume.length = z1-z0
-		
-		local offsetX, offsetY, offsetZ = (x0+x1)/2, y0, (z0+z1)/2
-		
-		spec.loadVolume.rootNode = createTransformGroup("loadVolumeCentre")
-		link(actualRootNode, spec.loadVolume.rootNode)
-		setTranslation(spec.loadVolume.rootNode, offsetX, offsetY, offsetZ)
-
-		spec.loadVolume.startNode = createTransformGroup("loadVolumeStart")
-		link(actualRootNode, spec.loadVolume.startNode)
-		setTranslation(spec.loadVolume.startNode, offsetX, offsetY, offsetZ+(spec.loadVolume.length/2))
-		
-		spec.loadVolume.endNode = createTransformGroup("loadVolumeEnd")
-		link(actualRootNode, spec.loadVolume.endNode)
-		setTranslation(spec.loadVolume.endNode, offsetX, offsetY, offsetZ-(spec.loadVolume.length/2))
-
-		-- load trigger i3d file
-		local i3dFilename = UniversalAutoload.path .. "triggers/UniversalAutoloadTriggers.i3d"
-		local triggersRootNode, sharedLoadRequestId = g_i3DManager:loadSharedI3DFile(i3dFilename, false, false)
-
-		-- create triggers
-		local unloadingTrigger = {}
-		unloadingTrigger.node = I3DUtil.getChildByName(triggersRootNode, "unloadingTrigger")
-		if unloadingTrigger.node then
-			unloadingTrigger.name = "unloadingTrigger"
-			link(spec.loadVolume.rootNode, unloadingTrigger.node)
-			setRotation(unloadingTrigger.node, 0, 0, 0)
-			
-			local sideBoundary = 0
-			local rearBoundary = 0
-			if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
-				sideBoundary = spec.loadVolume.width/4
-			end
-			if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
-				rearBoundary = spec.loadVolume.width/4
-			end
-			setTranslation(unloadingTrigger.node, 0, spec.loadVolume.height/2, rearBoundary/2)
-			setScale(unloadingTrigger.node, spec.loadVolume.width-sideBoundary, spec.loadVolume.height, spec.loadVolume.length-rearBoundary)
-			
-			table.insert(spec.triggers, unloadingTrigger)
-			addTrigger(unloadingTrigger.node, "ualUnloadingTrigger_Callback", self)
-			-- print("created" .. unloadingTrigger.name)
-		end
-		
-		local playerTrigger = {}
-		playerTrigger.node = I3DUtil.getChildByName(triggersRootNode, "playerTrigger")
-		if playerTrigger.node then
-			playerTrigger.name = "playerTrigger"
-			link(spec.loadVolume.rootNode, playerTrigger.node)
-			setRotation(playerTrigger.node, 0, 0, 0)
-			setTranslation(playerTrigger.node, 0, spec.loadVolume.height/2, 0)
-			setScale(playerTrigger.node, 5*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+2*spec.loadVolume.width)
-			
-			table.insert(spec.triggers, playerTrigger)
-			addTrigger(playerTrigger.node, "ualPlayerTrigger_Callback", self)
-			-- print("created" .. playerTrigger.name)
-		end
-
-		if not UniversalAutoload.manualLoadingOnly then
-
-			local leftPickupTrigger = {}
-			leftPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "leftPickupTrigger")
-			if leftPickupTrigger.node then
-				leftPickupTrigger.name = "leftPickupTrigger"
-				link(spec.loadVolume.rootNode, leftPickupTrigger.node)
-				
-				local width, height, length = 1.66*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+spec.loadVolume.width/2
-
-				setRotation(leftPickupTrigger.node, 0, 0, 0)
-				setTranslation(leftPickupTrigger.node, 1.1*(width+spec.loadVolume.width)/2, 0, 0)
-				setScale(leftPickupTrigger.node, width, height, length)
-
-				table.insert(spec.triggers, leftPickupTrigger)
-				addTrigger(leftPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-				-- print("created" .. leftPickupTrigger.name)
-			end
-			
-			local rightPickupTrigger = {}
-			rightPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rightPickupTrigger")
-			if rightPickupTrigger.node then
-				rightPickupTrigger.name = "rightPickupTrigger"
-				link(spec.loadVolume.rootNode, rightPickupTrigger.node)
-				
-				local width, height, length = 1.66*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+spec.loadVolume.width/2
-
-				setRotation(rightPickupTrigger.node, 0, 0, 0)
-				setTranslation(rightPickupTrigger.node, -1.1*(width+spec.loadVolume.width)/2, 0, 0)
-				setScale(rightPickupTrigger.node, width, height, length)
-
-				table.insert(spec.triggers, rightPickupTrigger)
-				addTrigger(rightPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-				-- print("created" .. rightPickupTrigger.name)
-			end
-			
-			if spec.rearUnloadingOnly then
-				local rearPickupTrigger = {}
-				rearPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rearPickupTrigger")
-				if rearPickupTrigger.node then
-					rearPickupTrigger.name = "rearPickupTrigger"
-					link(spec.loadVolume.rootNode, rearPickupTrigger.node)
-					
-					local squareSide = spec.loadVolume.length+spec.loadVolume.width
-					local width, height, length = squareSide, 2*spec.loadVolume.height, 0.8*squareSide
-
-					setRotation(rearPickupTrigger.node, 0, 0, 0)
-					setTranslation(rearPickupTrigger.node, 0, 0, -1.1*(length+spec.loadVolume.length)/2)
-					setScale(rearPickupTrigger.node, width, height, length)
-
-					table.insert(spec.triggers, rearPickupTrigger)
-					addTrigger(rearPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-					-- print("created" .. rearPickupTrigger.name)
-				end
-			end
-			
-			if spec.frontUnloadingOnly then
-				local frontPickupTrigger = {}
-				frontPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "frontPickupTrigger")
-				if frontPickupTrigger.node then
-					frontPickupTrigger.name = "frontPickupTrigger"
-					link(spec.loadVolume.rootNode, frontPickupTrigger.node)
-					
-					local squareSide = spec.loadVolume.length+spec.loadVolume.width
-					local width, height, length = squareSide, 2*spec.loadVolume.height, 0.8*squareSide
-
-					setRotation(frontPickupTrigger.node, 0, 0, 0)
-					setTranslation(frontPickupTrigger.node, 0, 0, 1.1*(length+spec.loadVolume.length)/2)
-					setScale(frontPickupTrigger.node, width, height, length)
-
-					table.insert(spec.triggers, frontPickupTrigger)
-					addTrigger(frontPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-					-- print("created" .. frontPickupTrigger.name)
-				end
-			end
-		end
-		
-		if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
-			local rearAutoTrigger = {}
-			rearAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rearAutoTrigger")
-			if rearAutoTrigger.node then
-				rearAutoTrigger.name = "rearAutoTrigger"
-				link(spec.loadVolume.rootNode, rearAutoTrigger.node)
-				
-				local depth = 0.05
-				local recess = spec.loadVolume.width/4
-				local boundary = spec.loadVolume.width/4
-				local width, height, length = spec.loadVolume.width-boundary, spec.loadVolume.height, depth
-
-				setRotation(rearAutoTrigger.node, 0, 0, 0)
-				setTranslation(rearAutoTrigger.node, 0, spec.loadVolume.height/2, recess-(spec.loadVolume.length/2)-depth )
-				setScale(rearAutoTrigger.node, width, height, length)
-
-				table.insert(spec.triggers, rearAutoTrigger)
-				addTrigger(rearAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
-				spec.rearTriggerId = rearAutoTrigger.node
-				-- print("created" .. rearAutoTrigger.name)
-			end
-		end
-		
-		if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
-			local depth = 0.05
-			local recess = spec.loadVolume.width/7
-			local boundary = 2*spec.loadVolume.width/3
-			local width, height, length = depth, spec.loadVolume.height, spec.loadVolume.length-boundary
-				
-			local leftAutoTrigger = {}
-			leftAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "leftAutoTrigger")
-			if leftAutoTrigger.node then
-				leftAutoTrigger.name = "leftAutoTrigger"
-				link(spec.loadVolume.rootNode, leftAutoTrigger.node)
-
-				setRotation(leftAutoTrigger.node, 0, 0, 0)
-				setTranslation(leftAutoTrigger.node, 2*depth+(spec.loadVolume.width/2)-recess, spec.loadVolume.height/2, 0)
-				setScale(leftAutoTrigger.node, width, height, length)
-
-				table.insert(spec.triggers, leftAutoTrigger)
-				addTrigger(leftAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
-				-- print("created" .. leftAutoTrigger.name)
-			end
-			local rightAutoTrigger = {}
-			rightAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rightAutoTrigger")
-			if rightAutoTrigger.node then
-				rightAutoTrigger.name = "rightAutoTrigger"
-				link(spec.loadVolume.rootNode, rightAutoTrigger.node)
-	
-				setRotation(rightAutoTrigger.node, 0, 0, 0)
-				setTranslation(rightAutoTrigger.node, -(2*depth+(spec.loadVolume.width/2)-recess), spec.loadVolume.height/2, 0)
-				setScale(rightAutoTrigger.node, width, height, length)
-
-				table.insert(spec.triggers, rightAutoTrigger)
-				addTrigger(rightAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
-				-- print("created" .. rightAutoTrigger.name)
-			end
-		end
-		
-		delete(triggersRootNode)
-
 		--server only
 		spec.isLoading = false
 		spec.isUnloading = false
@@ -1646,7 +1586,6 @@ function UniversalAutoload:onLoad(savegame)
 		spec.totalUnloadCount = 0
 		spec.validLoadCount = 0
 		spec.validUnloadCount = 0
-
 	end
 
 	--client+server
@@ -1721,11 +1660,7 @@ function UniversalAutoload:onPostLoad(savegame)
 			spec.resetLoadingLayer = false
 			spec.resetLoadingPattern = false
 		end
-		
-		UniversalAutoload.updateWidthAxis(self)
-		UniversalAutoload.updateLengthAxis(self)
-		UniversalAutoload.updateHeightAxis(self)
-	
+
 	end
 end
 
@@ -2090,6 +2025,7 @@ end
 -- NETWORKING FUNCTIONS
 function UniversalAutoload:onReadStream(streamId, connection)
 	local spec = self.spec_universalAutoload
+	print("UAL - ON READ STREAM")
 	
 	if streamReadBool(streamId) then
 		print("Universal Autoload Enabled: " .. self:getFullName())
@@ -2113,6 +2049,25 @@ function UniversalAutoload:onReadStream(streamId, connection)
 		spec.rearUnloadingOnly = streamReadBool(streamId)
 		spec.frontUnloadingOnly = streamReadBool(streamId)
 		
+		print("currentTipside: " .. tostring(spec.currentTipside))
+		print("currentLoadside: " .. tostring(spec.currentLoadside))
+		print("currentMaterialIndex: " .. tostring(spec.currentMaterialIndex))
+		print("currentContainerIndex: " .. tostring(spec.currentContainerIndex))
+		print("currentLoadingFilter: " .. tostring(spec.currentLoadingFilter))
+		print("useHorizontalLoading: " .. tostring(spec.useHorizontalLoading))
+		print("baleCollectionMode: " .. tostring(spec.baleCollectionMode))
+		print("isLoading: " .. tostring(spec.isLoading))
+		print("isUnloading: " .. tostring(spec.isUnloading))
+		print("activeLoading: " .. tostring(spec.activeLoading))
+		print("validLoadCount: " .. tostring(spec.validLoadCount))
+		print("validUnloadCount: " .. tostring(spec.validUnloadCount))
+		print("isBoxTrailer: " .. tostring(spec.isBoxTrailer))
+		print("isLogTrailer: " .. tostring(spec.isLogTrailer))
+		print("isBaleTrailer: " .. tostring(spec.isBaleTrailer))
+		print("isCurtainTrailer: " .. tostring(spec.isCurtainTrailer))
+		print("rearUnloadingOnly: " .. tostring(spec.rearUnloadingOnly))
+		print("frontUnloadingOnly: " .. tostring(spec.frontUnloadingOnly))
+		
 		if self.propertyState ~= VehiclePropertyState.SHOP_CONFIG then
 			UniversalAutoload.VEHICLES[self] = self
 		end
@@ -2125,6 +2080,8 @@ end
 --
 function UniversalAutoload:onWriteStream(streamId, connection)
 	local spec = self.spec_universalAutoload
+	print("UAL - ON WRITE STREAM")
+	
 	if spec and spec.isAutoloadAvailable then
 		streamWriteBool(streamId, true)
 		spec.currentTipside = spec.currentTipside or "left"
@@ -2204,11 +2161,12 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 		local shopVehicle = UniversalAutoloadManager.shopVehicle
 		local lastShopVehicle = UniversalAutoloadManager.lastShopVehicle
 		
-		if lastShopVehicle and self == UniversalAutoloadManager.lastShopVehicle then
-			print(self.rootNode .. " IS THE LAST SHOP VEHICLE")
+		if lastShopVehicle and self == lastShopVehicle then
+			-- IS THE LAST SHOP VEHICLE
 		
-		elseif shopVehicle and self == UniversalAutoloadManager.shopVehicle then
-			-- CONFIGURE LOADING AREA WHEN INSIDE SHOP
+		elseif shopVehicle and self == shopVehicle then
+			-- IS THE CURRENT SHOP VEHICLE
+			
 			if spec.resetToDefault then
 				print("RESET TO DEFAULT")
 				spec.resetToDefault = nil
@@ -2216,7 +2174,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				spec.selectedConfigs = nil
 			end
 			
-			if spec.selectedConfigs then
+			if spec.selectedConfigs then --AND SPEC IS VALID!!!
 				UniversalAutoloadManager.importLoadingVolume(self)
 			else
 				UniversalAutoloadManager.createLoadingVolumeInsideShop(self)
@@ -2227,8 +2185,31 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 					UniversalAutoloadManager.editLoadingVolumeInsideShop(self)
 				end
 			end
-			return
 		end
+		return
+	end
+	
+	if self.isServer and not spec.initialised then
+		
+		if spec.isAutoloadAvailable == false then
+			print("Autoload NOT available - REMOVE Event Listeners")
+			UniversalAutoload.removeEventListeners(self)
+		else
+			if spec.loadArea then
+				print("INITIALISE UAL VEHICLE (ON UPDATE)")
+				UniversalAutoload.updateLoadAreaTransformGroups(self)
+				UniversalAutoload.updateLoadingTriggers(self)
+				UniversalAutoload.updateWidthAxis(self)
+				UniversalAutoload.updateLengthAxis(self)
+				UniversalAutoload.updateHeightAxis(self)
+				spec.initialised = true
+				
+				DebugUtil.printTableRecursively(spec, "--", 0, 2)
+				
+				UniversalAutoload.updateActionEventText(self)
+			end
+		end
+		return
 	end
 
 	spec.countedPallets = false
@@ -2299,7 +2280,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 	end
 	
 	if self.isServer then
-	
+
 		-- DETECT WHEN FOLDING STOPS IF IT WAS STARTED
 		if spec.foldAnimationStarted then
 			if not self:ualGetIsFolding() then
@@ -2335,6 +2316,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				if not UniversalAutoload.loadObject(self, object) then
 					--UNABLE_TO_LOAD_OBJECT
 					UniversalAutoload.showWarningMessage(self, 3)
+					UniversalAutoload.updateActionEventText(self)
 				end
 				spec.autoLoadingObjects[object] = nil
 			end
@@ -2612,6 +2594,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								end
 								if debugLoading then print("STOP LOADING") end
 								UniversalAutoload.stopLoading(self)
+								UniversalAutoload.updateActionEventText(self)
 							
 							end
 						end
@@ -2636,6 +2619,8 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 			
 			UniversalAutoload.determineTipside(self)
 			UniversalAutoload.countActivePallets(self)
+			
+			g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " - " .. spec.validUnloadCount .. " / " .. spec.totalUnloadCount))
 
 		end
 	end
@@ -2666,7 +2651,7 @@ function UniversalAutoload:onUpdate(dt, isActiveForInput, isActiveForInputIgnore
 end
 
 function UniversalAutoload:ualOnDeleteVehicle_Callback()
-	UniversalAutoload.VEHICLES_LOOKUP[self] = nil
+	UniversalAutoload.VEHICLES[self] = nil
 	if debugVehicles then print(self:getFullName() .. ": UAL DELETED") end
 end
 
@@ -2937,9 +2922,10 @@ function UniversalAutoload:countActivePallets()
 			end
 			spec.validUnloadCount = validUnloadCount
 		end
-		if refreshMenuText then
+		-- if refreshMenuText then
+			-- print("*** updateActionEventText ***")
 			UniversalAutoload.updateActionEventText(self)
-		end
+		-- end
 	end
 
 	if debugLoading then
@@ -3193,7 +3179,7 @@ function UniversalAutoload.clearPalletFromAllVehicles(self, object)
 						if debugLoading then
 							print(" Clear Pallet from " .. vehicle:getFullName())
 						end
-						UniversalAutoload.resetLoadingArea(vehicle)
+						-- UniversalAutoload.resetLoadingArea(vehicle)
 						vehicle:setAllTensionBeltsActive(false)
 					elseif loadedObjectRemoved then
 						if vehicle.spec_tensionBelts.areBeltsFasten then
@@ -4213,9 +4199,9 @@ function UniversalAutoload.getSplitShapeObject( objectId )
 				UniversalAutoload.SPLITSHAPES_LOOKUP[objectId] = logObject
 				
 				local rx, ry, rz = getWorldRotation(logObject.nodeId)
-				print(string.format("nodeId R  = %f, %f, %f", rx, ry, rz))
+				-- print(string.format("nodeId R   = %f, %f, %f", rx, ry, rz))
 				local prx, pry, prz = getWorldRotation(logObject.positionNodeId)
-				print(string.format("position R = %f, %f, %f", prx, pry, prz))
+				-- print(string.format("position R = %f, %f, %f", prx, pry, prz))
 			end
 			
 			return UniversalAutoload.SPLITSHAPES_LOOKUP[objectId]
@@ -5142,7 +5128,7 @@ function UniversalAutoload.getContainerType(object)
 			
 		else
 			
-			print(" OBJECT NOT VALID")
+			print("...new object type was not valid")
 			UniversalAutoload.INVALID_OBJECTS[name] = true
 		end
 		-- DebugUtil.printTableRecursively(object or {}, "--", 0, 1)

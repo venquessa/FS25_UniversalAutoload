@@ -38,7 +38,7 @@ function SetTipsideEvent.sendEvent(vehicle, tipside, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Set Tipside Event")
-			g_server:broadcastEvent(SetTipsideEvent.new(vehicle, tipside), nil, nil, object)
+			g_server:broadcastEvent(SetTipsideEvent.new(vehicle, tipside), nil, nil, vehicle)
 		else
 			--print("client: Set Tipside Event")
 			g_client:getServerConnection():sendEvent(SetTipsideEvent.new(vehicle, tipside))

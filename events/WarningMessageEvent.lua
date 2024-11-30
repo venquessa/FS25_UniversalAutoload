@@ -38,7 +38,7 @@ function WarningMessageEvent.sendEvent(vehicle, messageId, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			-- print("server: Warning Message Event")
-			g_server:broadcastEvent(WarningMessageEvent.new(vehicle, messageId), nil, nil, object)
+			g_server:broadcastEvent(WarningMessageEvent.new(vehicle, messageId), nil, nil, vehicle)
 		else
 			print("client: Warning Message Event - SHOULD BE TRIGGERED BY SERVER ONLY")
 		end

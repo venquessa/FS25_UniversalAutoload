@@ -38,7 +38,7 @@ function SetLoadsideEvent.sendEvent(vehicle, loadside, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Set Loadside Event")
-			g_server:broadcastEvent(SetLoadsideEvent.new(vehicle, loadside), nil, nil, object)
+			g_server:broadcastEvent(SetLoadsideEvent.new(vehicle, loadside), nil, nil, vehicle)
 		else
 			--print("client: Set Loadside Event")
 			g_client:getServerConnection():sendEvent(SetLoadsideEvent.new(vehicle, loadside))

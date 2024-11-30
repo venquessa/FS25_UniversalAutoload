@@ -38,7 +38,7 @@ function CycleContainerEvent.sendEvent(vehicle, direction, noEventSend)
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Cycle Container Event")
-			g_server:broadcastEvent(CycleContainerEvent.new(vehicle, direction), nil, nil, object)
+			g_server:broadcastEvent(CycleContainerEvent.new(vehicle, direction), nil, nil, vehicle)
 		else
 			--print("client: Cycle Container Event")
 			g_client:getServerConnection():sendEvent(CycleContainerEvent.new(vehicle, direction))

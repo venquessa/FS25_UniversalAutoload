@@ -45,7 +45,7 @@ function UpdateActionEvents.sendEvent(vehicle, loadCount, unloadCount, noEventSe
 	if noEventSend == nil or noEventSend == false then
 		if g_server ~= nil then
 			--print("server: Update Action Events")
-			g_server:broadcastEvent(UpdateActionEvents.new(vehicle, loadCount, unloadCount), nil, nil, object)
+			g_server:broadcastEvent(UpdateActionEvents.new(vehicle, loadCount, unloadCount), nil, nil, vehicle)
 		else
 			--print("client: Update Action Events")
 			g_client:getServerConnection():sendEvent(UpdateActionEvents.new(vehicle))
