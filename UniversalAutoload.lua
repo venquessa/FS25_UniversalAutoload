@@ -1410,6 +1410,12 @@ function UniversalAutoload:updateLoadAreaTransformGroups()
 		if z1 < offset[3]+(loadArea.length/2) then z1 = offset[3]+(loadArea.length/2) end
 	end
 	
+	if x0 == math.huge or y0 == math.huge or z0 == math.huge or
+		x1 == -math.huge or y1 == -math.huge or z1 == -math.huge then
+		print("LoadArea size could not be calculated")
+		return
+	end
+	
 	spec.loadVolume.width = x1-x0
 	spec.loadVolume.height = y1-y0
 	spec.loadVolume.length = z1-z0
@@ -1558,7 +1564,7 @@ function UniversalAutoload:onLoad(savegame)
 	end
 
 	if self.isServer and self.propertyState ~= VehiclePropertyState.SHOP_CONFIG then
-		print("INITIALISE UAL VEHICLE (ONLOAD)")
+		print("INITIALISE UAL VEHICLE (ONLOAD) " ..tostring(self.rootNode))
 		
 		UniversalAutoload.VEHICLES[self] = self
 		if self.addDeleteListener then
@@ -2192,11 +2198,12 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 	if self.isServer and not spec.initialised then
 		
 		if spec.isAutoloadAvailable == false then
-			print("Autoload NOT available - REMOVE Event Listeners")
+			print("Autoload NOT available - REMOVE Event Listeners " ..tostring(self.rootNode))
 			UniversalAutoload.removeEventListeners(self)
+			spec.initialised = false
 		else
-			if spec.loadArea then
-				print("INITIALISE UAL VEHICLE (ON UPDATE)")
+			if spec.loadArea and #spec.loadArea > 0 then
+				print("INITIALISE UAL VEHICLE (ON UPDATE) " ..tostring(self.rootNode))
 				UniversalAutoload.updateLoadAreaTransformGroups(self)
 				UniversalAutoload.updateLoadingTriggers(self)
 				UniversalAutoload.updateWidthAxis(self)
