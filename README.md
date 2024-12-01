@@ -4,6 +4,7 @@ DEVELOPMENT RELEASE - Please test and leave any bug reports or feedback.
 ---------------------------------------------------
 
 **READ THIS FIRST**
+
 There seems to be a lot of confusion around how the settings are saved and loaded:
 - If you already have a vehicle on a savegame before adding UAL, then you ned to purchase another copy of the same vehicle to create the setting, and then restart the save game you want to use. You can buy it in any savegame, just the act of buying it will create a global default for that vehicle.
 - At the moment the configuration file is updated/saved (in mod settings) when you BUY a vehicle **or** when you apply changes to a vehicle in the workshop (e.g. just change the number plate).  This is a temprary workaround until I add a proper button to "apply" the new settings.
