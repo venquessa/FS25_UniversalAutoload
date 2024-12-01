@@ -2113,9 +2113,6 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 	-- print("UniversalAutoload - onUpdate")
 	local spec = self.spec_universalAutoload
 	
-	g_currentMission:addExtraPrintText("isActiveForInput: " .. tostring(isActiveForInput))
-	g_currentMission:addExtraPrintText("isActiveIgnoreSelection: " .. tostring(isActiveForInputIgnoreSelection))
-	
 	-- local boundingBox = BoundingBox.new(self)
 	-- boundingBox:draw()
 
