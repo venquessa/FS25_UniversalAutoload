@@ -706,9 +706,9 @@ function UniversalAutoloadManager.saveVehicleConfigurationToSettings(vehicle, no
 	UniversalAutoload.ChangeSettingsEvent.sendEvent(vehicle, noEventSend)
 end
 
-function UniversalAutoloadManager:onVehicleBuyEvent(errorCode)
+function UniversalAutoloadManager:onVehicleBuyEvent(errorCode, leaseVehicle, price)
 	if errorCode == BuyVehicleEvent.STATE_SUCCESS then
-		print("UAL - ON VEHICLE BUY EVENT")
+		print("UAL - ON VEHICLE BUY EVENT " .. (leaseVehicle and "(leased)" or "(owned)"))
 		-- do nothing here for now..
 		-- UniversalAutoloadManager.saveShopConfiguration()
 	end
@@ -1162,17 +1162,21 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 					local selectedConfigsList = tostring(selectedConfigs):split(",")
 					for _, configListPart in pairs(selectedConfigsList) do
 						if tostring(configListPart) == UniversalAutoload.ALL or tostring(configId):find(tostring(configListPart)) then
-							print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
-							-- DebugUtil.printTableRecursively(config, "  --", 0, 1)
-							spec.loadedVehicleConfig = {
-								configFileName = configFileName,
-								selectedConfigs = selectedConfigs,
-							}
 							
-							for id, value in pairs(deepCopy(config)) do
-								spec[id] = value
+							if config and config.loadArea and #config.loadArea > 0 then
+								print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
+								spec.loadedVehicleConfig = {
+									configFileName = configFileName,
+									selectedConfigs = selectedConfigs,
+								}
+								for id, value in pairs(deepCopy(config)) do
+									spec[id] = value
+								end
+								configurationAdded = true
+							else
+								print("*** LOAD AREA MISSING FROM CONFIG - please check mod settings file ***")
+								DebugUtil.printTableRecursively(config, "  --", 0, 2)
 							end
-							configurationAdded = true
 						end
 					end
 				end
@@ -1195,7 +1199,8 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 		-- configuration will be handled in onUpdate loop
 		return configurationAdded
 		
-	elseif vehicle.propertyState == VehiclePropertyState.OWNED then
+	elseif vehicle.propertyState == VehiclePropertyState.OWNED
+		or vehicle.propertyState == VehiclePropertyState.LEASED then
 		print("CREATE REAL VEHICLE: " .. vehicle:getFullName())
 		spec.isInsideShop = false
 		
@@ -1239,10 +1244,10 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 				}
 			end
 			configurationAdded = true
-			print("DEBUG: importSpec.loadArea after cloning:")
-			DebugUtil.printTableRecursively(importSpec.loadArea, "  --", 0, 2)
-			print("DEBUG: spec.loadArea after cloning:")
-			DebugUtil.printTableRecursively(spec.loadArea, "  --", 0, 2)
+			-- print("DEBUG: importSpec.loadArea after cloning:")
+			-- DebugUtil.printTableRecursively(importSpec.loadArea, "  --", 0, 2)
+			-- print("DEBUG: spec.loadArea after cloning:")
+			-- DebugUtil.printTableRecursively(spec.loadArea, "  --", 0, 2)
 
 			UniversalAutoloadManager.saveVehicleConfigurationToSettings(vehicle)
 			

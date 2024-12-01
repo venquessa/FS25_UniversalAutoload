@@ -384,17 +384,15 @@ function UniversalAutoload:updateActionEventKeys()
 				
 			-- end
 			
-			if self.isServer then
-				local valid, actionEventId = self:addActionEvent(spec.actionEvents, actions.TOGGLE_SHOW_LOADING, self, UniversalAutoload.actionEventToggleShowLoading, false, true, false, true, nil, nil, ignoreCollisions, true)
-				g_inputBinding:setActionEventTextPriority(actionEventId, lowPriority)
-				-- spec.ToggleShowLoadingActionEventId = actionEventId
-				if debugKeys then print("  TOGGLE_SHOW_LOADING: "..tostring(valid)) end
-				
-				local valid, actionEventId = self:addActionEvent(spec.actionEvents, actions.TOGGLE_SHOW_DEBUG, self, UniversalAutoload.actionEventToggleShowDebug, false, true, false, true, nil, nil, ignoreCollisions, true)
-				g_inputBinding:setActionEventTextPriority(actionEventId, lowPriority)
-				-- spec.ToggleShowLoadingActionEventId = actionEventId
-				if debugKeys then print("  TOGGLE_SHOW_DEBUG: "..tostring(valid)) end
-			end
+			local valid, actionEventId = self:addActionEvent(spec.actionEvents, actions.TOGGLE_SHOW_LOADING, self, UniversalAutoload.actionEventToggleShowLoading, false, true, false, true, nil, nil, ignoreCollisions, true)
+			g_inputBinding:setActionEventTextPriority(actionEventId, lowPriority)
+			-- spec.toggleShowLoadingActionEventId = actionEventId
+			if debugKeys then print("  TOGGLE_SHOW_LOADING: "..tostring(valid)) end
+			
+			local valid, actionEventId = self:addActionEvent(spec.actionEvents, actions.TOGGLE_SHOW_DEBUG, self, UniversalAutoload.actionEventToggleShowDebug, false, true, false, true, nil, nil, ignoreCollisions, true)
+			g_inputBinding:setActionEventTextPriority(actionEventId, lowPriority)
+			-- spec.toggleShowLoadingActionEventId = actionEventId
+			if debugKeys then print("  TOGGLE_SHOW_DEBUG: "..tostring(valid)) end
 
 			if debugKeys then print("*** updateActionEventKeys ***") end
 		end
@@ -1163,10 +1161,10 @@ function UniversalAutoload:updateActionEventText(loadCount, unloadCount, noEvent
 	local spec = self.spec_universalAutoload
 	
 	if self.isClient then
-		if loadCount then
+		if loadCount ~= nil then
 			spec.validLoadCount = loadCount
 		end
-		if unloadCount then
+		if unloadCount ~= nil then
 			spec.validUnloadCount = unloadCount
 		end
 		-- print("Valid Load Count = " .. tostring(spec.validLoadCount) .. " / " .. tostring(spec.validUnloadCount) )
@@ -1257,113 +1255,45 @@ function UniversalAutoload:initialiseTransformGroups(actualRootNode)
 	
 	spec.loadVolume.endNode = createTransformGroup("loadVolumeEnd")
 	link(actualRootNode, spec.loadVolume.endNode)
+	
+	
+	spec.loadVolume.width = self.size.width
+	spec.loadVolume.height = self.size.height
+	spec.loadVolume.length = self.size.length
+	local offsetX = self.size.widthOffset
+	local offsetY = self.size.heightOffset
+	local offsetZ = self.size.lengthOffset
+	setTranslation(spec.loadVolume.rootNode, offsetX, offsetY, offsetZ)
+	setTranslation(spec.loadVolume.startNode, offsetX, offsetY, offsetZ+(spec.loadVolume.length/2))
+	setTranslation(spec.loadVolume.endNode, offsetX, offsetY, offsetZ-(spec.loadVolume.length/2))
 
 	-- load trigger i3d file
 	local i3dFilename = UniversalAutoload.path .. "triggers/UniversalAutoloadTriggers.i3d"
 	local triggersRootNode, sharedLoadRequestId = g_i3DManager:loadSharedI3DFile(i3dFilename, false, false)
 
 	-- create triggers
-	spec.triggersByName = {}
-	local unloadingTrigger = {}
-	unloadingTrigger.node = I3DUtil.getChildByName(triggersRootNode, "unloadingTrigger")
-	if unloadingTrigger.node then
-		unloadingTrigger.name = "unloadingTrigger"
-		link(spec.loadVolume.rootNode, unloadingTrigger.node)
-		table.insert(spec.triggers, unloadingTrigger)
-		addTrigger(unloadingTrigger.node, "ualUnloadingTrigger_Callback", self)
-		spec.triggersByName["unloadingTrigger"] = unloadingTrigger
-		print("  created" .. unloadingTrigger.name)
-	end
-
-	local playerTrigger = {}
-	playerTrigger.node = I3DUtil.getChildByName(triggersRootNode, "playerTrigger")
-	if playerTrigger.node then
-		playerTrigger.name = "playerTrigger"
-		link(spec.loadVolume.rootNode, playerTrigger.node)
-		table.insert(spec.triggers, playerTrigger)
-		addTrigger(playerTrigger.node, "ualPlayerTrigger_Callback", self)
-		spec.triggersByName["playerTrigger"] = playerTrigger
-		print("  created" .. playerTrigger.name)
-	end
-
-	local leftPickupTrigger = {}
-	leftPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "leftPickupTrigger")
-	if leftPickupTrigger.node then
-		leftPickupTrigger.name = "leftPickupTrigger"
-		link(spec.loadVolume.rootNode, leftPickupTrigger.node)
-		table.insert(spec.triggers, leftPickupTrigger)
-		addTrigger(leftPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-		spec.triggersByName["leftPickupTrigger"] = leftPickupTrigger
-		print("  created" .. leftPickupTrigger.name)
-	end
-
-	local rightPickupTrigger = {}
-	rightPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rightPickupTrigger")
-	if rightPickupTrigger.node then
-		rightPickupTrigger.name = "rightPickupTrigger"
-		link(spec.loadVolume.rootNode, rightPickupTrigger.node)
-		table.insert(spec.triggers, rightPickupTrigger)
-		addTrigger(rightPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-		spec.triggersByName["rightPickupTrigger"] = rightPickupTrigger
-		print("  created" .. rightPickupTrigger.name)
-	end
-
-	local rearPickupTrigger = {}
-	rearPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rearPickupTrigger")
-	if rearPickupTrigger.node then
-		rearPickupTrigger.name = "rearPickupTrigger"
-		link(spec.loadVolume.rootNode, rearPickupTrigger.node)
-		table.insert(spec.triggers, rearPickupTrigger)
-		addTrigger(rearPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-		spec.triggersByName["rearPickupTrigger"] = rearPickupTrigger
-		print("  created" .. rearPickupTrigger.name)
-	end
-
-	local frontPickupTrigger = {}
-	frontPickupTrigger.node = I3DUtil.getChildByName(triggersRootNode, "frontPickupTrigger")
-	if frontPickupTrigger.node then
-		frontPickupTrigger.name = "frontPickupTrigger"
-		link(spec.loadVolume.rootNode, frontPickupTrigger.node)
-		table.insert(spec.triggers, frontPickupTrigger)
-		addTrigger(frontPickupTrigger.node, "ualLoadingTrigger_Callback", self)
-		spec.triggersByName["frontPickupTrigger"] = frontPickupTrigger
-		print("  created" .. frontPickupTrigger.name)
-	end
-
-	local rearAutoTrigger = {}
-	rearAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rearAutoTrigger")
-	if rearAutoTrigger.node then
-		rearAutoTrigger.name = "rearAutoTrigger"
-		link(spec.loadVolume.rootNode, rearAutoTrigger.node)
-		table.insert(spec.triggers, rearAutoTrigger)
-		addTrigger(rearAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
-		spec.rearTriggerId = rearAutoTrigger.node
-		spec.triggersByName["rearAutoTrigger"] = rearAutoTrigger
-		print("  created" .. rearAutoTrigger.name)
-	end
-
-	local leftAutoTrigger = {}
-	leftAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "leftAutoTrigger")
-	if leftAutoTrigger.node then
-		leftAutoTrigger.name = "leftAutoTrigger"
-		link(spec.loadVolume.rootNode, leftAutoTrigger.node)
-		table.insert(spec.triggers, leftAutoTrigger)
-		addTrigger(leftAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
-		spec.triggersByName["leftAutoTrigger"] = leftAutoTrigger
-		print("  created" .. leftAutoTrigger.name)
+	local function doCreateTrigger(id, callback)
+		local newTrigger = {}
+		newTrigger.name = id
+		newTrigger.node = I3DUtil.getChildByName(triggersRootNode, id)
+		if newTrigger.node then
+			link(spec.loadVolume.rootNode, newTrigger.node)
+			addTrigger(newTrigger.node, callback, self)
+			spec.triggersByName[id] = newTrigger
+			-- print("  created " .. newTrigger.name)
+		end
 	end
 	
-	local rightAutoTrigger = {}
-	rightAutoTrigger.node = I3DUtil.getChildByName(triggersRootNode, "rightAutoTrigger")
-	if rightAutoTrigger.node then
-		rightAutoTrigger.name = "rightAutoTrigger"
-		link(spec.loadVolume.rootNode, rightAutoTrigger.node)
-		table.insert(spec.triggers, rightAutoTrigger)
-		addTrigger(rightAutoTrigger.node, "ualAutoLoadingTrigger_Callback", self)
-		spec.triggersByName["rightAutoTrigger"] = rightAutoTrigger 
-		print("  created" .. rightAutoTrigger.name)
-	end
-	
+	doCreateTrigger("unloadingTrigger", "ualUnloadingTrigger_Callback")
+	doCreateTrigger("playerTrigger", "ualPlayerTrigger_Callback")
+	doCreateTrigger("leftPickupTrigger", "ualLoadingTrigger_Callback")
+	doCreateTrigger("rightPickupTrigger", "ualLoadingTrigger_Callback")
+	doCreateTrigger("rearPickupTrigger", "ualLoadingTrigger_Callback")
+	doCreateTrigger("frontPickupTrigger", "ualLoadingTrigger_Callback")
+	doCreateTrigger("rearAutoTrigger", "ualAutoLoadingTrigger_Callback")
+	doCreateTrigger("leftAutoTrigger", "ualAutoLoadingTrigger_Callback")
+	doCreateTrigger("rightAutoTrigger", "ualAutoLoadingTrigger_Callback")
+
 	delete(triggersRootNode)
 	
 end
@@ -1431,88 +1361,104 @@ end
 function UniversalAutoload:updateLoadingTriggers()
 	local spec = self.spec_universalAutoload
 	
+	local function doRemoveTrigger(id)	
+		local trigger = spec.triggersByName[id]
+		if trigger then
+			-- print("  remove " .. trigger.name)
+			removeTrigger(trigger.node)
+			spec.triggersByName[id] = nil
+			trigger = nil
+		end
+	end
+	
+	local function doUpdateTrigger(id, width, height, length, tx, ty, tz, rx, ry, rz)	
+		local trigger = spec.triggersByName[id]
+		if trigger then
+			-- print("  update " .. trigger.name)
+			setScale(trigger.node, width, height, length)
+			setRotation(trigger.node, rx or 0, ry or 0, rz or 0)
+			setTranslation(trigger.node, tx or 0, ty or 0, tz or 0)
+		end
+	end
+	
 	-- create triggers
+	local sideBoundary = 0
+	local rearBoundary = 0
+	if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
+		sideBoundary = spec.loadVolume.width/4
+	end
+	if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
+		rearBoundary = spec.loadVolume.width/4
+	end
+
 	local unloadingTrigger = spec.triggersByName["unloadingTrigger"]
 	if unloadingTrigger then
-		local sideBoundary = 0
-		local rearBoundary = 0
-		if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
-			sideBoundary = spec.loadVolume.width/4
-		end
-		if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
-			rearBoundary = spec.loadVolume.width/4
-		end
-		setRotation(unloadingTrigger.node, 0, 0, 0)
-		setTranslation(unloadingTrigger.node, 0, spec.loadVolume.height/2, rearBoundary/2)
-		setScale(unloadingTrigger.node, spec.loadVolume.width-sideBoundary, spec.loadVolume.height, spec.loadVolume.length-rearBoundary)
-		print("  updated" .. unloadingTrigger.name)
+		local width = spec.loadVolume.width-sideBoundary
+		local height = spec.loadVolume.height
+		local length = spec.loadVolume.length-rearBoundary
+		local tx, ty, tz = 0, spec.loadVolume.height/2, rearBoundary/2
+		doUpdateTrigger("unloadingTrigger", width, height, length, tx, ty, tz)
 	end
 	
 	local playerTrigger = spec.triggersByName["playerTrigger"]
 	if playerTrigger then
-		setRotation(playerTrigger.node, 0, 0, 0)
-		setTranslation(playerTrigger.node, 0, spec.loadVolume.height/2, 0)
-		setScale(playerTrigger.node, 5*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+2*spec.loadVolume.width)
-		print("  updated" .. playerTrigger.name)
+		local width = 5*spec.loadVolume.width
+		local height = 2*spec.loadVolume.height
+		local length = spec.loadVolume.length+2*spec.loadVolume.width
+		local tx, ty, tz = 0, spec.loadVolume.height/2, 0
+		doUpdateTrigger("playerTrigger", width, height, length, tx, ty, tz)
 	end
 
-	if not UniversalAutoload.manualLoadingOnly then
+	if UniversalAutoload.manualLoadingOnly then
+		doRemoveTrigger("leftPickupTrigger")
+		doRemoveTrigger("rightPickupTrigger")
+		doRemoveTrigger("rearPickupTrigger")
+		doRemoveTrigger("frontPickupTrigger")
+		
+	else
 
 		local leftPickupTrigger = spec.triggersByName["leftPickupTrigger"]
-		if leftPickupTrigger then
-			local width, height, length = 1.66*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+spec.loadVolume.width/2
-			setRotation(leftPickupTrigger.node, 0, 0, 0)
-			setTranslation(leftPickupTrigger.node, 1.1*(width+spec.loadVolume.width)/2, 0, 0)
-			setScale(leftPickupTrigger.node, width, height, length)
-			print("  updated" .. leftPickupTrigger.name)
-		end
-		
 		local rightPickupTrigger = spec.triggersByName["rightPickupTrigger"]
-		if rightPickupTrigger then
-			local width, height, length = 1.66*spec.loadVolume.width, 2*spec.loadVolume.height, spec.loadVolume.length+spec.loadVolume.width/2
-			setRotation(rightPickupTrigger.node, 0, 0, 0)
-			setTranslation(rightPickupTrigger.node, -1.1*(width+spec.loadVolume.width)/2, 0, 0)
-			setScale(rightPickupTrigger.node, width, height, length)
-			print("  updated" .. rightPickupTrigger.name)
+		if leftPickupTrigger and rightPickupTrigger then
+			local width = 1.66*spec.loadVolume.width
+			local height = 2*spec.loadVolume.height
+			local length = spec.loadVolume.length+spec.loadVolume.width/2
+			local tx, ty, tz = 1.1*(width+spec.loadVolume.width)/2, 0, 0
+			doUpdateTrigger("leftPickupTrigger", width, height, length, tx, ty, tz)
+			doUpdateTrigger("rightPickupTrigger", width, height, length, -tx, ty, tz)
 		end
-		
+	
 		if spec.rearUnloadingOnly then
-			local rearPickupTrigger = spec.triggersByName["rearPickupTrigger"]
-			if rearPickupTrigger then
-				local squareSide = spec.loadVolume.length+spec.loadVolume.width
-				local width, height, length = squareSide, 2*spec.loadVolume.height, 0.8*squareSide
-				setRotation(rearPickupTrigger.node, 0, 0, 0)
-				setTranslation(rearPickupTrigger.node, 0, 0, -1.1*(length+spec.loadVolume.length)/2)
-				setScale(rearPickupTrigger.node, width, height, length)
-				print("  updated" .. rearPickupTrigger.name)
-			end
+			local width = spec.loadVolume.length+spec.loadVolume.width
+			local height = 2*spec.loadVolume.height
+			local length = 0.8*width
+			local tx, ty, tz = 0, 0, -1.1*(length+spec.loadVolume.length)/2
+			doUpdateTrigger("rearPickupTrigger", width, height, length, tx, ty, tz)
+		else
+			doRemoveTrigger("rearPickupTrigger")
 		end
 		
 		if spec.frontUnloadingOnly then
-			local frontPickupTrigger = spec.triggersByName["frontPickupTrigger"]
-			if frontPickupTrigger then
-				local squareSide = spec.loadVolume.length+spec.loadVolume.width
-				local width, height, length = squareSide, 2*spec.loadVolume.height, 0.8*squareSide
-				setRotation(frontPickupTrigger.node, 0, 0, 0)
-				setTranslation(frontPickupTrigger.node, 0, 0, 1.1*(length+spec.loadVolume.length)/2)
-				setScale(frontPickupTrigger.node, width, height, length)
-				print("  updated" .. frontPickupTrigger.name)
-			end
+			local width = spec.loadVolume.length+spec.loadVolume.width
+			local height = 2*spec.loadVolume.height
+			local length = 0.8*width
+			local tx, ty, tz = 0, 0, 1.1*(length+spec.loadVolume.length)/2
+			doUpdateTrigger("frontPickupTrigger", width, height, length, tx, ty, tz)
+		else
+			doRemoveTrigger("frontPickupTrigger")
 		end
 	end
 	
 	if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
-		local rearAutoTrigger = spec.triggersByName["rearAutoTrigger"]
-		if rearAutoTrigger then
-			local depth = 0.05
-			local recess = spec.loadVolume.width/4
-			local boundary = spec.loadVolume.width/4
-			local width, height, length = spec.loadVolume.width-boundary, spec.loadVolume.height, depth
-			setRotation(rearAutoTrigger.node, 0, 0, 0)
-			setTranslation(rearAutoTrigger.node, 0, spec.loadVolume.height/2, recess-(spec.loadVolume.length/2)-depth )
-			setScale(rearAutoTrigger.node, width, height, length)
-			print("  updated" .. rearAutoTrigger.name)
-		end
+		local depth = 0.05
+		local recess = spec.loadVolume.width/4
+		local boundary = spec.loadVolume.width/4
+		
+		local width, height, length = spec.loadVolume.width-boundary, spec.loadVolume.height, depth
+		local tx, ty, tz = 0, spec.loadVolume.height/2, recess-(spec.loadVolume.length/2)-depth
+		doUpdateTrigger("rearAutoTrigger", width, height, length, tx, ty, tz)
+	else
+		doRemoveTrigger("rearAutoTrigger")
 	end
 	
 	if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
@@ -1520,21 +1466,13 @@ function UniversalAutoload:updateLoadingTriggers()
 		local recess = spec.loadVolume.width/7
 		local boundary = 2*spec.loadVolume.width/3
 		local width, height, length = depth, spec.loadVolume.height, spec.loadVolume.length-boundary
+		local tx, ty, tz = 2*depth+(spec.loadVolume.width/2)-recess, spec.loadVolume.height/2, 0
 			
-		local leftAutoTrigger = spec.triggersByName["leftAutoTrigger"]
-		if leftAutoTrigger then
-			setRotation(leftAutoTrigger.node, 0, 0, 0)
-			setTranslation(leftAutoTrigger.node, 2*depth+(spec.loadVolume.width/2)-recess, spec.loadVolume.height/2, 0)
-			setScale(leftAutoTrigger.node, width, height, length)
-			print("  updated" .. leftAutoTrigger.name)
-		end
-		local rightAutoTrigger = spec.triggersByName["rightAutoTrigger"]
-		if rightAutoTrigger then
-			setRotation(rightAutoTrigger.node, 0, 0, 0)
-			setTranslation(rightAutoTrigger.node, -(2*depth+(spec.loadVolume.width/2)-recess), spec.loadVolume.height/2, 0)
-			setScale(rightAutoTrigger.node, width, height, length)
-			print("  updated" .. rightAutoTrigger.name)
-		end
+		doUpdateTrigger("leftAutoTrigger", width, height, length, tx, ty, tz)
+		doUpdateTrigger("rightAutoTrigger", width, height, length, -tx, ty, tz)
+	else
+		doRemoveTrigger("leftAutoTrigger")
+		doRemoveTrigger("rightAutoTrigger")
 	end
 	
 end
@@ -1572,7 +1510,7 @@ function UniversalAutoload:onLoad(savegame)
 		end
 		
 		--initialise server only arrays
-		spec.triggers = {}
+		spec.triggersByName = {}
 		spec.loadedObjects = {}
 		spec.availableObjects = {}
 		spec.autoLoadingObjects = {}
@@ -1581,13 +1519,11 @@ function UniversalAutoload:onLoad(savegame)
 		--create transform groups for triggers
 		UniversalAutoload.initialiseTransformGroups(self)
 		
+		--update size and position
 		if spec.loadArea and #spec.loadArea > 0 then
 			print("INITIALISE UAL VEHICLE (ON LOAD 2) " ..tostring(self.rootNode))
 			UniversalAutoload.updateLoadAreaTransformGroups(self)
 			UniversalAutoload.updateLoadingTriggers(self)
-			UniversalAutoload.updateWidthAxis(self)
-			UniversalAutoload.updateLengthAxis(self)
-			UniversalAutoload.updateHeightAxis(self)
 			spec.initialised = true
 		end
 	
@@ -1677,6 +1613,10 @@ function UniversalAutoload:onPostLoad(savegame)
 			spec.resetLoadingPattern = false
 		end
 
+		UniversalAutoload.updateWidthAxis(self)
+		UniversalAutoload.updateLengthAxis(self)
+		UniversalAutoload.updateHeightAxis(self)
+		
 	end
 end
 
@@ -1759,8 +1699,8 @@ function UniversalAutoload:onPreDelete()
 		UniversalAutoload.VEHICLES[self] = nil
 	end
 	if self.isServer then
-		if spec.triggers then
-			for _, trigger in pairs(spec.triggers or {}) do
+		if spec.triggersByName then
+			for _, trigger in pairs(spec.triggersByName or {}) do
 				removeTrigger(trigger.node)
 			end
 		end
@@ -1787,8 +1727,8 @@ function UniversalAutoload:onDelete()
 		UniversalAutoload.VEHICLES[self] = nil
 	end
 	if self.isServer then
-		if spec.triggers then
-			for _, trigger in pairs(spec.triggers or {}) do
+		if spec.triggersByName then
+			for _, trigger in pairs(spec.triggersByName or {}) do
 				removeTrigger(trigger.node)
 			end
 		end
@@ -2157,7 +2097,7 @@ function UniversalAutoload:onDraw()
 		return
 	end
 		
-	if self.isServer and self.isClient and self.isActive and not g_gui:getIsGuiVisible() then
+	if self.isClient and self.isActive and not g_gui:getIsGuiVisible() then
 		if not spec.isInsideShop then
 			local status, result = pcall(UniversalAutoload.drawDebugDisplay, self)
 			if not status then
@@ -2172,6 +2112,12 @@ end
 function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
 	-- print("UniversalAutoload - onUpdate")
 	local spec = self.spec_universalAutoload
+	
+	g_currentMission:addExtraPrintText("isActiveForInput: " .. tostring(isActiveForInput))
+	g_currentMission:addExtraPrintText("isActiveIgnoreSelection: " .. tostring(isActiveForInputIgnoreSelection))
+	
+	-- local boundingBox = BoundingBox.new(self)
+	-- boundingBox:draw()
 
 	if spec.isInsideShop then
 		local shopVehicle = UniversalAutoloadManager.shopVehicle
@@ -2216,14 +2162,9 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				print("INITIALISE UAL VEHICLE (ON UPDATE) " ..tostring(self.rootNode))
 				UniversalAutoload.updateLoadAreaTransformGroups(self)
 				UniversalAutoload.updateLoadingTriggers(self)
-				UniversalAutoload.updateWidthAxis(self)
-				UniversalAutoload.updateLengthAxis(self)
-				UniversalAutoload.updateHeightAxis(self)
 				spec.initialised = true
 				
 				DebugUtil.printTableRecursively(spec, "--", 0, 2)
-				
-				UniversalAutoload.updateActionEventText(self)
 			end
 		end
 		return
@@ -2519,7 +2460,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				-- playerTriggerActive = true
 			-- end
 		-- end
-
+		
 		local isActiveForLoading = spec.isLoading or spec.isUnloading or spec.doPostLoadDelay
 		if isActiveForInputIgnoreSelection or isActiveForLoading or playerTriggerActive or spec.baleCollectionModeDeactivated or spec.aiLoadingActive or spec.baleCollectionMode then
 		
@@ -2599,7 +2540,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 							if spec.activeLoading then
 								if not spec.trailerIsFull and not self:ualGetIsMoving() then
 									--print("ATTEMPT RELOAD")
-									UniversalAutoload.startLoading(self)
+									-- UniversalAutoload.startLoading(self)
 								end
 							else
 							
@@ -2633,13 +2574,12 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 					spec.postLoadDelayTime = spec.postLoadDelayTime + dt
 				end
 			end
-			
-			UniversalAutoload.determineTipside(self)
-			UniversalAutoload.countActivePallets(self)
-			
-			g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " - " .. spec.validUnloadCount .. " / " .. spec.totalUnloadCount))
 
 		end
+		
+		UniversalAutoload.determineTipside(self)
+		UniversalAutoload.countActivePallets(self)
+		
 	end
 end
 
@@ -2890,32 +2830,45 @@ function UniversalAutoload:countActivePallets()
 	
 	local totalAvailableCount = 0
 	local validLoadCount = 0
-	if spec.availableObjects then
-		for _, object in pairs(spec.availableObjects) do
-			if object then
-				totalAvailableCount = totalAvailableCount + 1
-				if UniversalAutoload.isValidForLoading(self, object) then
-					validLoadCount = validLoadCount + 1
-				end
-				if isActiveForLoading then
-					UniversalAutoload.raiseObjectDirtyFlags(object)
-				end
+	for _, object in pairs(spec.availableObjects or {}) do
+		if object then
+			totalAvailableCount = totalAvailableCount + 1
+			if UniversalAutoload.isValidForLoading(self, object) then
+				validLoadCount = validLoadCount + 1
 			end
+			if isActiveForLoading then
+				UniversalAutoload.raiseObjectDirtyFlags(object)
+			end
+		end
+	end
+	if debugLoading then
+		g_currentMission:addExtraPrintText(self:getName() .. " Load = " .. validLoadCount .. " / " .. totalAvailableCount)
+	end
+	
+	if totalAvailableCount == 0 then
+		if not spec.noAvailableObjects then
+			-- print("NO AVAILABLE OBJECTS..")
+			spec.noAvailableObjects = true
+			UniversalAutoload.updateActionEventText(self)
+		end
+	else
+		if spec.noAvailableObjects then
+			-- print("FOUND AVAILABLE OBJECTS..")
+			spec.noAvailableObjects = false
+			UniversalAutoload.updateActionEventText(self)
 		end
 	end
 	
 	local totalUnloadCount = 0
 	local validUnloadCount = 0
-	if spec.loadedObjects then
-		for object,_ in pairs(spec.loadedObjects) do
-			if object then
-				totalUnloadCount = totalUnloadCount + 1
-				if UniversalAutoload.isValidForUnloading(self, object) then
-					validUnloadCount = validUnloadCount + 1
-				end
-				if isActiveForLoading or spec.baleCollectionMode then
-					UniversalAutoload.raiseObjectDirtyFlags(object)
-				end
+	for _, object in pairs(spec.loadedObjects or {}) do
+		if object then
+			totalUnloadCount = totalUnloadCount + 1
+			if UniversalAutoload.isValidForUnloading(self, object) then
+				validUnloadCount = validUnloadCount + 1
+			end
+			if isActiveForLoading or spec.baleCollectionMode then
+				UniversalAutoload.raiseObjectDirtyFlags(object)
 			end
 		end
 	end
@@ -2939,10 +2892,9 @@ function UniversalAutoload:countActivePallets()
 			end
 			spec.validUnloadCount = validUnloadCount
 		end
-		-- if refreshMenuText then
-			-- print("*** updateActionEventText ***")
+		if refreshMenuText then
 			UniversalAutoload.updateActionEventText(self)
-		-- end
+		end
 	end
 
 	if debugLoading then
@@ -5331,16 +5283,15 @@ function UniversalAutoload:getMaxSingleLength()
 end				
 --
 function UniversalAutoload.raiseObjectDirtyFlags(object)
-	if object.raiseDirtyFlags and object.getNextDirtyFlag then
-		object.ualDirtyFlag = object.ualDirtyFlag or object:getNextDirtyFlag()
-		if object.isRoundbale ~= nil then
-			object:raiseDirtyFlags(object.ualDirtyFlag)
+	if object.raiseDirtyFlags then
+		if object.physicsObjectDirtyFlag then
+			object:raiseDirtyFlags(object.physicsObjectDirtyFlag)
 			if entityExists(object.nodeId) then
 				object.sendPosX, object.sendPosY, object.sendPosZ = getWorldTranslation(object.nodeId)
 				object.sendRotX, object.sendRotY, object.sendRotZ = getWorldRotation(object.nodeId)
 			end
-		else
-			object:raiseDirtyFlags(object.ualDirtyFlag)
+		elseif object.vehicleDirtyFlag then
+			object:raiseDirtyFlags(object.vehicleDirtyFlag)
 		end
 	end
 end
@@ -5378,7 +5329,7 @@ function UniversalAutoload:drawDebugDisplay()
 		end
 
 		if UniversalAutoload.showDebug or spec.showDebug then
-			for _, trigger in pairs(spec.triggers or {}) do
+			for _, trigger in pairs(spec.triggersByName or {}) do
 				if trigger.name == "rearAutoTrigger" or trigger.name == "leftAutoTrigger" or trigger.name == "rightAutoTrigger" then
 					DebugUtil.drawDebugCube(trigger.node, 1,1,1, unpack(YELLOW))
 				elseif trigger.name == "leftPickupTrigger" or trigger.name == "rightPickupTrigger"
@@ -5482,6 +5433,8 @@ function UniversalAutoload:drawDebugDisplay()
 			DebugUtil.drawDebugNode(id, getName(id))
 			DebugUtil.drawDebugNode(object.positionNodeId, getName(object.positionNodeId))
 		end
+		
+		g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " - " .. spec.validUnloadCount .. " / " .. spec.totalAvailableCount))
 		
 	end
 end
