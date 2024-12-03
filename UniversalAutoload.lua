@@ -1101,8 +1101,8 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 					if debugLoading then print("FULLY UNLOADED...") end
 					UniversalAutoload.resetLoadingArea(self)
 				else
-					if debugLoading then print("PARTIALLY UNLOADED...") end
-					spec.partiallyUnloaded = true
+					-- if debugLoading then print("PARTIALLY UNLOADED...") end
+					-- spec.partiallyUnloaded = true
 				end
 			else
 				-- CLEAR_UNLOADING_AREA
@@ -2842,8 +2842,7 @@ function UniversalAutoload:isUsingLayerLoading()
 	local spec = self.spec_universalAutoload
 	
 	if (spec.isLogTrailer and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT)
-	or (spec.useHorizontalLoading and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT)
-	and not ((spec.baleCollectionMode and spec.nextLayerHeight == 0) or spec.trailerIsFull == true) then
+	or (spec.useHorizontalLoading and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT) then
 		return true
 	end	
 end
@@ -3503,7 +3502,7 @@ function UniversalAutoload:resetLoadingArea()
 	UniversalAutoload.resetLoadingLayer(self)
 	UniversalAutoload.resetLoadingPattern(self)
 	spec.trailerIsFull = false
-	spec.partiallyUnloaded = false
+	-- spec.partiallyUnloaded = false
 	spec.currentLoadAreaIndex = 1
 	spec.lastLoadAttempt = nil
 	spec.loadingAreaIsFull = nil
@@ -3512,7 +3511,7 @@ end
 function UniversalAutoload:getLoadPlace(containerType, object)
 	local spec = self.spec_universalAutoload
 	
-	if containerType==nil or (spec.trailerIsFull and not spec.partiallyUnloaded) then
+	if containerType==nil or spec.trailerIsFull then --and not spec.partiallyUnloaded
 		return
 	end
 	
@@ -3661,7 +3660,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 								elseif spec.baleCollectionMode then
 									
 									if debugLoading then print("BALE COLLECTION MODE") end
-									if (containerType.isBale and not spec.zonesOverlap and not spec.partiallyUnloaded) then
+									if (containerType.isBale and not spec.zonesOverlap) then --and not spec.partiallyUnloaded
 										if spec.useHorizontalLoading then
 											spec.currentLoadHeight = spec.currentLayerHeight
 											setTranslation(thisLoadPlace.node, x0, spec.currentLayerHeight+offset.y, z0)
@@ -3742,7 +3741,8 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 			end
 		end
 		spec.currentLoadAreaIndex = 1
-		if UniversalAutoload.isUsingLayerLoading(self) then
+		if UniversalAutoload.isUsingLayerLoading(self) and
+		not (spec.nextLayerHeight == 0 or spec.trailerIsFull == true) then
 			spec.currentLayerCount = spec.currentLayerCount + 1
 			spec.currentLoadingPlace = nil
 			if not spec.isLogTrailer or (spec.isLogTrailer and spec.nextLayerHeight > 0) then
@@ -4573,11 +4573,11 @@ function UniversalAutoload:removeLoadedObject(object)
 			object:removeDeleteListener(self, "ualOnDeleteLoadedObject_Callback")
 		end
 		if next(spec.loadedObjects) == nil then
-			print(self.rootNode .. " FULLY UNLOADED..")
+			print(self.rootNode .. " FULLY UNLOADED - RESET LOADING AREA")
 			UniversalAutoload.resetLoadingArea(self)
 		else
-			print(self.rootNode .. " PARTIALLY UNLOADED..")
-			spec.partiallyUnloaded = true
+			-- print(self.rootNode .. " PARTIALLY UNLOADED..")
+			-- spec.partiallyUnloaded = true
 		end
 		if debugLoading then
 			print("["..self.rootNode.."] REMOVE Loaded Object: " .. tostring(object.id))
@@ -4986,7 +4986,7 @@ end
 function UniversalAutoload.getContainerType(object)
 
 	if object == nil then
-		print("getContainerType requires an object")
+		-- print("getContainerType requires an object")
 		return nil
 	end
 
