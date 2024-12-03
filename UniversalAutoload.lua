@@ -9,9 +9,9 @@ UniversalAutoload.specName = ("spec_%s.universalAutoload"):format(g_currentModNa
 UniversalAutoload.globalKey = "universalAutoload"
 UniversalAutoload.savegameStateKey = ".currentState"
 UniversalAutoload.savegameConfigKey = ".configuration"
-UniversalAutoload.postLoadKey = ".FS25_UniversalAutoload.universalAutoload.currentState"
-UniversalAutoload.savegameStateSchemaKey = "vehicles.vehicle(?).FS25_UniversalAutoload.universalAutoload.currentState"
-UniversalAutoload.savegameConfigSchemaKey = "vehicles.vehicle(?).FS25_UniversalAutoload.universalAutoload.configuration"
+UniversalAutoload.postLoadKey = "." .. g_currentModName .. ".universalAutoload.currentState"
+UniversalAutoload.savegameStateSchemaKey = "vehicles.vehicle(?)." .. g_currentModName .. ".universalAutoload.currentState"
+UniversalAutoload.savegameConfigSchemaKey = "vehicles.vehicle(?)." .. g_currentModName .. ".universalAutoload.configuration"
 UniversalAutoload.vehicleKey = "universalAutoload.vehicleConfigurations.vehicle(%d)"
 UniversalAutoload.vehicleConfigKey = UniversalAutoload.vehicleKey .. ".configuration(%d)"
 UniversalAutoload.vehicleSchemaKey = "universalAutoload.vehicleConfigurations.vehicle(?)"
@@ -1303,6 +1303,11 @@ function UniversalAutoload:updateLoadAreaTransformGroups()
 	
 	if not spec.loadArea or #spec.loadArea == 0 then
 		print("LoadArea NOT created")
+		return
+	end
+	
+	if not spec.loadVolume then
+		print("LoadVolume NOT created")
 		return
 	end
 

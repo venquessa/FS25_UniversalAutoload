@@ -472,12 +472,14 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 		
 		local configFileName, configId = UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 
-		local oldConfig = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId]
-		if oldConfig and oldConfig.loadArea and #oldConfig.loadArea > 0 then
-			print("UPDATE CONFIG IN MEMORY")
-			local newConfig = deepCopy(spec)
-			for k, v in pairs(oldConfig) do
-				oldConfig[k] = newConfig[k]
+		if configFileName and configId and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
+			local oldConfig = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId]
+			if oldConfig and oldConfig.loadArea and #oldConfig.loadArea > 0 then
+				print("UPDATE CONFIG IN MEMORY")
+				local newConfig = deepCopy(spec)
+				for k, v in pairs(oldConfig) do
+					oldConfig[k] = newConfig[k]
+				end
 			end
 		end
 
@@ -1115,6 +1117,12 @@ function UniversalAutoloadManager.getIsValidForAutoload(vehicle)
 	if not spec then
 		print("UAL - new vehicle should have SPEC here" .. tostring(vehicle and vehicle.rootNode))
 		return
+	end
+	
+	local rootVehicle = vehicle:getRootVehicle()
+	if rootVehicle and rootVehicle:getFullName():find("Timber Wagon") or rootVehicle:getFullName():find("Flatbed Wagon") then
+		print(rootVehicle:getFullName() .. " - don't add UAL to train for now..")
+		return false
 	end
 	
 	local isValidForAutoload = nil
