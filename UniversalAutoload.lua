@@ -1525,6 +1525,11 @@ function UniversalAutoload:onLoad(savegame)
 			UniversalAutoload.updateLoadAreaTransformGroups(self)
 			UniversalAutoload.updateLoadingTriggers(self)
 			spec.initialised = true
+		else
+			if not spec.loadAreaMissing then
+				spec.loadAreaMissing = true
+				print("WARNING: load area missing - check settings file")
+			end
 		end
 	
 		--server only
@@ -1560,7 +1565,7 @@ end
 function UniversalAutoload:onPostLoad(savegame)
 	if self.isServer and savegame then
 		local spec = self.spec_universalAutoload
-		if spec==nil then
+		if not spec then
 			if debugVehicles then print(self:getFullName() .. ": UAL UNDEFINED - onPostLoad") end
 			return
 		end
@@ -2130,13 +2135,24 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				print("RESET TO DEFAULT")
 				spec.resetToDefault = nil
 				spec.loadingVolume = nil
-				spec.selectedConfigs = nil
+				spec.wasResetToDefault = true
 			end
 			
-			if spec.selectedConfigs then --AND SPEC IS VALID!!!
-				UniversalAutoloadManager.importLoadingVolume(self)
+			if spec.selectedConfigs and not spec.wasResetToDefault then
+				UniversalAutoloadManager.resetLoadingVolumeForShopEdit(self)
 			else
 				UniversalAutoloadManager.createLoadingVolumeInsideShop(self)
+				if spec.wasResetToDefault then
+					local configFileName = spec.configFileName
+					local selectedConfigs = spec.selectedConfigs
+					print(vehicle.rootNode .. " was reset to default (" .. tostring(selectedConfigs) .. ")")
+					if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
+						print("*** RESET TO DEFAULT CONFIG ***")
+						UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][selectedConfigs] = nil
+						spec.selectedConfigs = nil
+						spec.wasResetToDefault = nil
+					end
+				end
 			end
 			if spec.loadingVolume then
 				spec.loadingVolume:draw(true)
@@ -2149,6 +2165,11 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 	end
 	
 	if self.isServer and not spec.initialised then
+		
+		if not spec.loadArea or #spec.loadArea == 0 then
+			-- print this on the server for debugging (SP or player host)
+			g_currentMission:addExtraPrintText(tostring(self.rootNode) .. " *** LOAD AREAS MISSING ***")
+		end
 		
 		if spec.isAutoloadAvailable == false then
 			print("Autoload NOT available - REMOVE Event Listeners " ..tostring(self.rootNode))

@@ -437,13 +437,12 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 		return
 	end
 
-	local config, configFileName, configId, configName
+	local configFileName, configId, configName
 	
-	if spec.loadedVehicleConfig then
+	if spec.selectedConfigs and spec.configFileName then
 		print("ALREADY SET WITH:")
-		config = spec.loadedVehicleConfig
-		configId = spec.loadedVehicleConfig['selectedConfigs']
-		configFileName = spec.loadedVehicleConfig['configFileName']
+		configId = spec.selectedConfigs
+		configFileName = spec.configFileName
 		print("configFileName = " .. tostring(configFileName))
 		print("selectedConfigs = " .. tostring(configId))
 	end
@@ -456,7 +455,7 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 		print("selectedConfigs = " .. tostring(configId))
 	end
 	
-	return config, configFileName, configId, configName
+	return configFileName, configId, configName
 end
 --
 function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFile)
@@ -471,17 +470,17 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 	
 	if xmlFile then
 		
-		local config, configFileName, configId = UniversalAutoloadManager.getVehicleConfigNames(vehicle)
+		local configFileName, configId = UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 
-		index, subIndex = UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
-
-		if config then
-			if UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId] == config then
-				print("ALREADY MATCHES")
-				return
+		local oldConfig = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId]
+		if oldConfig and oldConfig.loadArea and #oldConfig.loadArea > 0 then
+			print("UPDATE CONFIG IN MEMORY")
+			local newConfig = deepCopy(spec)
+			for k, v in pairs(oldConfig) do
+				oldConfig[k] = newConfig[k]
 			end
 		end
-		
+
 		local function writeSettingToFile(k, v, parentKey, currentKey, currentValue, finalValue)
 			if currentKey and finalValue ~= nil and finalValue ~= v.default then
 				print("  >> " .. tostring(currentKey) .. " = " .. tostring(finalValue) .. " - " .. tostring(v.default))
@@ -505,6 +504,8 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 		end
 
 		print("SAVE TO SETTINGS FILE")
+		local index, subIndex = UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
+		
 		print("options:")
 		local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
 		iterateDefaultsTable(UniversalAutoload.OPTIONS_DEFAULTS, configKey, ".options", spec, writeSettingToFile)
@@ -1071,16 +1072,23 @@ function UniversalAutoloadManager.createLoadingVolumeInsideShop(vehicle)
 	
 end
 
-function UniversalAutoloadManager.importLoadingVolume(vehicle, config)
+function UniversalAutoloadManager.resetLoadingVolumeForShopEdit(vehicle)
 	local spec = vehicle.spec_universalAutoload
 	
 	if not spec.skipFirstUpdate then
 		spec.skipFirstUpdate = true
 		return
 	end
+	
+	if not spec.loadArea or #spec.loadArea == 0 then
+		if not spec.printInvalidLocalConfig then
+			spec.printInvalidLocalConfig = true
+			print("INVALID LOCAL CONFIG - load areas missing")
+		end
+	end
 
-	if spec.loadArea and not spec.loadingVolume then
-		print("CONVERT IMPORTED LOCAL CONFIG TO LOADING VOLUME")
+	if spec.loadArea and #spec.loadArea > 0 and not spec.loadingVolume then
+		print("CONVERT CURRENT LOCAL CONFIG TO LOADING VOLUME")
 		spec.loadingVolume = LoadingVolume.new(vehicle)
 		
 		for i, loadArea in ipairs(spec.loadArea) do
@@ -1165,10 +1173,6 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 							
 							if config and config.loadArea and #config.loadArea > 0 then
 								print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
-								spec.loadedVehicleConfig = {
-									configFileName = configFileName,
-									selectedConfigs = selectedConfigs,
-								}
 								for id, value in pairs(deepCopy(config)) do
 									spec[id] = value
 								end
