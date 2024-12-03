@@ -2837,6 +2837,17 @@ function UniversalAutoload.isValidForManualLoading(object)
 	-- HandToolHands.getIsHoldingItem() ??
 end
 --
+function UniversalAutoload:isUsingLayerLoading()
+	-- print("SHOULD USE LAYER LOADING?")
+	local spec = self.spec_universalAutoload
+	
+	if (spec.isLogTrailer and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT)
+	or (spec.useHorizontalLoading and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT)
+	and not ((spec.baleCollectionMode and spec.nextLayerHeight == 0) or spec.trailerIsFull == true) then
+		return true
+	end	
+end
+--
 function UniversalAutoload:countActivePallets()
 	-- print("COUNT ACTIVE PALLETS")
 	local spec = self.spec_universalAutoload
@@ -3718,7 +3729,9 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 						end
 					end
 				end
-				spec.loadingAreaIsFull[i] = true
+				if not UniversalAutoload.isUsingLayerLoading(self) then
+					spec.loadingAreaIsFull[i] = true
+				end
 			end
 			
 			i = i + 1
@@ -3729,9 +3742,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 			end
 		end
 		spec.currentLoadAreaIndex = 1
-		if (spec.isLogTrailer and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT)
-		or (spec.useHorizontalLoading and spec.currentLayerCount < UniversalAutoload.MAX_LAYER_COUNT)
-		and not ((spec.baleCollectionMode and spec.nextLayerHeight == 0) or spec.trailerIsFull == true) then
+		if UniversalAutoload.isUsingLayerLoading(self) then
 			spec.currentLayerCount = spec.currentLayerCount + 1
 			spec.currentLoadingPlace = nil
 			if not spec.isLogTrailer or (spec.isLogTrailer and spec.nextLayerHeight > 0) then
