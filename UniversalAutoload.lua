@@ -1129,9 +1129,12 @@ function UniversalAutoload:showWarningMessage(messageId, noEventSend)
 	
 	if self.isClient and g_dedicatedServer==nil then
 		-- print("CLIENT: "..g_i18n:getText(UniversalAutoload.WARNINGS[messageId]))
-		if self == UniversalAutoload.lastClosestVehicle or g_localPlayer:getIsInVehicle(self) then
+		local rootVehicle = self:getRootVehicle(self)
+		local currentVehicle = g_localPlayer and g_localPlayer:getCurrentVehicle()
+		if currentVehicle and rootVehicle and currentVehicle == rootVehicle then
 			g_currentMission:showBlinkingWarning(g_i18n:getText(UniversalAutoload.WARNINGS[messageId]), 2000);
 		end
+		
 	elseif self.isServer then
 		-- print("SERVER: "..g_i18n:getText(UniversalAutoload.WARNINGS[messageId]))
 		UniversalAutoload.WarningMessageEvent.sendEvent(self, messageId, noEventSend)
