@@ -652,7 +652,7 @@ end
 function UniversalAutoload.actionEventToggleShowDebug(self, actionName, inputValue, callbackState, isAnalog)
 	-- print("actionEventToggleShowDebug: "..self:getFullName())
 	local spec = self.spec_universalAutoload
-	if self.isServer then
+	if self.isClient then
 		UniversalAutoload.showDebug = not UniversalAutoload.showDebug
 		UniversalAutoload.showLoading = UniversalAutoload.showDebug
 	end
@@ -661,7 +661,7 @@ end
 function UniversalAutoload.actionEventToggleShowLoading(self, actionName, inputValue, callbackState, isAnalog)
 	-- print("actionEventToggleShowLoading: "..self:getFullName())
 	local spec = self.spec_universalAutoload
-	if self.isServer then
+	if self.isClient then
 		UniversalAutoload.showLoading = not UniversalAutoload.showLoading
 		if UniversalAutoload.showLoading == false then
 			UniversalAutoload.showDebug = false
@@ -1098,14 +1098,10 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 				spec.objectsToUnload = {}
 				spec.currentLoadingPlace = nil
 				if spec.totalUnloadCount == 0 then
-					--if debugLoading then
-						print("FULLY UNLOADED...")
-					--end
+					if debugLoading then print("FULLY UNLOADED...") end
 					UniversalAutoload.resetLoadingArea(self)
 				else
-					--if debugLoading then
-						print("PARTIALLY UNLOADED...")
-					--end
+					if debugLoading then print("PARTIALLY UNLOADED...") end
 					spec.partiallyUnloaded = true
 				end
 			else
@@ -4561,10 +4557,10 @@ function UniversalAutoload:removeLoadedObject(object)
 			object:removeDeleteListener(self, "ualOnDeleteLoadedObject_Callback")
 		end
 		if next(spec.loadedObjects) == nil then
-			if debugLoading then print("FULLY UNLOADED..") end
+			print(self.rootNode .. " FULLY UNLOADED..")
 			UniversalAutoload.resetLoadingArea(self)
 		else
-			if debugLoading then print("PARTIALLY UNLOADED..") end
+			print(self.rootNode .. " PARTIALLY UNLOADED..")
 			spec.partiallyUnloaded = true
 		end
 		if debugLoading then
@@ -5409,56 +5405,60 @@ function UniversalAutoload:drawDebugDisplay()
 			end
 		end
 		
-		UniversalAutoload.debugRefreshTime = (UniversalAutoload.debugRefreshTime or 0) + g_currentDt
-		if spec.objectsToUnload == nil or UniversalAutoload.debugRefreshTime > UniversalAutoload.DELAY_TIME then
-			UniversalAutoload.debugRefreshTime = 0
-			UniversalAutoload.buildObjectsToUnloadTable(self)
-			spec.objectsToUnload = spec.objectsToUnload or {}
-		end
-		
-		for object, unloadPlace in pairs(spec.objectsToUnload or {}) do
-			local containerType = UniversalAutoload.getContainerType(object)
-			local w, h, l = UniversalAutoload.getContainerTypeDimensions(containerType)
-			local offset = 0 if containerType.isBale then offset = h/2 end
-			if spec.unloadingAreaClear then
-				UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, CYAN, offset )
-			else
-				UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, RED, offset )
-			end
-		end
-		
-		if UniversalAutoload.showDebug or spec.showDebug then
-			local W, H, L = spec.loadVolume.width, spec.loadVolume.height, spec.loadVolume.length
-			UniversalAutoload.DrawDebugPallet( spec.loadVolume.rootNode, W, H, L, true, false, MAGENTA )
+		if self.isServer then
 			
-			if spec.boundingBox then
-				local W, H, L = spec.boundingBox.width, spec.boundingBox.height, spec.boundingBox.length
-				UniversalAutoload.DrawDebugPallet( spec.boundingBox.rootNode, W, H, L, true, false, MAGENTA )
+			UniversalAutoload.debugRefreshTime = (UniversalAutoload.debugRefreshTime or 0) + g_currentDt
+			if spec.objectsToUnload == nil or UniversalAutoload.debugRefreshTime > UniversalAutoload.DELAY_TIME then
+				UniversalAutoload.debugRefreshTime = 0
+				UniversalAutoload.buildObjectsToUnloadTable(self)
+				spec.objectsToUnload = spec.objectsToUnload or {}
 			end
-		end
-		
-		for i, loadArea in pairs(spec.loadArea or {}) do
-			local W, H, L = loadArea.width, loadArea.height, loadArea.length
-			if not (UniversalAutoload.showDebug or spec.showDebug) then H = 0 end
 			
-			if UniversalAutoload.getIsLoadingAreaAllowed(self, i) then
-				UniversalAutoload.DrawDebugPallet( loadArea.rootNode,  W, H, L, true, false, WHITE )
-				UniversalAutoload.DrawDebugPallet( loadArea.startNode, W, 0, 0, true, false, GREEN )
-				UniversalAutoload.DrawDebugPallet( loadArea.endNode,   W, 0, 0, true, false, RED )
+			for object, unloadPlace in pairs(spec.objectsToUnload or {}) do
+				local containerType = UniversalAutoload.getContainerType(object)
+				local w, h, l = UniversalAutoload.getContainerTypeDimensions(containerType)
+				local offset = 0 if containerType.isBale then offset = h/2 end
+				if spec.unloadingAreaClear then
+					UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, CYAN, offset )
+				else
+					UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, RED, offset )
+				end
+			end
+			
+			if UniversalAutoload.showDebug or spec.showDebug then
+				local W, H, L = spec.loadVolume.width, spec.loadVolume.height, spec.loadVolume.length
+				UniversalAutoload.DrawDebugPallet( spec.loadVolume.rootNode, W, H, L, true, false, MAGENTA )
 				
-				if (UniversalAutoload.showDebug or spec.showDebug) and loadArea.baleHeight then
-					H = loadArea.baleHeight
-					UniversalAutoload.DrawDebugPallet( loadArea.rootNode, W, H, L, true, false, YELLOW )
-				end
-			else
-				UniversalAutoload.DrawDebugPallet( loadArea.rootNode,  W, H, L, true, false, GREY )
-				if (UniversalAutoload.showDebug or spec.showDebug) and loadArea.baleHeight then
-					H = loadArea.baleHeight
-					UniversalAutoload.DrawDebugPallet( loadArea.rootNode, W, H, L, true, false, GREY )
+				if spec.boundingBox then
+					local W, H, L = spec.boundingBox.width, spec.boundingBox.height, spec.boundingBox.length
+					UniversalAutoload.DrawDebugPallet( spec.boundingBox.rootNode, W, H, L, true, false, MAGENTA )
 				end
 			end
+			
+			for i, loadArea in pairs(spec.loadArea or {}) do
+				local W, H, L = loadArea.width, loadArea.height, loadArea.length
+				if not (UniversalAutoload.showDebug or spec.showDebug) then H = 0 end
+				
+				if UniversalAutoload.getIsLoadingAreaAllowed(self, i) then
+					UniversalAutoload.DrawDebugPallet( loadArea.rootNode,  W, H, L, true, false, WHITE )
+					UniversalAutoload.DrawDebugPallet( loadArea.startNode, W, 0, 0, true, false, GREEN )
+					UniversalAutoload.DrawDebugPallet( loadArea.endNode,   W, 0, 0, true, false, RED )
+					
+					if (UniversalAutoload.showDebug or spec.showDebug) and loadArea.baleHeight then
+						H = loadArea.baleHeight
+						UniversalAutoload.DrawDebugPallet( loadArea.rootNode, W, H, L, true, false, YELLOW )
+					end
+				else
+					UniversalAutoload.DrawDebugPallet( loadArea.rootNode,  W, H, L, true, false, GREY )
+					if (UniversalAutoload.showDebug or spec.showDebug) and loadArea.baleHeight then
+						H = loadArea.baleHeight
+						UniversalAutoload.DrawDebugPallet( loadArea.rootNode, W, H, L, true, false, GREY )
+					end
+				end
+			end
+			
 		end
-		
+
 		if spec.lastLoadAttempt then
 			local place = spec.lastLoadAttempt.loadPlace
 			local containerType = spec.lastLoadAttempt.containerType
@@ -5471,7 +5471,11 @@ function UniversalAutoload:drawDebugDisplay()
 			DebugUtil.drawDebugNode(object.positionNodeId, getName(object.positionNodeId))
 		end
 		
-		g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " - " .. spec.validUnloadCount .. " / " .. spec.totalAvailableCount))
+		g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " # " .. (spec.validUnloadCount or "-") .. " / " .. (spec.totalAvailableCount or "-")))
+		
+		if self.isServer then
+			-- UniversalAutoload.testLoadAreaIsEmpty(self)
+		end
 		
 	end
 end
