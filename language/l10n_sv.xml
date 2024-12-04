@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Lossningsområdet är blockerat. Vänligen rensa lossningsområdet."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Inga kompatibla varor finns tillgängliga för Lastning eller lossning."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Lastningsområdet är fullt. Kan inte ladda fler föremål av denna storlek."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Ingen Lastning tillåten om inte fordonet står stilla. Vänligen stanna helt innan du laddar trailern."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Det går inte att ladda fler objekt av denna storlek."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Objektet är för stort för detta fordon."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Ingen Lastning tillåten om inte fordonet står stilla."/>
 
 		<text name="universalAutoload_tipside" text="Lossningssida"/>
 		<text name="universalAutoload_left" text="Vänster"/>

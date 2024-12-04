@@ -29,8 +29,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Aflæsningsområde er blokeret. Ryd venligst aflæsningsområdet."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Ingen kompatible genstande tilgængelig for pålæsning eller aflæsning."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Læsningsområdet er fyldt. Kunne ikke læsse flere genstande af denne størrelse."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Ingen læsning tilladt ved kørsel. Hold venligst helt stille inden læsning påbegyndes."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Kan ikke laste flere genstande af denne størrelse."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Genstanden er for stor til dette køretøj."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Ingen læsning tilladt ved kørsel."/>
 		
 		<text name="universalAutoload_tipside" text="Aflæsningsside"/>
 		<text name="universalAutoload_left" text="Venstre"/>

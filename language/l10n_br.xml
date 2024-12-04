@@ -29,8 +29,9 @@
 		
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="A área de descarregamento está bloqueada. Por favor, limpe a área de descarregamento."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Não há mercadorias compatíveis disponíveis para carregamento ou descarregamento."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="A área de carregamento está cheia. Não é possível carregar mais itens deste tamanho."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Não é permitido carregar em movimento. Pare completamente antes de carregar o reboque."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Não é possível carregar mais itens deste tamanho."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="O item é muito grande para este veículo."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Não é permitido carregar em movimento."/>
 		
 		<text name="universalAutoload_tipside" text="Lado de descarregamento"/>
 		<text name="universalAutoload_left" text="Esquerda"/>

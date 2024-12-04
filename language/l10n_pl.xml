@@ -29,8 +29,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Obszar rozładunku jest zajęty. Oczyść teren."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Żadne zgodne towary nie są dostępne do załadunku ani rozładunku."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Obszar ładowania jest pełny, nie można załadować więcej!"/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Nie można załadować podczas jazdy. Zatrzymaj pojazd zanim załadujesz."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Nie można załadować więcej przedmiotów tego rozmiaru."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Przedmiot jest za duży dla tego pojazdu."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Nie można załadować podczas jazdy."/>
 		
 		<text name="universalAutoload_tipside" text="Strona rozładunku"/>
 		<text name="universalAutoload_left" text="Lewa"/>

@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Boşaltma alanı engellendi. Lütfen boşaltma alanının boş olduğuna emin olun."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Yükleme veya boşaltmaya uygun yük bulunmamaktadır."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Yükleme alanı dolu. Bu boyutta daha fazla öğe yüklenemiyor."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Sabit olmadıkça yüklemeye izin verilmez. Lütfen römorku yüklemeden önce tamamen durun."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Bu boyutta daha fazla öğe yüklenemiyor."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Öğe bu araç için çok büyük."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Sabit olmadıkça yüklemeye izin verilmez."/>
 		
 		<text name="universalAutoload_tipside" text="Boşaltma bölgesi"/>
 		<text name="universalAutoload_left" text="Sol"/>

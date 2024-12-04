@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="卸货区被占用。请清理卸货区。"/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="没有相应的货物可供装货或卸货。"/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="已装满。无法再装载任何此尺寸的物品。"/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="运动中不允许装载。在装载拖车之前，请停车。"/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="无法加载更多此尺寸的物品。"/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="物品对于此车辆来说太大了。"/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="运动中不允许装载。"/>
 		
 		<text name="universalAutoload_tipside" text="卸货端"/>
 		<text name="universalAutoload_left" text="左"/>

@@ -31,7 +31,7 @@
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="No compatible goods are available for loading or unloading."/>
 		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Unable to load any more items of this size."/>
 		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Item is too large for this vehicle."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="No loading allowed unless stationary. Please come to a complete stop before loading the trailer."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="No loading allowed unless stationary."/>
 		
 		<text name="universalAutoload_tipside" text="Unloading side"/>
 		<text name="universalAutoload_left" text="Left"/>

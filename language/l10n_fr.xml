@@ -29,8 +29,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="La zone de déchargement est bloquée. Veuillez libérer la zone de déchargement."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Aucune marchandise compatible n'est disponible pour le chargement ou le déchargement."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="La remorque est pleine. Impossible de charger d'autres articles de cette taille."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Pour charger, vous devez être à l'arrêt. Veuillez vous arrêter complètement avant de charger la remorque."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Impossible de charger plus d'objets de cette taille."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="L'objet est trop grand pour ce véhicule."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Pour charger, vous devez être à l'arrêt."/>
 		
 		<text name="universalAutoload_tipside" text="Côté actif"/>
 		<text name="universalAutoload_left" text="Gauche"/>

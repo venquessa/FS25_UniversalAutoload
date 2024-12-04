@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Der Entladebereich ist blockiert. Bitte räumen Sie den Abladebereich frei."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Es sind keine kompatiblen Waren zum Be- oder Entladen vorhanden."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Der Ladebereich ist voll. Es können keine weiteren Artikel dieser Größe geladen werden."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Das Beladen ist nur im Stillstand erlaubt. Bitte halten Sie vor dem Beladen des Anhängers vollständig an."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Es können keine weiteren Gegenstände dieser Größe geladen werden."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Gegenstand ist zu groß für die Ladefläche."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Das Beladen ist nur im Stillstand erlaubt."/>
 		
 		<text name="universalAutoload_tipside" text="Aktive Entladeseite"/>
 		<text name="universalAutoload_left" text="Links"/>

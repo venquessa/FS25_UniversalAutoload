@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="L'area di scarico è bloccata. Si prega di liberare l'area di scarico."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Non sono disponibili merci compatibili per il carico o lo scarico."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="L'area di carico è piena. Impossibile caricare altri articoli di queste dimensioni."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Nessun carico consentito a meno che non sia fermo. Si prega di fermarsi completamente prima di caricare il rimorchio."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Impossibile caricare altri oggetti di questa dimensione."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="L'oggetto è troppo grande per questo veicolo."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Nessun carico consentito a meno che non sia fermo."/>
 		
 		<text name="universalAutoload_tipside" text="Lato scarico"/>
 		<text name="universalAutoload_left" text="Sinistra"/>

@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Losplaats is geblokkeerd. Maak ruimte vrij op de losplaats."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Er zijn geen ondersteunde producten gevonden voor het in- en uitladen."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Laadruimte is vol. Kan geen items van deze grootte meer laden."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Er mag niet geladen worden tenzij het voertuig stilstaat. Gelieve te stoppen met bewegen of de trailer opnieuw te laden."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Het is niet mogelijk om meer items van deze grootte te laden."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Het item is te groot voor dit voertuig."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Er mag niet geladen worden tenzij het voertuig stilstaat."/>
 		
 		<text name="universalAutoload_tipside" text="Loszijde"/>
 		<text name="universalAutoload_left" text="Links"/>

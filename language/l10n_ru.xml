@@ -24,8 +24,9 @@
 
 		<text name="warning_UNIVERSALAUTOLOAD_CLEAR_UNLOADING_AREA" text="Зона разгрузки занята. Пожалуйста, очистите зону разгрузки."/>
 		<text name="warning_UNIVERSALAUTOLOAD_NO_OBJECTS_FOUND" text="Нет совместимых товаров для погрузки или разгрузки."/>
-		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT" text="Загрузочное пространство заполнено. Невозможно загрузить больше предметов такого размера."/>
-		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Погрузка разрешена только в неподвижном состоянии. Перед погрузкой прицепа необходимо полностью остановиться."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_FULL" text="Невозможно загрузить больше объектов этого размера."/>
+		<text name="warning_UNIVERSALAUTOLOAD_UNABLE_TO_LOAD_OBJECT_EMPTY" text="Объект слишком большой для этого транспортного средства."/>
+		<text name="warning_UNIVERSALAUTOLOAD_NO_LOADING_UNLESS_STATIONARY" text="Погрузка разрешена только в неподвижном состоянии."/>
 		
 		<text name="universalAutoload_tipside" text="Сторона разгрузки"/>
 		<text name="universalAutoload_left" text="Слева"/>
