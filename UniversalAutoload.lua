@@ -26,6 +26,8 @@ UniversalAutoload.SPACING = 0.0
 UniversalAutoload.MAX_STACK = 5
 UniversalAutoload.LOG_SPACE = 0.25
 UniversalAutoload.DELAY_TIME = 200
+UniversalAutoload.MP_DELAY = 1000
+UniversalAutoload.LOG_DELAY = 1000
 UniversalAutoload.MAX_LAYER_COUNT = 20
 UniversalAutoload.ROTATED_BALE_FACTOR = 0.85355339
 
@@ -793,7 +795,7 @@ function UniversalAutoload:cycleMaterialTypeIndex(direction, noEventSend)
 		UniversalAutoload.setMaterialTypeIndex(self, materialIndex)
 		if materialIndex==1 and spec.totalAvailableCount==0 and spec.totalUnloadCount==0 then
 			-- NO_OBJECTS_FOUND
-			UniversalAutoload.showWarningMessage(self, 2)
+			UniversalAutoload.showWarningMessage(self, "NO_OBJECTS_FOUND")
 		end
 	end
 	
@@ -860,7 +862,7 @@ function UniversalAutoload:cycleContainerTypeIndex(direction, noEventSend)
 		UniversalAutoload.setContainerTypeIndex(self, containerIndex)
 		if containerIndex==1 and spec.totalAvailableCount==0 and spec.totalUnloadCount==0 then
 			-- NO_OBJECTS_FOUND
-			UniversalAutoload.showWarningMessage(self, 2)
+			UniversalAutoload.showWarningMessage(self, "NO_OBJECTS_FOUND")
 		end
 	end
 	
@@ -1106,7 +1108,7 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 				end
 			else
 				-- CLEAR_UNLOADING_AREA
-				UniversalAutoload.showWarningMessage(self, 1)
+				UniversalAutoload.showWarningMessage(self, "CLEAR_UNLOADING_AREA")
 			end
 		end
 		
@@ -1119,7 +1121,13 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 	end
 end
 --
-function UniversalAutoload:showWarningMessage(messageId, noEventSend)
+
+function UniversalAutoload:showWarningMessage(message)
+	local messageId = UniversalAutoload.WARNINGS_BY_NAME[message] or message
+	UniversalAutoload.showWarningMessageById(self, messageId, noEventSend)
+end
+
+function UniversalAutoload:showWarningMessageById(messageId, noEventSend)
 	-- print("Show Warning Message: "..self:getFullName() )
 	local spec = self.spec_universalAutoload
 	
@@ -2146,7 +2154,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				if spec.wasResetToDefault then
 					local configFileName = spec.configFileName
 					local selectedConfigs = spec.selectedConfigs
-					print(vehicle.rootNode .. " was reset to default (" .. tostring(selectedConfigs) .. ")")
+					print(self.rootNode .. " was reset to default (" .. tostring(selectedConfigs) .. ")")
 					if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
 						print("*** RESET TO DEFAULT CONFIG ***")
 						UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][selectedConfigs] = nil
@@ -2293,7 +2301,11 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				-- spec.doSetTensionBelts = true -- spec.doPostLoadDelay = true
 				if not UniversalAutoload.loadObject(self, object) then
 					--UNABLE_TO_LOAD_OBJECT
-					UniversalAutoload.showWarningMessage(self, 3)
+					if spec.trailerIsFull then
+						UniversalAutoload.showWarningMessage(self, "UNABLE_TO_LOAD_FULL")
+					else
+						UniversalAutoload.showWarningMessage(self, "UNABLE_TO_LOAD_EMPTY")
+					end
 					UniversalAutoload.updateActionEventText(self)
 				end
 				spec.autoLoadingObjects[object] = nil
@@ -2482,7 +2494,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 		-- end
 		
 		local isActiveForLoading = spec.isLoading or spec.isUnloading or spec.doPostLoadDelay
-		if isActiveForInputIgnoreSelection or isActiveForLoading or playerTriggerActive or spec.baleCollectionModeDeactivated or spec.aiLoadingActive or spec.baleCollectionMode then
+		if isActiveForInputIgnoreSelection or isActiveForLoading or spec.baleCollectionModeDeactivated or spec.aiLoadingActive or spec.baleCollectionMode then
 		
 			if spec.baleCollectionMode and not isActiveForLoading or spec.aiLoadingActive then
 				if spec.availableBaleCount > 0 and not spec.trailerIsFull then
@@ -2566,7 +2578,11 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 							
 								if spec.firstAttemptToLoad and not spec.baleCollectionMode and not self:ualGetIsMoving() then
 									--UNABLE_TO_LOAD_OBJECT
-									UniversalAutoload.showWarningMessage(self, 3)
+									if spec.trailerIsFull then
+										UniversalAutoload.showWarningMessage(self, "UNABLE_TO_LOAD_FULL")
+									else
+										UniversalAutoload.showWarningMessage(self, "UNABLE_TO_LOAD_EMPTY")
+									end
 									-- spec.partiallyUnloaded = true
 									-- spec.resetLoadingPattern = true
 								end
@@ -3728,7 +3744,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 						end
 					end
 				end
-				if not UniversalAutoload.isUsingLayerLoading(self) then
+				if spec.totalUnloadCount > 0 and not UniversalAutoload.isUsingLayerLoading(self) then
 					spec.loadingAreaIsFull[i] = true
 				end
 			end
@@ -3756,19 +3772,21 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 			end
 			return UniversalAutoload.getLoadPlace(self, containerType, object)
 		else
-			spec.trailerIsFull = true
-			if spec.baleCollectionMode == true then
-				if debugSpecial then print("baleCollectionMode: trailerIsFull") end
-				UniversalAutoload.setBaleCollectionMode(self, false)
+			if spec.totalUnloadCount > 0 then
+				print("FULL - NO MORE ROOM")
+				spec.trailerIsFull = true
+				if spec.baleCollectionMode == true then
+					if debugSpecial then print("baleCollectionMode: trailerIsFull") end
+					UniversalAutoload.setBaleCollectionMode(self, false)
+				end
 			end
-			if debugLoading then print("FULL - NO MORE ROOM") end
 		end
 		if debugLoading then print("===============================") end
 	else
 		if not spec.activeLoading then
 			if debugLoading then print("CAN'T LOAD WHEN MOVING...") end
 			--NO_LOADING_UNLESS_STATIONARY
-			UniversalAutoload.showWarningMessage(self, 4)
+			UniversalAutoload.showWarningMessage(self, "NO_LOADING_UNLESS_STATIONARY")
 		end
 	end
 end

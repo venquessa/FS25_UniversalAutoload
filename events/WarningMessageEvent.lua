@@ -30,7 +30,7 @@ end
 
 function WarningMessageEvent:run(connection)
 	if self.vehicle ~= nil and self.vehicle:getIsSynchronized() then
-		UniversalAutoload.showWarningMessage(self.vehicle, self.messageId, true)
+		UniversalAutoload.showWarningMessageById(self.vehicle, self.messageId, true)
 	end
 end
 
