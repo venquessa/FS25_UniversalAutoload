@@ -36,6 +36,7 @@ end
 function LoadingVolume:setNewVehicle(vehicle)
 	self.vehicle = vehicle
 	self.rootNode = vehicle.rootNode
+	self.tensionBeltNode = vehicle.spec_tensionBelts and vehicle.spec_tensionBelts.rootNode
 	if self.boundingBox then
 		self.boundingBox:setObject(vehicle)
 	end

@@ -1244,6 +1244,15 @@ function UniversalAutoload:initialiseTransformGroups(actualRootNode)
 	local spec = self.spec_universalAutoload
 
 	local actualRootNode = actualRootNode or self.rootNode
+	
+	if self.spec_tensionBelts and self.spec_tensionBelts.rootNode then
+		local tensionBeltNode = self.spec_tensionBelts.rootNode
+		local x0, y0, z0 = getTranslation(actualRootNode)
+		local x1, y1, z1 = getTranslation(tensionBeltNode)
+		if math.abs(x0-x1) < 0.0001 or math.abs(y0-y1) < 0.0001 or math.abs(z0-z1) < 0.0001 then
+			print("USING TENSION BELT ROOT")
+		end
+	end
 	-- local actualRootNode = (self.spec_tensionBelts and self.spec_tensionBelts.rootNode) or self.rootNode
 	-- if spec.offsetRoot then
 		-- local otherOffset = self.i3dMappings[spec.offsetRoot]
@@ -2411,78 +2420,81 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 		end
 		
 		-- CYCLE THROUGH A FULL TESTING PATTERN
-		if UniversalAutoloadManager.runFullTest == true and g_localPlayer:getIsInVehicle(self) then
-		
-			spec.testStage = spec.testStage or 1
-			spec.testDelayTime = spec.testDelayTime or 0
-			
-			if spec.spawnPallets~=true and spec.spawnLogs~=true and spec.spawnBales~=true then
+		if UniversalAutoloadManager.runFullTest == true then
 
-				if spec.testDelayTime > 1250 or spec.testStage == 1 then
-					spec.testDelayTime = 0
-					
-					print("TEST STAGE: " .. spec.testStage )
-					if spec.testStage == 1 then
-						UniversalAutoloadManager.originalMode = spec.useHorizontalLoading
-						spec.useHorizontalLoading = false
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddPallets("EGG")
-					elseif spec.testStage == 2 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddPallets("WOOL")
-					elseif spec.testStage == 3 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddPallets("LIQUIDFERTILIZER")
-					elseif spec.testStage == 4 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddPallets("LIME")
-					elseif spec.testStage == 5 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddPallets()
-					elseif spec.testStage == 6 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddPallets()
-					elseif spec.testStage == 7 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddRoundBales_125()
-					elseif spec.testStage == 8 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddRoundBales_150()
-					elseif spec.testStage == 9 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddRoundBales_180()
-					elseif spec.testStage == 10 then
-						spec.useHorizontalLoading = true
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddRoundBales_125()
-					elseif spec.testStage == 11 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddRoundBales_150()
-					elseif spec.testStage == 12 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddRoundBales_180()
-					elseif spec.testStage == 13 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddSquareBales_180()
-					elseif spec.testStage == 14 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddSquareBales_220()
-					elseif spec.testStage == 15 then
-						spec.testStage = spec.testStage + 1
-						UniversalAutoloadManager:consoleAddSquareBales_240()
-					elseif spec.testStage == 16 then
-						spec.testStage = nil
-						UniversalAutoloadManager.runFullTest = false
-						UniversalAutoloadManager:consoleClearLoadedObjects()
-						spec.useHorizontalLoading = UniversalAutoloadManager.originalMode
-						print("FULL TEST COMPLETE!" )
+			local rootVehicle = self:getRootVehicle(self)
+			local currentVehicle = g_localPlayer and g_localPlayer:getCurrentVehicle()
+			if currentVehicle and rootVehicle and currentVehicle == rootVehicle then
+		
+				spec.testStage = spec.testStage or 1
+				spec.testDelayTime = spec.testDelayTime or 0
+				if spec.spawnPallets~=true and spec.spawnLogs~=true and spec.spawnBales~=true then
+
+					if spec.testDelayTime > 1250 or spec.testStage == 1 then
+						spec.testDelayTime = 0
+						
+						print("TEST STAGE: " .. spec.testStage )
+						if spec.testStage == 1 then
+							UniversalAutoloadManager.originalMode = spec.useHorizontalLoading
+							spec.useHorizontalLoading = false
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddPallets("EGG")
+						elseif spec.testStage == 2 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddPallets("WOOL")
+						elseif spec.testStage == 3 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddPallets("LIQUIDFERTILIZER")
+						elseif spec.testStage == 4 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddPallets("LIME")
+						elseif spec.testStage == 5 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddPallets()
+						elseif spec.testStage == 6 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddPallets()
+						elseif spec.testStage == 7 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddRoundBales_125()
+						elseif spec.testStage == 8 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddRoundBales_150()
+						elseif spec.testStage == 9 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddRoundBales_180()
+						elseif spec.testStage == 10 then
+							spec.useHorizontalLoading = true
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddRoundBales_125()
+						elseif spec.testStage == 11 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddRoundBales_150()
+						elseif spec.testStage == 12 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddRoundBales_180()
+						elseif spec.testStage == 13 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddSquareBales_180()
+						elseif spec.testStage == 14 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddSquareBales_220()
+						elseif spec.testStage == 15 then
+							spec.testStage = spec.testStage + 1
+							UniversalAutoloadManager:consoleAddSquareBales_240()
+						elseif spec.testStage == 16 then
+							spec.testStage = nil
+							UniversalAutoloadManager.runFullTest = false
+							UniversalAutoloadManager:consoleClearLoadedObjects()
+							spec.useHorizontalLoading = UniversalAutoloadManager.originalMode
+							print("FULL TEST COMPLETE!" )
+						end
+					else
+						spec.testDelayTime = spec.testDelayTime + dt
 					end
-				else
-					spec.testDelayTime = spec.testDelayTime + dt
+					
 				end
-				
 			end
-			
 		end
 
 		-- -- CHECK IF ANY PLAYERS ARE ACTIVE ON FOOT
@@ -2601,8 +2613,8 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 			-- DELAY AFTER LOAD/UNLOAD FOR MP POSITION SYNC
 			if spec.doPostLoadDelay then
 				spec.postLoadDelayTime = spec.postLoadDelayTime or 0
-				local logDelay = spec.isLogTrailer and 1000 or 0
-				local mpDelay = g_currentMission.missionDynamicInfo.isMultiplayer and 2000 or 0
+				local logDelay = spec.isLogTrailer and UniversalAutoload.LOG_DELAY or 0
+				local mpDelay = g_currentMission.missionDynamicInfo.isMultiplayer and UniversalAutoload.MP_DELAY or 0
 				if spec.postLoadDelayTime > UniversalAutoload.DELAY_TIME + mpDelay + logDelay then
 					UniversalAutoload.resetLoadingState(self)
 				else
