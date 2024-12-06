@@ -348,7 +348,7 @@ function UniversalAutoloadManager.getConfigSettingsPosition(targetFileName, targ
 				break
 			end
 			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName", "MISSING")
-			if tostring(configFileName):lower() == tostring(targetFileName):lower() then
+			if tostring(configFileName):gsub(g_modsDirectory, ""):lower() == tostring(targetFileName):gsub(g_modsDirectory, ""):lower() then
 				
 				print("targetConfigId: " .. tostring(targetConfigId))
 				local j = 0
@@ -385,7 +385,7 @@ end
 function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
 	local spec = vehicle.spec_universalAutoload
 
-	local configFileName = vehicle.configFileName
+	local configFileName = vehicle.configFileName --:gsub(g_modsDirectory, "")
 	local index, subIndex, size = UniversalAutoloadManager.getConfigSettingsPosition(configFileName, configId, xmlFile)
 
 	if index then
@@ -435,7 +435,7 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 	
 	if not configId or not configFileName then
 		print("FIND CORRECT SETTINGS FILE POSITION:")
-		configFileName = vehicle.configFileName
+		configFileName = vehicle.configFileName --:gsub(g_modsDirectory, "")
 		configId = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	end
 	
@@ -456,19 +456,6 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 	local xmlFile = xmlFile or UniversalAutoloadManager.openUserSettingsXMLFile()
 	
 	if xmlFile then
-		
-		local configFileName, configId = UniversalAutoloadManager.getVehicleConfigNames(vehicle)
-
-		if configFileName and configId and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
-			local oldConfig = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId]
-			if oldConfig and oldConfig.loadArea and #oldConfig.loadArea > 0 then
-				print("UPDATE CONFIG IN MEMORY")
-				local newConfig = deepCopy(spec)
-				for k, v in pairs(oldConfig) do
-					oldConfig[k] = newConfig[k]
-				end
-			end
-		end
 
 		local function writeSettingToFile(k, v, parentKey, currentKey, currentValue, finalValue)
 			if currentKey and finalValue ~= nil and finalValue ~= v.default then
@@ -492,20 +479,39 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 			end
 		end
 
-		print("SAVE TO SETTINGS FILE")
-		local index, subIndex = UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
+		if spec.loadArea and #spec.loadArea > 0 then
 		
-		print("options:")
-		local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
-		iterateDefaultsTable(UniversalAutoload.OPTIONS_DEFAULTS, configKey, ".options", spec, writeSettingToFile)
+			local configFileName, configId = UniversalAutoloadManager.getVehicleConfigNames(vehicle)
+			
+			if configFileName and configId and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
+				local oldConfig = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId]
+				if oldConfig and oldConfig.loadArea and #oldConfig.loadArea > 0 then
+					print("UPDATE CONFIG IN MEMORY")
+					local newConfig = deepCopy(spec)
+					for k, v in pairs(oldConfig) do
+						oldConfig[k] = newConfig[k]
+					end
+				end
+			end
+		
+			print("SAVE TO SETTINGS FILE")
+			local index, subIndex = UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
+			
+			print("options:")
+			local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
+			iterateDefaultsTable(UniversalAutoload.OPTIONS_DEFAULTS, configKey, ".options", spec, writeSettingToFile)
 
-		print("loadingAreas:")
-		for j, loadArea in pairs(spec.loadArea or {}) do
-			local loadAreaKey = string.format(".loadingArea(%d)", j-1)
-			iterateDefaultsTable(UniversalAutoload.LOADING_AREA_DEFAULTS, configKey, loadAreaKey, loadArea, writeSettingToFile)
+			print("loadingAreas:")
+			for j, loadArea in pairs(spec.loadArea or {}) do
+				local loadAreaKey = string.format(".loadingArea(%d)", j-1)
+				iterateDefaultsTable(UniversalAutoload.LOADING_AREA_DEFAULTS, configKey, loadAreaKey, loadArea, writeSettingToFile)
+			end
+
+			xmlFile:save()
+			
+		else
+			print("DID NOT SAVE SETTINGS - loading area was missing")
 		end
-
-		xmlFile:save()
 		
 		if shouldCloseFile then
 			xmlFile:delete()
@@ -570,7 +576,7 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 				break
 			end
 			
-			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName")
+			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName") --:gsub(g_modsDirectory, "")
 			if UniversalAutoloadManager.getValidXmlName(configFileName) then
 				print(" [" .. i + 1 .. "] " .. configFileName)
 				

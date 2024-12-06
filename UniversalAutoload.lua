@@ -734,17 +734,21 @@ function UniversalAutoload.actionEventToggleTipside(self, actionName, inputValue
 end
 --
 function UniversalAutoload.actionEventToggleLoading(self, actionName, inputValue, callbackState, isAnalog)
-	print("CALLBACK actionEventToggleLoading: "..self:getFullName())
+	-- print("CALLBACK actionEventToggleLoading: "..self:getFullName())
 	local spec = self.spec_universalAutoload
 	if not spec.isLoading then
+		print("START Loading: "..self:getFullName() .. " (" .. tostring(spec.totalUnloadCount) .. ")")
 		UniversalAutoload.startLoading(self)
 	else
+		print("STOP Loading: "..self:getFullName() .. " (" .. tostring(spec.totalUnloadCount) .. ")")
 		UniversalAutoload.stopLoading(self)
 	end
 end
 --
 function UniversalAutoload.actionEventUnloadAll(self, actionName, inputValue, callbackState, isAnalog)
-	print("CALLBACK actionEventUnloadAll: "..self:getFullName())
+	-- print("CALLBACK actionEventUnloadAll: "..self:getFullName())
+	local spec = self.spec_universalAutoload
+	print("UNLOAD ALL: "..self:getFullName() .. " (" .. tostring(spec.totalUnloadCount) .. ")")
 	UniversalAutoload.startUnloading(self)
 end
 
@@ -1249,8 +1253,9 @@ function UniversalAutoload:initialiseTransformGroups(actualRootNode)
 		local tensionBeltNode = self.spec_tensionBelts.rootNode
 		local x0, y0, z0 = getTranslation(actualRootNode)
 		local x1, y1, z1 = getTranslation(tensionBeltNode)
-		if math.abs(x0-x1) < 0.0001 or math.abs(y0-y1) < 0.0001 or math.abs(z0-z1) < 0.0001 then
-			print("USING TENSION BELT ROOT")
+		if math.abs(x0-x1) > 0.0001 or math.abs(y0-y1) > 0.0001 or math.abs(z0-z1) > 0.0001 then
+			print("COULD USE TENSION BELT ROOT NODE #" .. self.rootNode)
+			-- actualRootNode = tensionBeltNode
 		end
 	end
 	-- local actualRootNode = (self.spec_tensionBelts and self.spec_tensionBelts.rootNode) or self.rootNode
@@ -1638,11 +1643,12 @@ function UniversalAutoload:onPostLoad(savegame)
 			spec.resetLoadingLayer = false
 			spec.resetLoadingPattern = false
 		end
-
+		
 		UniversalAutoload.updateWidthAxis(self)
 		UniversalAutoload.updateLengthAxis(self)
 		UniversalAutoload.updateHeightAxis(self)
 		
+		print("UAL: ON POST LOAD COMPLETE")
 	end
 end
 
@@ -2161,7 +2167,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 			else
 				UniversalAutoloadManager.createLoadingVolumeInsideShop(self)
 				if spec.wasResetToDefault then
-					local configFileName = spec.configFileName
+					local configFileName = spec.configFileName --:gsub(g_modsDirectory, "")
 					local selectedConfigs = spec.selectedConfigs
 					print(self.rootNode .. " was reset to default (" .. tostring(selectedConfigs) .. ")")
 					if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
@@ -2574,19 +2580,19 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								end
 							end
 						end
-						if #spec.sortedObjectsToLoad > 0 then
+						-- if #spec.sortedObjectsToLoad > 0 then
 							-- if spec.trailerIsFull or (UniversalAutoload.testLoadAreaIsEmpty(self) and not spec.baleCollectionMode) then
 								-- if debugLoading then print("RESET PATTERN to fill in any gaps") end
 								-- spec.partiallyUnloaded = true
 								-- spec.resetLoadingPattern = true
 							-- end
-						else
-							if spec.activeLoading then
+						-- else
+							-- if spec.activeLoading then
 								-- if not spec.trailerIsFull and not self:ualGetIsMoving() then
 									-- print("ATTEMPT RELOAD")
 									-- UniversalAutoload.startLoading(self)
 								-- end
-							else
+							-- else
 							
 								if spec.firstAttemptToLoad and not spec.baleCollectionMode and not self:ualGetIsMoving() then
 									--UNABLE_TO_LOAD_OBJECT
@@ -2598,11 +2604,11 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 									-- spec.partiallyUnloaded = true
 									-- spec.resetLoadingPattern = true
 								end
-								if debugLoading then print("STOP LOADING") end
+								print("STOP LOADING (items loaded = " .. tostring(spec.totalUnloadCount) .. ")")
 								UniversalAutoload.stopLoading(self)
 							
-							end
-						end
+							-- end
+						-- end
 					end
 				else
 					spec.loadSpeedFactor = spec.loadSpeedFactor or 1
@@ -3546,8 +3552,8 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 		if debugLoading then
 			print("")
 			print("===============================")
+			print("["..self.rootNode.."] FIND LOADING PLACE FOR "..containerType.name)
 		end
-		print("["..self.rootNode.."] FIND LOADING PLACE FOR "..containerType.name)
 		
 		if spec.isLogTrailer then
 			spec.resetLoadingPattern = true
@@ -5380,12 +5386,12 @@ function UniversalAutoload:drawDebugDisplay()
 
 	if (UniversalAutoload.showLoading or UniversalAutoload.showDebug or spec.showDebug) and not g_gui:getIsGuiVisible() then
 		
-		local RED	 = { 1.0, 0.1, 0.1 }
+		local RED     = { 1.0, 0.1, 0.1 }
 		local GREEN   = { 0.1, 1.0, 0.1 }
 		local YELLOW  = { 1.0, 1.0, 0.1 }
-		local CYAN	= { 0.1, 1.0, 1.0 }
+		local CYAN    = { 0.1, 1.0, 1.0 }
 		local MAGENTA = { 1.0, 0.1, 1.0 }
-		local GREY	= { 0.2, 0.2, 0.2 }
+		local GREY    = { 0.2, 0.2, 0.2 }
 		local WHITE   = { 1.0, 1.0, 1.0 }
 		
 		local isActiveForInput = self:getIsActiveForInput()
