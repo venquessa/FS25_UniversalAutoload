@@ -334,7 +334,7 @@ function UniversalAutoloadManager.countConfigsInSettingsXML(xmlFile)
 	end
 end
 --
-function UniversalAutoloadManager.getConfigSettingsPosition(targetFileName, targetConfigId, targetConfigName, xmlFile)
+function UniversalAutoloadManager.getConfigSettingsPosition(targetFileName, targetConfigId, xmlFile)
 
 	local targetConfigId = targetConfigId or UniversalAutoload.ALL
 	local shouldCloseFile = not xmlFile and true
@@ -383,9 +383,10 @@ function UniversalAutoloadManager.getConfigSettingsPosition(targetFileName, targ
 end
 --
 function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
+	local spec = vehicle.spec_universalAutoload
 
 	local configFileName = vehicle.configFileName
-	local index, subIndex, size = UniversalAutoloadManager.getConfigSettingsPosition(configFileName, configId, configName, xmlFile)
+	local index, subIndex, size = UniversalAutoloadManager.getConfigSettingsPosition(configFileName, configId, xmlFile)
 
 	if index then
 		local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
@@ -407,8 +408,9 @@ function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, conf
 		print("USING CONFIG SUB-INDEX: #" .. subIndex .. " (" .. configId .. ")")
 		local key = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
 		xmlFile:setValue(key.."#selectedConfigs", tostring(configId))
-		if configName then
-			xmlFile:setValue(key.."#useConfigName", tostring(configName))
+		if spec.useConfigName then
+			print("useConfigName: " .. tostring(spec.useConfigName))
+			xmlFile:setValue(key.."#useConfigName", tostring(spec.useConfigName))
 		end
 		UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId] = {}
 	end
@@ -423,25 +425,24 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 		return
 	end
 
-	local configFileName, configId, configName
+	local configFileName, configId
 	
 	if spec.selectedConfigs and spec.configFileName then
 		print("ALREADY SET WITH:")
 		configId = spec.selectedConfigs
 		configFileName = spec.configFileName
-		print("configFileName = " .. tostring(configFileName))
-		print("selectedConfigs = " .. tostring(configId))
 	end
 	
 	if not configId or not configFileName then
 		print("FIND CORRECT SETTINGS FILE POSITION:")
 		configFileName = vehicle.configFileName
-		configId, configName, _ = UniversalAutoloadManager.getValidConfigurationId(vehicle, useConfigName)
-		print("configFileName = " .. tostring(configFileName))
-		print("selectedConfigs = " .. tostring(configId))
+		configId = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	end
 	
-	return configFileName, configId, configName
+	print("useConfigName = " .. tostring(spec.useConfigName))
+	print("selectedConfig = " .. tostring(configId))
+	
+	return configFileName, configId
 end
 --
 function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFile)
@@ -596,19 +597,17 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 					local useConfigName = xmlFile:getValue(configKey.."#useConfigName", nil)
 
 					if not configGroup[selectedConfigs] or overwriteExisting then
-						configuration.configFileName = configFileName
 						configuration.useConfigName = useConfigName
+						configuration.configFileName = configFileName
 						configuration.selectedConfigs = selectedConfigs
 						configGroup[selectedConfigs] = configuration
 					else
-						if UniversalAutoload.showDebug then print("  ALREADY EXISTS: "..configFileName.." ("..selectedConfigs..")") end
+						if UniversalAutoload.showDebug then print("  ALREADY EXISTS: "..configFileName.." ["..selectedConfigs.."]") end
 					end
 
-					if not configuration.showDebug then
-						print("  >> "..configFileName.." ("..selectedConfigs..")")
-					else
-						print("  >> "..configFileName.." ("..selectedConfigs..") DEBUG")
-					end
+					print("  >> "..configFileName.." ["..selectedConfigs.."] "
+						.. (useConfigName and ("(" .. useConfigName .. ")") or "")
+						.. (configuration.showDebug and " DEBUG" or "") )
 
 					j = j + 1
 				end
@@ -627,11 +626,10 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 
 end
 
-function UniversalAutoloadManager.getValidConfigurationId(vehicle, useConfigName)
-	-- returns: configId, configName, description
-	-- configId = new configId for stored configuration
-	-- configName = configuration name to use (or nil)
-	-- description = text to use for display
+function UniversalAutoloadManager.getValidConfigurationId(vehicle)
+	-- returns: configId, description
+	local spec = vehicle and vehicle.spec_universalAutoload
+    if not spec then return end
 	
 	local item = g_storeManager:getItemByXMLFilename(vehicle.configFileName)
 	if not item then
@@ -639,44 +637,39 @@ function UniversalAutoloadManager.getValidConfigurationId(vehicle, useConfigName
 		return
 	end
 	
-	local configName = useConfigName or 'design'
-	local nConfigs = #(item.configurations or {})
-	local nConfigSets = #(item.configurationSets or {})
-	-- print("#configurations " .. nConfigs)
-	-- print("#configurationSets " .. nConfigSets)
+    local configName = spec.useConfigName or "design"
+    local configId = vehicle.configurations[configName] and tostring(vehicle.configurations[configName]) or nil
+    local configurationSets = item.configurationSets or {}
 
-	if useConfigName or nConfigSets == 0 then
-		if not vehicle.configurations[configName] or nConfigs == 0 then
-			return "ALL", nil, "UNIQUE"
-		else
-			return vehicle.configurations[configName], configName, "USE CONFIG"
-		end
-	else
-		local best = {
-			count = 0
-		}
-		for i, config in pairs(item.configurationSets) do
-			local count = 0
-			local match = true
-			for k, v in pairs(config.configurations or {}) do
-				if vehicle.configurations[k] == v then
-					count = count + 1
-				else
-					match = false
-				end
-			end
-			if match then
-				return i, nil, config.name
-			else
-				if best.count < count then
-					best.index = i
-					best.count = count
-					best.name = config.name
-				end
-			end
-		end
-		return best.index, nil, best.name
-	end
+    if #configurationSets == 0 then
+        local fullConfigId = UniversalAutoload.ALL .. (configId and ("|" .. configId) or "")
+        return fullConfigId, "UNIQUE"
+    end
+
+    local bestMatch = { index = nil, count = 0, name = nil }
+    for i, config in ipairs(configurationSets) do
+        local count, match = 0, true
+
+        for k, v in pairs(config.configurations or {}) do
+            if vehicle.configurations[k] == v then
+                count = count + 1
+            else
+                match = false
+            end
+        end
+
+        if match then
+            local fullConfigId = i .. (configId and ("|" .. configId) or "")
+            return fullConfigId, config.name
+        elseif count > bestMatch.count then
+            bestMatch = { index = i, count = count, name = config.name }
+        end
+    end
+
+    if bestMatch.index then
+        local fullConfigId = bestMatch.index .. (configId and ("|" .. configId) or "")
+        return fullConfigId, bestMatch.name
+    end
 end
 
 function UniversalAutoloadManager.saveVehicleConfigurationToSettings(vehicle, noEventSend)
@@ -1153,8 +1146,12 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 		return
 	end
 	
+	if spec.configFileName == "data/vehicles/international/cvSeries/cvSeries.xml" then
+		spec.useConfigName = "enterablePassenger"
+	end
+	
 	local configurationAdded = nil
-	local configId, _, description = UniversalAutoloadManager.getValidConfigurationId(vehicle)
+	local configId, description = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	if configId then
 		print("UniversalAutoload - supported vehicle: "..vehicle:getFullName().." #"..configId.." ("..description..")" )
 		
@@ -1167,12 +1164,16 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 					print("  >> " .. tostring(selectedConfigs))
 				end
 			end
-				
-			for selectedConfigs, config in pairs(configGroup) do
-				if not spec.loadArea then
+			
+			if not spec.loadArea then	
+				for selectedConfigs, config in pairs(configGroup) do
 					local selectedConfigsList = tostring(selectedConfigs):split(",")
 					for _, configListPart in pairs(selectedConfigsList) do
-						if tostring(configListPart) == UniversalAutoload.ALL or tostring(configId):find(tostring(configListPart)) then
+						local isMatchAny = configListPart == UniversalAutoload.ALL
+						local hasPipeChar = tostring(configId):find("|")
+						local isMatchFull = hasPipeChar and configId == configListPart
+						local isMatchPart = not hasPipeChar and tostring(configId):find(configListPart)
+						if isMatchAny or isMatchPart or isMatchFull then
 							
 							if config and config.loadArea and #config.loadArea > 0 then
 								print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
@@ -1222,42 +1223,47 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 		end
 		
 		local importSpec = importVehicle and importVehicle.spec_universalAutoload
-		if importSpec and UniversalAutoloadManager.shopConfig and spec.selectedConfigs == importSpec.selectedConfigs then
-			
-			print("CLONE SETTINGS FROM SHOP VEHICLE")
-			local shopVolume = UniversalAutoloadManager.shopConfig.loadingVolume
-			if not shopVolume or not shopVolume.bbs then
-				print("ERROR: shopVolume or shopVolume.bbs is nil")
-				return
-			end
+		if importSpec and UniversalAutoloadManager.shopConfig then
+			local configsMatch = spec.selectedConfigs == importSpec.selectedConfigs
+			local configNamesMatch = spec.useConfigName == nil or importSpec.useConfigName == nil or spec.useConfigName == importSpec.useConfigName
+		
+			if configsMatch and configNamesMatch then
+	
+				print("CLONE SETTINGS FROM SHOP VEHICLE")
+				local shopVolume = UniversalAutoloadManager.shopConfig.loadingVolume
+				if not shopVolume or not shopVolume.bbs then
+					print("ERROR: shopVolume or shopVolume.bbs is nil")
+					return
+				end
 
-			print("TO DO: import the rest of the parameters here...")
-			spec.loadArea = spec.loadArea or {}
-			importSpec.loadArea = importSpec.loadArea or {}
-			for i, boundingBox in (shopVolume.bbs) do
-				local s = boundingBox:getSize()
-				local o = boundingBox:getOffset()
-				importSpec.loadArea[i] = {
-					width = s.x,
-					height = s.y,
-					length = s.z,
-					offset = {o.x, o.y-s.y/2, o.z},
-				}
-				spec.loadArea[i] = {
-					width = s.x,
-					height = s.y,
-					length = s.z,
-					offset = {o.x, o.y-s.y/2, o.z},
-				}
-			end
-			configurationAdded = true
-			-- print("DEBUG: importSpec.loadArea after cloning:")
-			-- DebugUtil.printTableRecursively(importSpec.loadArea, "  --", 0, 2)
-			-- print("DEBUG: spec.loadArea after cloning:")
-			-- DebugUtil.printTableRecursively(spec.loadArea, "  --", 0, 2)
+				print("TO DO: import the rest of the parameters here...")
+				spec.loadArea = spec.loadArea or {}
+				importSpec.loadArea = importSpec.loadArea or {}
+				for i, boundingBox in (shopVolume.bbs) do
+					local s = boundingBox:getSize()
+					local o = boundingBox:getOffset()
+					importSpec.loadArea[i] = {
+						width = s.x,
+						height = s.y,
+						length = s.z,
+						offset = {o.x, o.y-s.y/2, o.z},
+					}
+					spec.loadArea[i] = {
+						width = s.x,
+						height = s.y,
+						length = s.z,
+						offset = {o.x, o.y-s.y/2, o.z},
+					}
+				end
+				configurationAdded = true
+				-- print("DEBUG: importSpec.loadArea after cloning:")
+				-- DebugUtil.printTableRecursively(importSpec.loadArea, "  --", 0, 2)
+				-- print("DEBUG: spec.loadArea after cloning:")
+				-- DebugUtil.printTableRecursively(spec.loadArea, "  --", 0, 2)
 
-			UniversalAutoloadManager.saveVehicleConfigurationToSettings(vehicle)
-			
+				UniversalAutoloadManager.saveVehicleConfigurationToSettings(vehicle)
+				
+			end
 		end
 		
 		return configurationAdded
