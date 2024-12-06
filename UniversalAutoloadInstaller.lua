@@ -106,7 +106,8 @@ UniversalAutoload.GLOBAL_DEFAULTS = {
 UniversalAutoload.OPTIONS_DEFAULTS = {
 	{id="isBoxTrailer", default=false, valueType="BOOL", key="#isBoxTrailer", description="If trailer is enclosed with a rear door"},
 	{id="isLogTrailer", default=false, valueType="BOOL", key="#isLogTrailer", description="If trailer is a logging trailer - will load only logs, dropped from above"},
-	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer", description="If trailer should use an automatic bale collection mode"},
+	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer", description="If trailer should use an automatic bale collection mode"},	
+	{id="isBaleProcessor", default=false, valueType="BOOL", key="#isBaleProcessor", description="If trailer should consume bales (e.g. TMR Mixer or Straw Blower)"},
 	{id="isCurtainTrailer", default=false, valueType="BOOL", key="#isCurtainTrailer", description="Automatically detect the available load side (if the trailer has curtain sides)"},
 	{id="enableRearLoading", default=false, valueType="BOOL", key="#enableRearLoading", description="Use the automatic rear loading trigger"},
 	{id="enableSideLoading", default=false, valueType="BOOL", key="#enableSideLoading", description="Use the automatic side loading triggers"},
@@ -253,9 +254,21 @@ function UniversalAutoloadManager.getVehicleConfigFromSettingsXML(configKey, xml
 	
 	if xmlFile then
 		
-		local configuration = {}
+		local function readSettingFromFile(k, v, parentKey, currentKey, currentValue, finalValue)
+			if currentKey and currentValue and v.id then
+				if v.valueType == "VECTOR_TRANS" then
+					currentValue[v.id] = xmlFile:getValue(currentKey, v.default, true)
+				else
+					currentValue[v.id] = xmlFile:getValue(currentKey, v.default)
+				end
+				-- print("  << " .. tostring(currentKey) .. " = " .. tostring(currentValue[v.id]))
+			end
+		end
+
+		local config = {}
 		local selectedConfigs = xmlFile:getValue(configKey.."#selectedConfigs", "ALL")
 		local useConfigName = xmlFile:getValue(configKey.."#useConfigName", nil)
+		iterateDefaultsTable(UniversalAutoload.OPTIONS_DEFAULTS, "", configKey..".options", config, readSettingFromFile)
 
 		local j = 1
 		local hasBaleHeight = false
@@ -266,58 +279,23 @@ function UniversalAutoloadManager.getVehicleConfigFromSettingsXML(configKey, xml
 				break
 			end
 			loadingArea[j] = {}
-			loadingArea[j].width  = xmlFile:getValue(loadAreaKey.."#width", nil)
-			loadingArea[j].length = xmlFile:getValue(loadAreaKey.."#length", nil)
-			loadingArea[j].height = xmlFile:getValue(loadAreaKey.."#height", nil)
-			loadingArea[j].baleHeight = xmlFile:getValue(loadAreaKey.."#baleHeight", nil)
-			loadingArea[j].widthAxis  = xmlFile:getValue(loadAreaKey.."#widthAxis", nil)
-			loadingArea[j].lengthAxis = xmlFile:getValue(loadAreaKey.."#lengthAxis", nil)
-			loadingArea[j].heightAxis = xmlFile:getValue(loadAreaKey.."#heightAxis", nil)
-			loadingArea[j].offsetFrontAxis = xmlFile:getValue(loadAreaKey.."#offsetFrontAxis", nil)
-			loadingArea[j].offsetRearAxis  = xmlFile:getValue(loadAreaKey.."#offsetRearAxis", nil)
-			loadingArea[j].reverseWidthAxis  = xmlFile:getValue(loadAreaKey.."#reverseWidthAxis", false)
-			loadingArea[j].reverseLengthAxis = xmlFile:getValue(loadAreaKey.."#reverseLengthAxis", false)
-			loadingArea[j].reverseHeightAxis = xmlFile:getValue(loadAreaKey.."#reverseHeightAxis", false)
-			loadingArea[j].offset = xmlFile:getValue(loadAreaKey.."#offset", "0 0 0", true)
-			loadingArea[j].offsetRoot = xmlFile:getValue(loadAreaKey.."#offsetRoot", nil)
-			loadingArea[j].noLoadingIfFolded = xmlFile:getValue(loadAreaKey.."#noLoadingIfFolded", false)
-			loadingArea[j].noLoadingIfUnfolded = xmlFile:getValue(loadAreaKey.."#noLoadingIfUnfolded", false)
-			loadingArea[j].noLoadingIfCovered = xmlFile:getValue(loadAreaKey.."#noLoadingIfCovered", false)
-			loadingArea[j].noLoadingIfUncovered = xmlFile:getValue(loadAreaKey.."#noLoadingIfUncovered", false)
+			iterateDefaultsTable(UniversalAutoload.LOADING_AREA_DEFAULTS, "", loadAreaKey, loadingArea[j], readSettingFromFile)
 			hasBaleHeight = hasBaleHeight or type(loadingArea[j].baleHeight) == 'number'
 			j = j + 1
 		end
-		configuration['loadArea'] = loadingArea
-		
-		local isBaleTrailer = xmlFile:getValue(configKey..".options#isBaleTrailer", nil)
-		local horizontalLoading = xmlFile:getValue(configKey..".options#horizontalLoading", nil)
-		
-		configuration['horizontalLoading'] = horizontalLoading or isBaleTrailer or false
-		configuration['isBaleTrailer'] = isBaleTrailer or hasBaleHeight
-			
-		configuration['isBoxTrailer'] = xmlFile:getValue(configKey..".options#isBoxTrailer", false)
-		configuration['isLogTrailer'] = xmlFile:getValue(configKey..".options#isLogTrailer", false)
-		configuration['isCurtainTrailer'] = xmlFile:getValue(configKey..".options#isCurtainTrailer", false)
-		configuration['enableRearLoading'] = xmlFile:getValue(configKey..".options#enableRearLoading", false)
-		configuration['enableSideLoading'] = xmlFile:getValue(configKey..".options#enableSideLoading", false)
-		configuration['noLoadingIfFolded'] = xmlFile:getValue(configKey..".options#noLoadingIfFolded", false)
-		configuration['noLoadingIfUnfolded'] = xmlFile:getValue(configKey..".options#noLoadingIfUnfolded", false)
-		configuration['noLoadingIfCovered'] = xmlFile:getValue(configKey..".options#noLoadingIfCovered", false)
-		configuration['noLoadingIfUncovered'] = xmlFile:getValue(configKey..".options#noLoadingIfUncovered", false)
-		configuration['rearUnloadingOnly'] = xmlFile:getValue(configKey..".options#rearUnloadingOnly", false)
-		configuration['frontUnloadingOnly'] = xmlFile:getValue(configKey..".options#frontUnloadingOnly", false)
-		configuration['disableAutoStrap'] = xmlFile:getValue(configKey..".options#disableAutoStrap", false)
-		configuration['disableHeightLimit'] = xmlFile:getValue(configKey..".options#disableHeightLimit", false)
-		configuration['zonesOverlap'] = xmlFile:getValue(configKey..".options#zonesOverlap", false)
-		configuration['offsetRoot'] = xmlFile:getValue(configKey..".options#offsetRoot", nil)
-		configuration['minLogLength'] = xmlFile:getValue(configKey..".options#minLogLength", UniversalAutoload.minLogLength)
-		configuration['showDebug'] = xmlFile:getValue(configKey..".options#showDebug", debugAll)
+		config['loadArea'] = loadingArea
+
+		local isBaleTrailer = config.isBaleTrailer
+		local isBaleProcessor = config.isBaleProcessor
+		local horizontalLoading = config.horizontalLoading
+		config.horizontalLoading = horizontalLoading or isBaleTrailer or isBaleProcessor or false
+		config.isBaleTrailer = isBaleTrailer or hasBaleHeight
 
 		if shouldCloseFile then
 			xmlFile:delete()
 		end
 		
-		return configuration
+		return config
 	else
 		print("ERROR: no settings file " .. tostring(xmlFile))
 	end
