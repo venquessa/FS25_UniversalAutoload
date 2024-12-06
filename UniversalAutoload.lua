@@ -3250,8 +3250,7 @@ end
 function UniversalAutoload.isLoadedOnTrain(self, object)
 	for _, vehicle in pairs(UniversalAutoload.VEHICLES) do
 		if vehicle and self ~= vehicle then
-			local rootVehicle = vehicle:getRootVehicle()
-			if rootVehicle and rootVehicle:getFullName():find("Locomotive") then
+			if UniversalAutoloadManager.getIsTrainCarriage(vehicle) then
 				if vehicle.spec_universalAutoload.loadedObjects[object] then
 					return true
 				end

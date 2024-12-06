@@ -1098,6 +1098,16 @@ function UniversalAutoloadManager.resetLoadingVolumeForShopEdit(vehicle)
 	
 end
 
+function UniversalAutoloadManager.getIsTrainCarriage(vehicle)
+	local rootVehicle = vehicle:getRootVehicle()
+	if rootVehicle and rootVehicle:getFullName():find("Locomotive")
+		or rootVehicle:getFullName():find("Timber Wagon")
+		or rootVehicle:getFullName():find("Flatbed Wagon")
+		or rootVehicle:getFullName():find("Vehicle Wagon") then
+		return true
+	end
+end
+
 function UniversalAutoloadManager.getIsValidForAutoload(vehicle)
 	local spec = vehicle and vehicle.spec_universalAutoload
 	if not spec then
@@ -1105,9 +1115,8 @@ function UniversalAutoloadManager.getIsValidForAutoload(vehicle)
 		return
 	end
 	
-	local rootVehicle = vehicle:getRootVehicle()
-	if rootVehicle and rootVehicle:getFullName():find("Timber Wagon") or rootVehicle:getFullName():find("Flatbed Wagon") then
-		print(rootVehicle:getFullName() .. " - don't add UAL to train for now..")
+	if UniversalAutoloadManager.getIsTrainCarriage(vehicle) then
+		print(vehicle:getFullName() .. " - don't add UAL to train for now..")
 		return false
 	end
 	
@@ -1829,8 +1838,7 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 
 	local rootVehicle = vehicle:getRootVehicle()
 	if rootVehicle ~= nil then
-		print("ROOT VEHICLE: " .. rootVehicle:getFullName())
-		if rootVehicle:getFullName():find("Locomotive") then
+		if UniversalAutoloadManager.getIsTrainCarriage(vehicle) then
 			print("*** CANNOT RESET TRAIN - terrible things will happen ***")
 			if UniversalAutoloadManager.resetCount then
 				UniversalAutoloadManager.resetNextVehicle()
