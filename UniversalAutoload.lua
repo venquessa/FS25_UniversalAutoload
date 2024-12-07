@@ -5025,7 +5025,7 @@ end
 --
 function UniversalAutoload.getContainerType(object)
 
-	if object == nil then
+	if object == nil or object.isAddedToPhysics == false then
 		-- print("getContainerType requires an object")
 		return nil
 	end
@@ -5047,6 +5047,11 @@ function UniversalAutoload.getContainerType(object)
 			--DebugUtil.printTableRecursively(size or {}, "  ", 0, 1)
 			--DebugUtil.printTableRecursively(offset or {}, "  ", 0, 1)
 			--DebugUtil.printTableRecursively(object or {}, "  ", 0, 1)
+			
+			if not size or size.x==0 or size.y==0 or size.z==0 then
+				print("ZERO SIZE SPLITSHAPE " .. tostring(object.nodeId))
+				return nil
+			end
 
 			local splitShape = {}
 			for k, v in pairs(object) do
@@ -5128,6 +5133,12 @@ function UniversalAutoload.getContainerType(object)
 			print("  offset Z: " .. offset.z)
 			-- DebugUtil.printTableRecursively(object or {}, "  ", 0, 1)
 			
+			if size.x==0 or size.y==0 or size.z==0 then
+				print("ZERO SIZE OBJECT")
+				UniversalAutoload.INVALID_OBJECTS[name] = true
+				return nil
+			end
+
 			local storeItem = object.loadCallbackFunctionTarget and object.loadCallbackFunctionTarget.storeItem
 			local category = (storeItem and storeItem.categoryName) or "unknown"
 			-- DebugUtil.printTableRecursively(storeItem or {}, "  ", 0, 1)
