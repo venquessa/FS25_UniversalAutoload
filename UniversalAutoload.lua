@@ -5158,6 +5158,7 @@ function UniversalAutoload.getContainerType(object)
 			end
 
 			local containerIndex = UniversalAutoload.CONTAINERS_LOOKUP[containerType] or 1
+			local shouldNeverStack = (containerType == "BIGBAG") or (object.spec_treeSaplingPallet ~= nil)
 
 			newType = {}
 			newType.name = name
@@ -5170,7 +5171,7 @@ function UniversalAutoload.getContainerType(object)
 			newType.isBale = isBale
 			newType.isRoundbale = isRoundbale
 			newType.flipYZ = false
-			newType.neverStack = (containerType == "BIGBAG") or false
+			newType.neverStack = shouldNeverStack or false
 			newType.neverRotate = false
 			newType.alwaysRotate = false
 			newType.frontOffset = 0
