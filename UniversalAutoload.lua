@@ -3297,9 +3297,9 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	local i = spec.currentLoadAreaIndex or 1
 	
 	--DEFINE CONTAINER SIZES
-	local sizeX = containerType.sizeX
-	local sizeY = containerType.sizeY
-	local sizeZ = containerType.sizeZ
+	local loadSizeX = containerType.sizeX
+	local loadSizeY = containerType.sizeY
+	local loadSizeZ = containerType.sizeZ
 	local containerSizeX = containerType.sizeX
 	local containerSizeY = containerType.sizeY
 	local containerSizeZ = containerType.sizeZ
@@ -3363,9 +3363,9 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	if doRotate then
 		N, M = N2, M2
 		rotation = math.pi/2
-		sizeX = containerType.sizeZ
-		sizeY = containerType.sizeY
-		sizeZ = containerType.sizeX
+		loadSizeX = containerType.sizeZ
+		loadSizeY = containerType.sizeY
+		loadSizeZ = containerType.sizeX
 	end
 	
 	--TEST FOR ROUNDBALE PACKING
@@ -3385,16 +3385,16 @@ function UniversalAutoload:createLoadingPlace(containerType)
 			if NR > N and width >= (2*R)*containerType.sizeX then
 				useRoundbalePacking = true
 				N, M = NR, MR
-				sizeX = R*containerType.sizeX
+				loadSizeX = R*containerType.sizeX
 			end
 		end
 	end
 	
 	--UPDATE NEW PACKING DIMENSIONS
-	local addedLoadWidth = sizeX
-	local addedLoadLength = sizeZ
+	local addedLoadWidth = loadSizeX
+	local addedLoadLength = loadSizeZ
 	if useRoundbalePacking == false then
-		addedLoadWidth = sizeY
+		addedLoadWidth = loadSizeY
 	end
 	spec.currentLoadHeight = 0	
 	if spec.currentLoadWidth == 0 or spec.currentLoadWidth + addedLoadWidth > spec.loadArea[i].width then
@@ -3439,7 +3439,7 @@ function UniversalAutoload:createLoadingPlace(containerType)
 		
 
 	elseif useRoundbalePacking == true then
-		if (spec.currentLoadWidth/sizeX) % 2 == 0 then
+		if (spec.currentLoadWidth/loadSizeX) % 2 == 0 then
 			roundbaleOffset = containerSizeZ/2
 		end
 	end
