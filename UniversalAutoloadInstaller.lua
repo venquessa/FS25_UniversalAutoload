@@ -643,8 +643,8 @@ function UniversalAutoloadManager.getValidConfigurationId(vehicle)
 		return
 	end
 	
-    local configName = spec.useConfigName or "design"
-    local configId = vehicle.configurations[configName] and tostring(vehicle.configurations[configName]) or nil
+    local configName = spec.useConfigName -- or "design"
+    local configId = configName and vehicle.configurations[configName] and tostring(vehicle.configurations[configName]) or nil
     local configurationSets = item.configurationSets or {}
 
     if #configurationSets == 0 then
@@ -1155,10 +1155,22 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 	if spec.configFileName == "data/vehicles/international/cvSeries/cvSeries.xml" then
 		spec.useConfigName = "enterablePassenger"
 	end
+		
+	if spec.configFileName == "data/vehicles/krone/profiLiner/profiLiner.xml" then
+		print("IDENTIFIED CURTAIN TRAILER")
+		spec.isCurtainTrailer = true
+	end
 	
 	local configurationAdded = nil
 	local configId, description = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	if configId then
+		
+		if description == g_i18n:getText("configuration_valueLoadingWagon") then
+			print("IDENTIFIED BALE TRAILER")
+			spec.isBaleTrailer = true
+			spec.horizontalLoading = true
+		end
+
 		print("UniversalAutoload - supported vehicle: "..vehicle:getFullName().." #"..configId.." ("..description..")" )
 		
 		local configFileName = vehicle.configFileName

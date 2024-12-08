@@ -28,6 +28,7 @@ UniversalAutoload.LOG_SPACE = 0.25
 UniversalAutoload.DELAY_TIME = 200
 UniversalAutoload.MP_DELAY = 1000
 UniversalAutoload.LOG_DELAY = 1000
+UniversalAutoload.TRIGGER_DELTA = 0.2
 UniversalAutoload.MAX_LAYER_COUNT = 20
 UniversalAutoload.ROTATED_BALE_FACTOR = 0.85355339
 
@@ -291,8 +292,7 @@ function UniversalAutoload:updateActionEventKeys()
 					if otherEvents ~= nil then
 						local removedConflictingEvent = nil
 						for _, otherEvent in ipairs(otherEvents) do
-							if otherEvent.actionName == 'TOGGLE_TIPSIDE'
-							or otherEvent.actionName == 'CRABSTEERING_ALLWHEEL' then
+							if otherEvent.actionName == 'CRABSTEERING_ALLWHEEL' then
 								if otherEvent.parentEventsTable ~= nil then
 									g_inputBinding:removeActionEvent(otherEvent.id)
 									otherEvent.parentEventsTable[otherEvent.id] = nil
@@ -5494,22 +5494,25 @@ function UniversalAutoload:drawDebugDisplay()
 		end
 		
 		if self.isServer then
-			
+
 			UniversalAutoload.debugRefreshTime = (UniversalAutoload.debugRefreshTime or 0) + g_currentDt
-			if spec.objectsToUnload == nil or UniversalAutoload.debugRefreshTime > UniversalAutoload.DELAY_TIME then
-				UniversalAutoload.debugRefreshTime = 0
-				UniversalAutoload.buildObjectsToUnloadTable(self)
-				spec.objectsToUnload = spec.objectsToUnload or {}
-			end
 			
-			for object, unloadPlace in pairs(spec.objectsToUnload or {}) do
-				local containerType = UniversalAutoload.getContainerType(object)
-				local w, h, l = UniversalAutoload.getContainerTypeDimensions(containerType)
-				local offset = 0 if containerType.isBale then offset = h/2 end
-				if spec.unloadingAreaClear then
-					UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, CYAN, offset )
-				else
-					UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, RED, offset )
+			if UniversalAutoload.getIsUnloadingKeyAllowed(self) == true then
+				if spec.objectsToUnload == nil or UniversalAutoload.debugRefreshTime > UniversalAutoload.DELAY_TIME then
+					UniversalAutoload.debugRefreshTime = 0
+					UniversalAutoload.buildObjectsToUnloadTable(self)
+					spec.objectsToUnload = spec.objectsToUnload or {}
+				end
+				
+				for object, unloadPlace in pairs(spec.objectsToUnload or {}) do
+					local containerType = UniversalAutoload.getContainerType(object)
+					local w, h, l = UniversalAutoload.getContainerTypeDimensions(containerType)
+					local offset = 0 if containerType.isBale then offset = h/2 end
+					if spec.unloadingAreaClear then
+						UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, CYAN, offset )
+					else
+						UniversalAutoload.DrawDebugPallet( unloadPlace.node, w, h, l, true, false, RED, offset )
+					end
 				end
 			end
 			
