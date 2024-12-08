@@ -1001,6 +1001,7 @@ function UniversalAutoload:createSortedObjectsToLoad(availableObjects)
 			object.sort = {}
 			object.sort.height = y
 			object.sort.distance = math.abs(x) + math.abs(z)
+			object.sort.longest = math.max(containerType.sizeX, containerType.sizeZ) or 1
 			object.sort.area = (containerType.sizeX * containerType.sizeZ) or 1
 			object.sort.material = UniversalAutoload.getMaterialType(object) or 1
 			table.insert(sortedObjectsToLoad, object)
@@ -1024,13 +1025,15 @@ end
 --
 function UniversalAutoload.sortPalletsForLoading(w1,w2)
 	-- SORT BY:  AREA > MATERIAL > HEIGHT > DISTANCE
-	if w1.sort.area == w2.sort.area and w1.sort.material == w2.sort.material and w1.sort.height == w2.sort.height and w1.sort.distance < w2.sort.distance then
+	if w1.sort.longest == w2.sort.longest and w1.sort.area == w2.sort.area and w1.sort.material == w2.sort.material and w1.sort.height == w2.sort.height and w1.sort.distance < w2.sort.distance then
 		return true
-	elseif w1.sort.area == w2.sort.area and w1.sort.material == w2.sort.material and w1.sort.height > w2.sort.height then
+	elseif w1.sort.longest == w2.sort.longest and w1.sort.area == w2.sort.area and w1.sort.material == w2.sort.material and w1.sort.height > w2.sort.height then
 		return true
-	elseif w1.sort.area == w2.sort.area and w1.sort.material < w2.sort.material then
+	elseif w1.sort.longest == w2.sort.longest and w1.sort.area == w2.sort.area and w1.sort.material < w2.sort.material then
 		return true
-	elseif w1.sort.area > w2.sort.area then
+	elseif w1.sort.longest == w2.sort.longest and  w1.sort.area > w2.sort.area then
+		return true
+	elseif w1.sort.longest > w2.sort.longest then
 		return true
 	end
 end
@@ -3396,17 +3399,27 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	if useRoundbalePacking == false then
 		addedLoadWidth = loadSizeY
 	end
-	spec.currentLoadHeight = 0	
-	if spec.currentLoadWidth == 0 or spec.currentLoadWidth + addedLoadWidth > spec.loadArea[i].width then
+	spec.currentLoadHeight = 0
+	local tooWideForSpace = spec.currentLoadWidth + addedLoadWidth > spec.loadArea[i].width
+	local shouldStartNewRow = spec.currentLoadWidth == 0 or tooWideForSpace
+	if shouldStartNewRow then
 		spec.currentLoadWidth = addedLoadWidth
 		spec.currentActualWidth = (N * addedLoadWidth)
 		spec.currentActualLength = spec.currentLoadLength
 		spec.currentLoadLength = spec.currentLoadLength + addedLoadLength
+		spec.lastAddedLoadLength = addedLoadLength
 		if spec.isLogTrailer and spec.currentActualLength ~= 0 then
 			spec.currentLoadLength = spec.currentLoadLength + UniversalAutoload.LOG_SPACE
 		end
 	else
 		spec.currentLoadWidth = spec.currentLoadWidth + addedLoadWidth
+		
+		if spec.lastAddedLoadLength and spec.lastAddedLoadLength < addedLoadLength then
+			-- local difference = addedLoadLength - spec.lastAddedLoadLength
+			-- spec.currentLoadLength = spec.currentLoadLength + difference
+			-- spec.lastAddedLoadLength = addedLoadLength
+			return
+		end
 	end
 
 	if spec.currentLoadLength == 0 then
