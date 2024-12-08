@@ -28,7 +28,7 @@ UniversalAutoload.LOG_SPACE = 0.25
 UniversalAutoload.DELAY_TIME = 200
 UniversalAutoload.MP_DELAY = 1000
 UniversalAutoload.LOG_DELAY = 1000
-UniversalAutoload.TRIGGER_DELTA = 0.2
+UniversalAutoload.TRIGGER_DELTA = 0.1
 UniversalAutoload.MAX_LAYER_COUNT = 20
 UniversalAutoload.ROTATED_BALE_FACTOR = 0.85355339
 
@@ -1110,6 +1110,11 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 				else
 					-- if debugLoading then print("PARTIALLY UNLOADED...") end
 					-- spec.partiallyUnloaded = true
+					
+					if not UniversalAutoload.disableAutoStrap then
+						spec.doSetTensionBelts = true
+						spec.doPostLoadDelay = true
+					end
 				end
 			else
 				-- CLEAR_UNLOADING_AREA
@@ -1399,15 +1404,21 @@ function UniversalAutoload:updateLoadingTriggers()
 		local trigger = spec.triggers[id]
 		if trigger then
 			-- print("  update " .. trigger.name)
-			setScale(trigger.node, width, height, length)
+			local d = 2*UniversalAutoload.TRIGGER_DELTA
+			setScale(trigger.node, width-d, height-d, length-d)
 			setRotation(trigger.node, rx or 0, ry or 0, rz or 0)
 			setTranslation(trigger.node, tx or 0, ty or 0, tz or 0)
+
+			local sx, sy, sz = getScale(trigger.node)
+			trigger.width = width/sx
+			trigger.height = height/sy
+			trigger.length = length/sz
 		end
 	end
 	
 	-- create triggers
-	local sideBoundary = 0
-	local rearBoundary = 0
+	local sideBoundary = 2 * UniversalAutoload.TRIGGER_DELTA
+	local rearBoundary = 2 * UniversalAutoload.TRIGGER_DELTA
 	if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
 		sideBoundary = spec.loadVolume.width/4
 	end
@@ -2577,13 +2588,13 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								end
 							end
 						end
-						-- if #spec.sortedObjectsToLoad > 0 then
+						if #spec.sortedObjectsToLoad > 0 then
 							-- if spec.trailerIsFull or (UniversalAutoload.testLoadAreaIsEmpty(self) and not spec.baleCollectionMode) then
 								-- if debugLoading then print("RESET PATTERN to fill in any gaps") end
 								-- spec.partiallyUnloaded = true
 								-- spec.resetLoadingPattern = true
 							-- end
-						-- else
+						else
 							-- if spec.activeLoading then
 								-- if not spec.trailerIsFull and not self:ualGetIsMoving() then
 									-- print("ATTEMPT RELOAD")
@@ -2605,7 +2616,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								UniversalAutoload.stopLoading(self)
 							
 							-- end
-						-- end
+						end
 					end
 				else
 					spec.loadSpeedFactor = spec.loadSpeedFactor or 1
@@ -5451,12 +5462,15 @@ function UniversalAutoload:drawDebugDisplay()
 
 		if UniversalAutoload.showDebug or spec.showDebug then
 			for _, trigger in pairs(spec.triggers or {}) do
+				local w, h, l = trigger.width, trigger.height, trigger.length
 				if trigger.name == "rearAutoTrigger" or trigger.name == "leftAutoTrigger" or trigger.name == "rightAutoTrigger" then
-					DebugUtil.drawDebugCube(trigger.node, 1,1,1, unpack(YELLOW))
+					--DebugUtil.drawDebugCube(trigger.node, 1,1,1, unpack(GREY))
+					UniversalAutoload.DrawDebugPallet(trigger.node, w, h, l, true, false, YELLOW, h/2)
 				elseif trigger.name == "leftPickupTrigger" or trigger.name == "rightPickupTrigger"
 					or trigger.name == "rearPickupTrigger" or trigger.name == "frontPickupTrigger"
 					or (debugLoading and trigger.name == "unloadingTrigger") then
-					DebugUtil.drawDebugCube(trigger.node, 1,1,1, unpack(MAGENTA))
+					--DebugUtil.drawDebugCube(trigger.node, 1,1,1, unpack(GREY))
+					UniversalAutoload.DrawDebugPallet(trigger.node, w, h, l, true, false, MAGENTA, h/2)
 				end
 			end
 		end
