@@ -285,7 +285,6 @@ function UniversalAutoload:updateActionEventKeys()
 					triggerUp, triggerDown, triggerAlways, startActive, callbackState, customIconName, ignoreCollisions, reportAnyDeviceCollision)
 				if debugKeys then print("  " .. id .. ": "..tostring(valid)) end
 				if valid == false then -- and self:getIsSelected()
-					print("UAL - key binding for " .. id .. " failed to register")
 					local _, _, otherEvents = g_inputBinding:registerActionEvent(actions[id], self, UniversalAutoload[callback],
 						triggerUp, triggerDown, triggerAlways, startActive, callbackState, true, reportAnyDeviceCollision)
 
@@ -299,19 +298,27 @@ function UniversalAutoload:updateActionEventKeys()
 									otherEvent.parentEventsTable[otherEvent.id] = nil
 									removedConflictingEvent = otherEvent.actionName
 								end
-							else
-								print("conflicting action is: " .. otherEvent.actionName)
 							end
 						end
 						if removedConflictingEvent then
 							local valid, newActionEventId = self:addActionEvent(spec.actionEvents, actions[id], self, UniversalAutoload[callback],
 								triggerUp, triggerDown, triggerAlways, startActive, callbackState, customIconName, ignoreCollisions, reportAnyDeviceCollision)
 							if valid then
-								print("removed conflicting action: " .. removedConflictingEvent)
 								actionEventId = newActionEventId
 							else
-								print("COULD NOT REMOVE conflicting action: " .. removedConflictingEvent)
 								actionEventId = nil
+							end
+							
+							spec.alreadyPrintedConflictingAction = spec.alreadyPrintedConflictingAction or {}
+							if not spec.alreadyPrintedConflictingAction[removedConflictingEvent] then
+								spec.alreadyPrintedConflictingAction[removedConflictingEvent] = true
+								print("UAL - key binding for " .. id .. " failed to register")
+								if valid then
+									print("removed conflicting action: " .. removedConflictingEvent)
+								else
+									print("COULD NOT REMOVE conflicting action: " .. removedConflictingEvent)
+								end
+								print("*** Please re-bind one of these actions to prevent this message ***")
 							end
 						end
 					end
