@@ -1,6 +1,13 @@
 # FS25_UniversalAutoload
 ---------------------------------------------------
 DEVELOPMENT RELEASE - Please test and leave any bug reports or feedback.
+
+Please get the latest from https://github.com/loki79uk/FS25_UniversalAutoload/releases
+
+** PLEASE STOP using the disgusting third-party download sites **
+
+_I have asked them to remove my mods but have not had a single response.._
+
 ---------------------------------------------------
 
 **READ THIS FIRST**
