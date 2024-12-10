@@ -739,6 +739,41 @@ function UniversalAutoloadManager.injectSpecialisation()
 	end
 end
 
+function UniversalAutoloadManager:ualClickCallback(targetObject, actionName, inputValue, callbackState)
+	local button = UniversalAutoloadManager.configButton
+	if button and button:getIsVisible() then
+		print("UAL SHOP CONFIG CALLBACK")
+	else
+		print("UAL shop config callback - DISABLED")
+	end
+end
+
+function UniversalAutoloadManager.injectShopButton()
+	print("UAL - INJECT BUTTON")
+
+	if not UniversalAutoloadManager.configButton then
+		local function cloneButton(original, title, callback)
+			-- print("original")
+			-- DebugUtil.printTableRecursively(original, "--", 0, 1)
+			local button = original:clone(original.parent)
+			button:setText(title)
+			button:setVisible(false)
+			button:setCallback("onClickCallback", callback)
+			button:setInputAction(InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG)
+			button.parent:invalidateLayout()
+			return button
+		end
+		
+		local buyButton = g_shopConfigScreen.buyButton
+		local button = cloneButton(buyButton, g_i18n:getText("shop_configuration_text"), "ualClickCallback");
+		UniversalAutoloadManager.configButton = button
+	end
+
+end
+
+-- ShopConfigScreen.ualClickCallback = Utils.prependedFunction(ShopConfigScreen.ualClickCallback, UniversalAutoloadManager.ualClickCallback);
+-- ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.injectShopButton);
+
 function UniversalAutoloadManager.injectMenu()
 	print("UAL - INJECT MENU")
 	
@@ -901,11 +936,30 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 
 end
 
+function UniversalAutoloadManager:registerShopActionEvent()
+	local triggerUp = false
+	local triggerDown = true
+	local triggerAlways = false
+	local startActive = true
+	local valid, actionId = g_inputBinding:registerActionEvent(InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG,
+		self, self.ualClickCallback, triggerUp, triggerDown, triggerAlways, startActive)
+	local nameAction = g_inputBinding.nameActions['UNIVERSALAUTOLOAD_SHOP_CONFIG']
+	-- print("valid:  " .. tostring(valid))
+	-- print("actionId:  " .. tostring(actionId))
+	-- print("nameAction:  " .. tostring(nameAction))
+end
+
 -- AUTO CREATE LOADING VOLUMES
 function UniversalAutoloadManager.editLoadingVolumeInsideShop(vehicle)
 	local spec = vehicle.spec_universalAutoload
 	
 	if spec.loadingVolume.state == LoadingVolume.STATE.SHOP_CONFIG then
+		
+		local button = UniversalAutoloadManager.configButton
+		if button and not button:getIsVisible() then
+			button:setVisible(true)
+			UniversalAutoloadManager:registerShopActionEvent()
+		end
 		
 		local shopConfig = UniversalAutoloadManager.shopConfig
 		if not shopConfig or not shopConfig.enableEditing then
@@ -1165,10 +1219,24 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 	local configId, description = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	if configId then
 		
-		if description == g_i18n:getText("configuration_valueLoadingWagon") then
+		--ANIMALTRANSPORT
+		local target = vehicle and vehicle.loadCallbackFunctionTarget
+		local storeItem = target and target.storeItem
+		local category = storeItem and storeItem.categoryName
+		local isBaleLoader = category and category == 'BALELOADERS'
+		local isWoodTransport = category and category == 'WOODTRANSPORT'
+		local isForestryForwarder = category and category == 'FORESTRYFORWARDERS'
+		local isBaleWagon = description and description == g_i18n:getText("configuration_valueLoadingWagon")
+		
+		if isBaleLoader or isBaleWagon then
 			print("IDENTIFIED BALE TRAILER")
 			spec.isBaleTrailer = true
 			spec.horizontalLoading = true
+		end
+		
+		if isWoodTransport or isForestryForwarder then
+			print("IDENTIFIED LOG TRAILER")
+			spec.isLogTrailer = true
 		end
 
 		print("UniversalAutoload - supported vehicle: "..vehicle:getFullName().." #"..configId.." ("..description..")" )
@@ -1931,6 +1999,7 @@ end
 function UniversalAutoloadManager:loadMap(name)
 	print("UAL - LOADMAP")
 	-- UniversalAutoloadManager.injectMenu()
+	-- UniversalAutoloadManager.injectShopButton()
 	UniversalAutoloadManager.injectSpecialisation()
 	
 	g_messageCenter:subscribe(BuyVehicleEvent, UniversalAutoloadManager.onVehicleBuyEvent, UniversalAutoloadManager)

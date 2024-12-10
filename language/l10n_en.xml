@@ -8,6 +8,7 @@
 		<text name="ui_setting_enable_ual" text="Manual Loading"/>
 		<text name="ui_toolTip_enable_ual" text="If the manual loading feature is enabled"/>
 		
+		<text name="input_UNIVERSALAUTOLOAD_SHOP_CONFIG" text="Autoload"/>
 		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_LOADING" text="Toggle loading"/>
 		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_BALE_COLLECTION" text="Automatic Bale Collection Mode"/>
 		<text name="input_UNIVERSALAUTOLOAD_UNLOAD_ALL" text="Unload"/>

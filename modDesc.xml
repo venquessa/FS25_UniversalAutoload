@@ -2,7 +2,7 @@
 <modDesc descVersion="92">
 
     <author>loki_79</author>
-    <version>0.1.0.1</version>
+    <version>0.2.0.0</version>
     
     <title>
         <en>Universal Autoload</en>
@@ -70,6 +70,7 @@ Sonderfunktionen für den Anhänger 'KRONE Trailer Profi Liner'
     <l10n filenamePrefix="language/l10n" />
     
     <actions>
+        <action name="UNIVERSALAUTOLOAD_SHOP_CONFIG" category="MENU_SHOP_CONFIG" axisType="HALF" ignoreComboMask="false"/>
         <action name="UNIVERSALAUTOLOAD_TOGGLE_LOADING" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
         <action name="UNIVERSALAUTOLOAD_UNLOAD_ALL" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
         <action name="UNIVERSALAUTOLOAD_TOGGLE_TIPSIDE" category="VEHICLE" axisType="HALF" ignoreComboMask="false"/>
@@ -90,6 +91,9 @@ Sonderfunktionen für den Anhänger 'KRONE Trailer Profi Liner'
     </actions>
     
     <inputBinding>
+        <actionBinding action="UNIVERSALAUTOLOAD_SHOP_CONFIG" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_a" />
+        </actionBinding>
         <actionBinding action="UNIVERSALAUTOLOAD_TOGGLE_LOADING" >
             <binding device="KB_MOUSE_DEFAULT" input="KEY_lshift KEY_r" />
         </actionBinding>

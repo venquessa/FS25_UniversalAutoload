@@ -25,6 +25,7 @@ UniversalAutoload.ALL = "ALL"
 UniversalAutoload.SPACING = 0.0
 UniversalAutoload.MAX_STACK = 5
 UniversalAutoload.LOG_SPACE = 0.25
+UniversalAutoload.LOG_FACTOR = 0.75
 UniversalAutoload.DELAY_TIME = 200
 UniversalAutoload.MP_DELAY = 1000
 UniversalAutoload.LOG_DELAY = 1000
@@ -45,7 +46,7 @@ local debugSpecial = false
 -- local disablePhysicsAfterLoading = true
 
 UniversalAutoload.MASK = {}
-UniversalAutoload.MASK.object = CollisionFlag.VEHICLE + CollisionFlag.DYNAMIC_OBJECT --+ CollisionFlag.TREE
+UniversalAutoload.MASK.object = CollisionFlag.VEHICLE + CollisionFlag.DYNAMIC_OBJECT + CollisionFlag.TREE
 UniversalAutoload.MASK.everything = UniversalAutoload.MASK.object + CollisionFlag.STATIC_OBJECT + CollisionFlag.PLAYER
 
 
@@ -3343,9 +3344,10 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	
 	--ALTERNATE LOG PACKING FOR EACH LAYER
 	if spec.isLogTrailer then
-		local N = math.floor(width / containerSizeZ)
+		local spaceWidth = containerSizeZ
+		local N = math.floor(width / spaceWidth)
 		if N > 1 and spec.currentLayerCount % 2 ~= 0 then
-			width = (N-1) * containerSizeZ
+			width = (N-1) * spaceWidth
 		end
 	end
 	
@@ -3533,14 +3535,7 @@ function UniversalAutoload:createLoadingPlace(containerType)
 			loadPlace = deepCopy(loadPlace),
 			containerType = containerType,
 		}
-		
-		-- print("offsetX: " .. tostring(offset.x))
-		-- print("offsetY: " .. tostring(offset.y))
-		-- print("offsetZ: " .. tostring(offset.z))
-		
-		-- DebugUtil.printTableRecursively(loadPlace, "--", 0, 1)
-		-- DebugUtil.printTableRecursively(containerType, "--", 0, 1)
-		
+
 	end
 end
 --
@@ -3591,9 +3586,10 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 			print("["..self.rootNode.."] FIND LOADING PLACE FOR "..containerType.name)
 		end
 		
-		if spec.isLogTrailer then
-			spec.resetLoadingPattern = true
-		end
+		-- if spec.isLogTrailer then
+			-- CAN'T USE COLLISION DETECTION..
+			-- spec.resetLoadingPattern = true
+		-- end
 
 		spec.loadingAreaIsFull = spec.loadingAreaIsFull or {}
 		local i = spec.currentLoadAreaIndex or 1
@@ -3711,19 +3707,24 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 									
 									if debugLoading then print("LOG TRAILER") end
 									if not self:ualGetIsMoving() then
-										local logLoadHeight = maxLoadAreaHeight + 0.1
-										if not spec.zonesOverlap then
-											logLoadHeight = math.min(spec.currentLayerHeight, maxLoadAreaHeight) + 0.1
-										end
-										setTranslation(thisLoadPlace.node, x0, logLoadHeight+offset.y, z0)
-										if UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object) then
-											spec.currentLoadHeight = spec.currentLayerHeight
-											local massFactor = math.clamp((1/mass)/2, 0.2, 1)
-											local heightFactor = maxLoadAreaHeight/(maxLoadAreaHeight+spec.currentLoadHeight)
-											spec.loadSpeedFactor = math.clamp(heightFactor*massFactor, 0.1, 0.5)
-											-- print("loadSpeedFactor: " .. spec.loadSpeedFactor)
+										if not layerOverMaxHeight then
+											spec.currentLoadHeight = spec.currentLayerHeight * UniversalAutoload.LOG_FACTOR
+											setTranslation(thisLoadPlace.node, x0, spec.currentLayerHeight+offset.y, z0)
 											useThisLoadSpace = true
 										end
+										-- local logLoadHeight = maxLoadAreaHeight + 0.1
+										-- -- if not spec.zonesOverlap then
+											-- -- logLoadHeight = math.min(spec.currentLayerHeight, maxLoadAreaHeight) + 0.1
+										-- -- end
+										-- setTranslation(thisLoadPlace.node, x0, logLoadHeight+offset.y, z0)
+										-- if UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object, 0.1, CollisionFlag.TREE) then
+											-- spec.currentLoadHeight = spec.currentLayerHeight
+											-- local massFactor = math.clamp((1/mass)/2, 0.2, 1)
+											-- local heightFactor = maxLoadAreaHeight/(maxLoadAreaHeight+spec.currentLoadHeight)
+											-- spec.loadSpeedFactor = math.clamp(heightFactor*massFactor, 0.1, 0.5)
+											-- -- print("loadSpeedFactor: " .. spec.loadSpeedFactor)
+											-- useThisLoadSpace = true
+										-- end
 									end
 
 								elseif spec.baleCollectionMode then
@@ -3854,7 +3855,7 @@ function UniversalAutoload:getIsValidObject(object)
 			UniversalAutoload.removeSplitShapeObject(self, object)
 			return false
 		else
-			return false --DISABLE LOGS FOR NOW.. true
+			return true
 		end
 	end
 	
@@ -4037,34 +4038,41 @@ function UniversalAutoload:testLocationIsFull(loadPlace, offset)
 	return spec.foundObject
 end
 --
-function UniversalAutoload:testLocationIsEmpty(loadPlace, object, offset)
+function UniversalAutoload:testLocationIsEmpty(loadPlace, object, offset, mask)
 	local spec = self.spec_universalAutoload
-	local r = 0.05
+	local r = 0.1
 	local sizeX, sizeY, sizeZ = (loadPlace.sizeX/2)-r, (loadPlace.sizeY/2)-r, (loadPlace.sizeZ/2)-r
 	local x, y, z = localToWorld(loadPlace.node, 0, offset or 0, 0)
 	local rx, ry, rz = getWorldRotation(loadPlace.node)
-	local dx, dy, dz = localDirectionToWorld(loadPlace.node, 0, sizeY, 0)
+	local dx, dy, dz = localDirectionToWorld(loadPlace.node, 0, loadPlace.sizeY/2, 0)
 	
 	spec.foundObject = false
 	spec.currentObject = object
 
-	local collisionMask = UniversalAutoload.MASK.everything
+	local collisionMask = mask
+	if mask == nil then
+		collisionMask = UniversalAutoload.MASK.everything
+	end
+	print("collisionMask: " .. tostring(collisionMask))
 	local hitCount = overlapBox(x+dx, y+dy, z+dz, rx, ry, rz, sizeX, sizeY, sizeZ, "ualTestLocationOverlap_Callback", self, collisionMask, true, false, true)
 
 	-- if debugLoading then 
-		-- print(self:getFullName())
-		-- print(" HIT COUNT: " .. tostring(hitCount))
-		-- DebugUtil.drawOverlapBox(x+dx, y+dy, z+dz, rx, ry, rz, sizeX, sizeY, sizeZ)
+		print(self.rootNode .. " HIT COUNT: " .. tostring(hitCount))
 	-- end
 	
 	if UniversalAutoload.showDebug then
-		if spec.testLocation == nil then
-			spec.testLocation = {}
-		end
-		spec.testLocation.node = loadPlace.node
-		spec.testLocation.sizeX = 2*sizeX
-		spec.testLocation.sizeY = 2*sizeY
-		spec.testLocation.sizeZ = 2*sizeZ
+		spec.lastOverlapBox = {
+			x = x, y = y, z = z,
+			dx = dx, dy = dy, dz = dz,
+			rx = rx, ry = ry, rz = rz,
+			sizeX = sizeX, sizeY = sizeY, sizeZ = sizeZ,
+		}
+		spec.testLocation = {
+			node = loadPlace.node,
+			sizeX = 2*sizeX,
+			sizeY = 2*sizeY,
+			sizeZ = 2*sizeZ,
+		}
 	end
 
 	return not spec.foundObject
@@ -4075,9 +4083,10 @@ function UniversalAutoload:ualTestLocationOverlap_Callback(hitObjectId, x, y, z,
 	if hitObjectId ~= 0 and hitObjectId ~= self.rootNode and getHasClassId(hitObjectId, ClassIds.SHAPE) then
 		local spec = self.spec_universalAutoload
 		local object = UniversalAutoload.getNodeObject(hitObjectId)
+		-- local rootVehicle = self:getRootVehicle()
 
 		if object and object ~= self and object ~= spec.currentObject then
-			-- print(object.i3dFilename)
+			print(object.i3dFilename)
 			spec.foundObject = true
 		end
 	end
@@ -4115,7 +4124,9 @@ function UniversalAutoload:testUnloadLocationIsEmpty(unloadPlace)
 	local x, y, z = localToWorld(unloadPlace.node, 0, 0, 0)
 	local rx, ry, rz = getWorldRotation(unloadPlace.node)
 	local dx, dy, dz
-	if unloadPlace.wasFlippedYZ then
+	if unloadPlace.wasFlippedXY then
+		dx, dy, dz = localDirectionToWorld(unloadPlace.node, -sizeY, 0, 0)
+	elseif unloadPlace.wasFlippedYZ then
 		dx, dy, dz = localDirectionToWorld(unloadPlace.node, 0, 0, -sizeY)
 	else
 		dx, dy, dz = localDirectionToWorld(unloadPlace.node, 0, sizeY, 0)
@@ -4201,13 +4212,12 @@ function UniversalAutoload:testLocation(loadPlace)
 	end	
 
 	if UniversalAutoload.showDebug then
-		if spec.testLocation == nil then
-			spec.testLocation = {}
-		end
-		spec.testLocation.node = loadPlace and loadPlace.node or spec.loadArea[i].rootNode
-		spec.testLocation.sizeX = 2*sizeX
-		spec.testLocation.sizeY = 2*sizeY
-		spec.testLocation.sizeZ = 2*sizeZ
+		spec.testLocation = {
+			node = loadPlace.node,
+			sizeX = 2*sizeX,
+			sizeY = 2*sizeY,
+			sizeZ = 2*sizeZ,
+		}
 	end
 
 	return spec.foundAnyObject
@@ -4247,8 +4257,8 @@ function UniversalAutoload.getSplitShapeObject( objectId )
 		return
 	end
 	
-	--print("RigidBodyType: " .. tostring(getRigidBodyType(objectId)))
-	if objectId ~= 0 and getRigidBodyType(objectId) == RigidBodyType.DYNAMIC then
+	-- print("RigidBodyType: " .. tostring(getRigidBodyType(objectId)))
+	if objectId and getRigidBodyType(objectId) == RigidBodyType.DYNAMIC then
 	
 		local splitType = g_splitShapeManager:getSplitTypeByIndex(getSplitType(objectId))
 		if splitType then
@@ -4268,7 +4278,6 @@ function UniversalAutoload.getSplitShapeObject( objectId )
 					
 					local positionNode = createTransformGroup("positionNode")
 					link(objectId, positionNode)
-					--setTranslation(positionNode, (xAbove-xBelow)/2, (yAbove-yBelow)/2, (zAbove-zBelow)/2)
 					setTranslation(positionNode, (xAbove-xBelow)/2, -yBelow, (zAbove-zBelow)/2)
 				end
 				
@@ -4289,10 +4298,6 @@ function UniversalAutoload.getSplitShapeObject( objectId )
 				
 				UniversalAutoload.SPLITSHAPES_LOOKUP[objectId] = logObject
 				
-				local rx, ry, rz = getWorldRotation(logObject.nodeId)
-				-- print(string.format("nodeId R   = %f, %f, %f", rx, ry, rz))
-				local prx, pry, prz = getWorldRotation(logObject.positionNodeId)
-				-- print(string.format("position R = %f, %f, %f", prx, pry, prz))
 			end
 			
 			return UniversalAutoload.SPLITSHAPES_LOOKUP[objectId]
@@ -4468,32 +4473,23 @@ function UniversalAutoload:moveObjectNodes( object, position, isLoading, rotateL
 			if isLoading then
 			
 				-- if rotateLogs then print("ROTATE") else print("NORMAL") end
-				print(string.format("R0  %f, %f, %f", n[1].rx, n[1].ry, n[1].rz))
 			
-				-- local s = rotateLogs and 1 or -1
-				local xx,xy,xz = localDirectionToWorld(position.node, 0, 0, 0) --length
+				local s = rotateLogs and 1 or -1
+				local xx,xy,xz = localDirectionToWorld(position.node, s, 0, 0) --length
 				local yx,yy,yz = localDirectionToWorld(position.node, 0, 1, 0) --height
 				local zx,zy,zz = localDirectionToWorld(position.node, 0, 0, 0) --width
 				-- print(string.format("X %f, %f, %f",xx,xy,xz))
 				-- print(string.format("Y %f, %f, %f",yx,yy,yz))
 				-- print(string.format("Z %f, %f, %f",zx,zy,zz))
 			
-				--local rx, ry, rz = localRotationToWorld(position.node, 0, 0, s*math.pi/2)
-				if n[1].ry > -math.pi/4 and n[1].ry < math.pi/4 then
-					n[1].ry = n[1].ry + math.pi/2
-				end
-		
-				n[1].rx = n[1].rx + math.pi/2
-				n[1].ry = n[1].ry + math.pi
-				n[1].rz = n[1].rz
-				print(string.format("R1  %f, %f, %f", n[1].rx, n[1].ry, n[1].rz))
-				
+				local rx, ry, rz = localRotationToWorld(position.node, 0, 0, s*math.pi/2)
+				n[1].rx = rx
+				n[1].ry = ry
+				n[1].rz = rz
 
 				local X = object.sizeY/2
 				local Y = object.sizeX/2
 				local Z = object.sizeZ/2
-				print(string.format("D %f, %f, %f", X, Y, Z))
-				
 				n[1].x = n[1].x + xx*X + yx*Y + zx*Z
 				n[1].y = n[1].y + xy*X + yy*Y + zy*Z
 				n[1].z = n[1].z + xz*X + yz*Y + zz*Z
@@ -4525,7 +4521,7 @@ function UniversalAutoload:moveObjectNodes( object, position, isLoading, rotateL
 			offset['y'] = y0 - (y1-y0)
 			offset['z'] = z0 - (z1-z0)
 
-			print(string.format("offset (%f, %f, %f)", offset.x, offset.y, offset.z))
+			-- print(string.format("offset (%f, %f, %f)", offset.x, offset.y, offset.z))
 			UniversalAutoload.moveObjectNode(node, offset)
 
 		end
@@ -4589,11 +4585,15 @@ function UniversalAutoload:ualUnloadingTrigger_Callback(triggerId, otherActorId,
 		if object then
 			if UniversalAutoload.getIsValidObject(self, object) then
 				if onEnter then
-					-- if debugLoading then print(" UnloadingTrigger ENTER: " .. tostring(object.id)) end
+					if debugLoading then print(" UnloadingTrigger ENTER: " .. tostring(object.id)) end
 					UniversalAutoload.addLoadedObject(self, object)
 				elseif onLeave then
-					-- if debugLoading then print(" UnloadingTrigger LEAVE: " .. tostring(object.id)) end
-					UniversalAutoload.removeLoadedObject(self, object)
+					if debugLoading then print(" UnloadingTrigger LEAVE: " .. tostring(object.id)) end
+					if self.spec_tensionBelts.areBeltsFasten and self:ualGetIsMoving() then
+						print("*** DID WE ACTUALLY UNLOAD THIS? ***")
+					else
+						UniversalAutoload.removeLoadedObject(self, object)
+					end
 				end
 			end
 		end
@@ -4664,7 +4664,7 @@ end
 function UniversalAutoload:addAvailableObject(object)
 	local spec = self.spec_universalAutoload
 	
-	if spec.availableObjects[object] == nil and spec.loadedObjects[object] == nil then
+	if object and spec.availableObjects[object] == nil and spec.loadedObjects[object] == nil then
 		spec.availableObjects[object] = object
 		spec.totalAvailableCount = spec.totalAvailableCount + 1
 		if object.isRoundbale ~= nil then
@@ -4686,7 +4686,7 @@ function UniversalAutoload:removeAvailableObject(object)
 	local spec = self.spec_universalAutoload
 	local isActiveForLoading = spec.isLoading or spec.isUnloading or spec.doPostLoadDelay
 	
-	if spec.availableObjects[object] then
+	if object and spec.availableObjects[object] then
 		spec.availableObjects[object] = nil
 		spec.totalAvailableCount = spec.totalAvailableCount - 1
 		if object.isRoundbale ~= nil then
@@ -5051,7 +5051,7 @@ end
 --
 function UniversalAutoload.getContainerTypeName(object)
 	local containerType = UniversalAutoload.getContainerType(object)
-	return containerType.type
+	return containerType and containerType.type or "NONE"
 end
 --
 function UniversalAutoload.getContainerType(object)
@@ -5064,11 +5064,11 @@ function UniversalAutoload.getContainerType(object)
 	if object.isSplitShape then 
 		
 		if object.ualConfiguration == nil then
-			print("*** UNIVERSAL AUTOLOAD - FOUND NEW SPLITSHAPE ***")	
-			DebugUtil.printTableRecursively(object, "--", 0, 1)
+			-- print("*** UNIVERSAL AUTOLOAD - FOUND NEW SPLITSHAPE ***")	
+			-- DebugUtil.printTableRecursively(object, "--", 0, 1)
 			
-			print("POS:", localToWorld(object.nodeId, 0, 0, 0))
-			print("ROT:", getWorldRotation(object.nodeId, 0, 0, 0))
+			-- print("POS:", localToWorld(object.nodeId, 0, 0, 0))
+			-- print("ROT:", getWorldRotation(object.nodeId, 0, 0, 0))
 			
 			local boundingBox = BoundingBox.new(object)
 			--print("SPLITSHAPE boundingBox:")
@@ -5092,17 +5092,19 @@ function UniversalAutoload.getContainerType(object)
 			splitShape.type = "LOGS"
 			splitShape.name = "splitShape"
 			splitShape.containerIndex = UniversalAutoload.CONTAINERS_LOOKUP["LOGS"] or 1
-			-- splitShape.sizeX = size.x
-			-- splitShape.sizeY = size.y
-			-- splitShape.sizeZ = size.z
-			-- splitShape.offset = offset
+
+			splitShape.sizeX = object.sizeY
+			splitShape.sizeY = object.sizeX
+			splitShape.sizeZ = object.sizeZ
+			
 			splitShape.offset = {x=0, y=0, z=0}
 			splitShape.isBale = false
 			splitShape.isRoundbale = false
+			splitShape.flipXY = true
 			splitShape.flipYZ = false
 			splitShape.neverStack = false
 			splitShape.neverRotate = false
-			splitShape.alwaysRotate = false
+			splitShape.alwaysRotate = true
 			splitShape.frontOffset = 0
 			splitShape.width = math.min(splitShape.sizeX, splitShape.sizeZ)
 			splitShape.length = math.max(splitShape.sizeX, splitShape.sizeZ)
@@ -5406,7 +5408,7 @@ function UniversalAutoload:getMaxSingleLength()
 	local spec = self.spec_universalAutoload
 
 	local maxSingleLength = 0
-	for i, loadArea in pairs(spec.loadArea) do
+	for i, loadArea in pairs(spec.loadArea or {}) do
 		if loadArea.length > maxSingleLength then
 			maxSingleLength = math.floor(10*loadArea.length)/10
 		end
@@ -5457,12 +5459,16 @@ function UniversalAutoload:drawDebugDisplay()
 			UniversalAutoload.DrawDebugPallet( place.node, place.sizeX, place.sizeY, place.sizeZ, true, false, GREY)
 		end
 		if UniversalAutoload.showDebug and spec.testLocation then
-			UniversalAutoload.DrawDebugPallet( spec.testLocation.node, spec.testLocation.sizeX, spec.testLocation.sizeY, spec.testLocation.sizeZ, true, false, WHITE)
+			local place = spec.testLocation
+			DebugUtil.drawDebugNode(spec.testLocation.node, getName(place.node))
+			local X, Y, Z = getWorldTranslation(spec.testLocation.node)
+			g_currentMission:addExtraPrintText(string.format("testLocation: %.2f, %.2f, %.2f", X, Y, Z))
+			-- UniversalAutoload.DrawDebugPallet( place.node, place.sizeX, place.sizeY, place.sizeZ, true, false, WHITE)
 		end
 
 		if UniversalAutoload.showDebug or spec.showDebug then
 			for _, trigger in pairs(spec.triggers or {}) do
-				local w, h, l = trigger.width, trigger.height, trigger.length
+				local w, h, l = trigger.width or 1, trigger.height or 1, trigger.length or 1
 				if trigger.name == "rearAutoTrigger" or trigger.name == "leftAutoTrigger" or trigger.name == "rightAutoTrigger" then
 					--DebugUtil.drawDebugCube(trigger.node, 1,1,1, unpack(GREY))
 					UniversalAutoload.DrawDebugPallet(trigger.node, w, h, l, true, false, YELLOW, h/2)
@@ -5563,19 +5569,39 @@ function UniversalAutoload:drawDebugDisplay()
 			end
 			
 		end
-
+		
 		if spec.lastLoadAttempt then
 			local place = spec.lastLoadAttempt.loadPlace
+			local x, y, z = place.sizeX, place.sizeY, place.sizeZ 
+			
 			local containerType = spec.lastLoadAttempt.containerType
 			local w, h, l = UniversalAutoload.getContainerTypeDimensions(containerType)
-			UniversalAutoload.DrawDebugPallet( place.node, w, h, l, true, false, GREY, offset )
-		end
-
-		for id, object in pairs(UniversalAutoload.SPLITSHAPES_LOOKUP or {}) do
-			DebugUtil.drawDebugNode(id, getName(id))
-			DebugUtil.drawDebugNode(object.positionNodeId, getName(object.positionNodeId))
+			if containerType.flipXY then
+				X, Y = w, h
+				h, w = X, Y
+			elseif containerType.flipYZ then
+				Y, Z = h, l
+				l, h = Y, Z
+			end
+			UniversalAutoload.DrawDebugPallet( place.node, x, y, z, true, false, GREY, offset )
+			UniversalAutoload.DrawDebugPallet( place.node, w, h, l, true, false, YELLOW, offset )
 		end
 		
+		if spec.lastOverlapBox then
+			local b = spec.lastOverlapBox
+			local x, y, z = b.x, b.y, b.z
+			local dx, dy, dz = b.dx, b.dy, b.dz
+			local rx, ry, rz = b.rx, b.ry, b.rz
+			local sizeX, sizeY, sizeZ = b.sizeX, b.sizeY, b.sizeZ
+			DebugUtil.drawOverlapBox(x+dx, y+dy, z+dz, rx, ry, rz, sizeX, sizeY, sizeZ)
+			g_currentMission:addExtraPrintText(string.format("drawOverlapBox: %.2f, %.2f, %.2f", x+dx, y+dy, z+dz))
+		end
+
+		-- for id, object in pairs(UniversalAutoload.SPLITSHAPES_LOOKUP or {}) do
+			-- DebugUtil.drawDebugNode(id, getName(id))
+			-- DebugUtil.drawDebugNode(object.positionNodeId, getName(object.positionNodeId))
+		-- end
+	
 		g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " # " .. (spec.validUnloadCount or "-") .. " / " .. (spec.totalAvailableCount or "-")))
 		
 		if self.isServer then
