@@ -24,7 +24,7 @@ If you are having issues with a vehicle not loading pallets at all then there ar
 
 ---------------------------------------------------
 SUMMARY:
-- Single player is working as it should for BALES, PALLETS and BIG-BAGS
+- Single player is working as it should for BALES, PALLETS, BIG-BAGS and LOGS
 - Multiplayer loads without crashing so far BUT I have only done basic testing. **USE AT YOUR OWN RISK**
 - Any new vehicles will get autoload after purchasing in the shop (see below)
 - Any valid vehicles in a savegame will load settings if available
@@ -50,14 +50,11 @@ TO CONFIGURE LOADING ZONES:
 PLANNED FEATURES:
 - Menu for global settings (in shop)
 - Set vehicle options in the shop before purchase
-- Bale collection mode (already works with xml edit)
-- Log trailers (can be configured, but do not load anything yet)
 - Multiplayer synchronisation of ALL settings
 - Show debugging display in multiplayer
-- Custom key bindings
 
 ---------------------------------------------------
 KNOWN ISSUES:
 - Existing trailers on a savegame will not get autoload added (until restart with valid settings)
-- Object positions slow to update in multiplayer
-- Trigger detection of objects is poor in multiplayer (it helps to move them)
+- New trailers bought in MULTIPLAYER require a server restart to properly configure (see bug #69)
+- Trigger detection of objects is poor in multiplayer
