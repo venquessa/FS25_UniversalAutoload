@@ -18,6 +18,16 @@ TypeManager.validateTypes = Utils.appendedFunction(TypeManager.validateTypes, fu
 	end
 end)
 
+local ROOT = getmetatable(_G).__index
+ROOT.delete = Utils.appendedFunction(ROOT.delete, function(nodeId)
+	if UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] then
+		-- print("DELETED SPLITSHAPE " .. tostring(nodeId))
+		local object = UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] 
+		UniversalAutoload.clearPalletFromAllVehicles(nil, object)
+		UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] = nil
+	end
+end)
+
 -- Create a new store pack to group all UAL supported vehicles
 g_storeManager:addModStorePack("UNIVERSALAUTOLOAD", g_i18n:getText("configuration_universalAutoload", g_currentModName), "icons/storePack_ual.dds", g_currentModDirectory)
 
@@ -89,7 +99,6 @@ UniversalAutoload.VEHICLE_CONFIGURATIONS = {} -- settings for each vehicle confi
 
 UniversalAutoload.VEHICLE_TYPES = {} -- vehicleTypes with autoload spec
 UniversalAutoload.LOADING_TYPES = {} -- known container object types
-UniversalAutoload.INVALID_OBJECTS = {} -- objects that cannot be loaded
 
 UniversalAutoload.GLOBAL_DEFAULTS = {
 	{id="showDebug", default=false, valueType="BOOL", key="#showDebug", description="Show the full graphical debugging display for all vehicles in game"},

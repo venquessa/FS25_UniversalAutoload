@@ -3242,12 +3242,12 @@ end
 --
 function UniversalAutoload.clearPalletFromAllVehicles(self, object)
 	for _, vehicle in pairs(UniversalAutoload.VEHICLES) do
-		if vehicle then
+		if vehicle and object then
 			local loadedObjectRemoved = UniversalAutoload.removeLoadedObject(vehicle, object)
 			local availableObjectRemoved = UniversalAutoload.removeAvailableObject(vehicle, object)
 			local autoLoadingObjectRemoved = UniversalAutoload.removeAutoLoadingObject(vehicle, object)
 			if loadedObjectRemoved or availableObjectRemoved then
-				if self ~= vehicle then
+				if not self or self ~= vehicle then
 					local SPEC = vehicle.spec_universalAutoload
 					if SPEC.totalUnloadCount == 0 then
 						if debugLoading then
@@ -5064,23 +5064,28 @@ function UniversalAutoload.getContainerType(object)
 	if object.isSplitShape then 
 		
 		if object.ualConfiguration == nil then
-			-- print("*** UNIVERSAL AUTOLOAD - FOUND NEW SPLITSHAPE ***")	
+			print("*** UNIVERSAL AUTOLOAD - FOUND NEW SPLITSHAPE [" .. tostring(object.nodeId) .. "] ***")	
 			-- DebugUtil.printTableRecursively(object, "--", 0, 1)
 			
 			-- print("POS:", localToWorld(object.nodeId, 0, 0, 0))
 			-- print("ROT:", getWorldRotation(object.nodeId, 0, 0, 0))
 			
-			local boundingBox = BoundingBox.new(object)
-			--print("SPLITSHAPE boundingBox:")
-			local size = boundingBox:getSize()
-			local offset = boundingBox:getOffset()
-			local rootNode = boundingBox:getRootNode()
+			-- local boundingBox = BoundingBox.new(object)
+			-- --print("SPLITSHAPE boundingBox:")
+			-- local size = boundingBox:getSize()
+			-- local offset = boundingBox:getOffset()
+			-- local rootNode = boundingBox:getRootNode()
 			--DebugUtil.printTableRecursively(size or {}, "  ", 0, 1)
 			--DebugUtil.printTableRecursively(offset or {}, "  ", 0, 1)
 			--DebugUtil.printTableRecursively(object or {}, "  ", 0, 1)
 			
-			if not size or size.x==0 or size.y==0 or size.z==0 then
-				print("ZERO SIZE SPLITSHAPE " .. tostring(object.nodeId))
+			if sizeX==0 or sizeY==0 or sizeZ==0 then
+				UniversalAutoload.INVALID_SPLITSHAPES = UniversalAutoload.INVALID_SPLITSHAPES or {}
+				if UniversalAutoload.INVALID_SPLITSHAPES[object.nodeId] == nil then
+					print("ZERO SIZE SPLITSHAPE " .. tostring(object.nodeId))
+					UniversalAutoload.INVALID_SPLITSHAPES[object.nodeId] = object
+					DebugUtil.printTableRecursively(object, "--", 0, 1)
+				end
 				return nil
 			end
 
@@ -5122,6 +5127,7 @@ function UniversalAutoload.getContainerType(object)
 	end
 
 	local objectType = UniversalAutoload.LOADING_TYPES[name]
+	UniversalAutoload.INVALID_OBJECTS = UniversalAutoload.INVALID_OBJECTS or {}
 	if objectType == nil and not UniversalAutoload.INVALID_OBJECTS[name] then
 		
 		local isBale = object.isRoundbale ~= nil
