@@ -35,6 +35,7 @@ g_storeManager:addModStorePack("UNIVERSALAUTOLOAD", g_i18n:getText("configuratio
 source(UniversalAutoload.path .. "scripts/BoundingBox.lua")
 source(UniversalAutoload.path .. "scripts/LoadingVolume.lua")
 source(UniversalAutoload.path .. "gui/InGameMenuUALSettings.lua")
+source(UniversalAutoload.path .. "gui/ShopConfigMenuUALSettings.lua")
 
 -- class variables
 UniversalAutoload.userSettingsFile = "modSettings/UniversalAutoload.xml"
@@ -103,8 +104,6 @@ UniversalAutoload.LOADING_TYPES = {} -- known container object types
 UniversalAutoload.GLOBAL_DEFAULTS = {
 	{id="showDebug", default=false, valueType="BOOL", key="#showDebug", description="Show the full graphical debugging display for all vehicles in game"},
 	{id="highPriority", default=true, valueType="BOOL", key="#highPriority", description="Apply high priority to all UAL key bindings in the F1 menu"},
-	{id="manualLoadingOnly", default=false, valueType="BOOL", key="#manualLoadingOnly", description="Prevent autoloading (automatic unloading is allowed)"},
-	{id="disableManualLoading", default=false, valueType="BOOL", key="#disableManualLoading", description="Prevent use of manual loading triggers"},
 	{id="disableAutoStrap", default=false, valueType="BOOL", key="#disableAutoStrap", description="Disable the automatic application of tension belts"},
 	{id="pricePerLog", default=0, valueType="FLOAT", key="#pricePerLog", description="The price charged for each auto-loaded log (default is zero)"},
 	{id="pricePerBale", default=0, valueType="FLOAT", key="#pricePerBale", description="The price charged for each auto-loaded bale (default is zero)"},
@@ -115,7 +114,7 @@ UniversalAutoload.GLOBAL_DEFAULTS = {
 UniversalAutoload.OPTIONS_DEFAULTS = {
 	{id="isBoxTrailer", default=false, valueType="BOOL", key="#isBoxTrailer", description="If trailer is enclosed with a rear door"},
 	{id="isLogTrailer", default=false, valueType="BOOL", key="#isLogTrailer", description="If trailer is a logging trailer - will load only logs, dropped from above"},
-	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer", description="If trailer should use an automatic bale collection mode"},	
+	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer", description="If trailer should use an automatic bale collection mode"},
 	{id="isBaleProcessor", default=false, valueType="BOOL", key="#isBaleProcessor", description="If trailer should consume bales (e.g. TMR Mixer or Straw Blower)"},
 	{id="isCurtainTrailer", default=false, valueType="BOOL", key="#isCurtainTrailer", description="Automatically detect the available load side (if the trailer has curtain sides)"},
 	{id="enableRearLoading", default=false, valueType="BOOL", key="#enableRearLoading", description="Use the automatic rear loading trigger"},
@@ -180,17 +179,6 @@ UniversalAutoload.VEHICLE_DEFAULTS = {
 	},
 }
 
-UniversalAutoload.CONTAINER_DEFAULTS = {
-	{id="configFileName", default="UNKNOWN", valueType="STRING", key="#configFileName", description="Pallet Configuration Filename"},
-	{id="containerType", default="ANY", valueType="STRING", key="#containerType", description="The loading type category to group under in the menu)"},
-	{id="isBale", default=false, valueType="BOOL", key="#isBale", description="If the object is either a round bale or square bale"},
-	{id="flipYZ", default=false, valueType="BOOL", key="#flipYZ", description="Should always rotate 90 degrees to stack on end - e.g. for round bales"},
-	{id="neverStack", default=false, valueType="BOOL", key="#neverStack", description="Should never load another pallet on top of this one when loading"},
-	{id="neverRotate", default=false, valueType="BOOL", key="#neverRotate", description="Should never rotate object when loading"},
-	{id="alwaysRotate", default=false, valueType="BOOL", key="#alwaysRotate", description="Should always rotate to face outwards for manual unloading"},
-	{id="frontOffset", default=0, valueType="FLOAT", key="#frontOffset", description="Offset from the front of trailer (only when loaded first)"},
-}
-
 UniversalAutoload.SAVEGAME_STATE_DEFAULTS = {
 	{id="tipside", default="none", valueType="STRING", key="#tipside", description="Last used tip side"},
 	{id="loadside", default="both", valueType="STRING", key="#loadside", description="Last used load side"},
@@ -236,7 +224,6 @@ function iterateDefaultsTable(tbl, parentKey, currentKey, currentValue, action)
 end
 print("GLOBAL_DEFAULTS") iterateDefaultsTable(UniversalAutoload.GLOBAL_DEFAULTS)
 print("VEHICLE_DEFAULTS") iterateDefaultsTable(UniversalAutoload.VEHICLE_DEFAULTS)
-print("CONTAINER_DEFAULTS") iterateDefaultsTable(UniversalAutoload.CONTAINER_DEFAULTS)
 print("SAVEGAME_STATE_DEFAULTS") iterateDefaultsTable(UniversalAutoload.SAVEGAME_STATE_DEFAULTS)
 
 function UniversalAutoloadManager.openUserSettingsXMLFile(xmlFilename)
@@ -748,12 +735,42 @@ function UniversalAutoloadManager.injectSpecialisation()
 	end
 end
 
-function UniversalAutoloadManager:ualClickCallback(targetObject, actionName, inputValue, callbackState)
+function UniversalAutoloadManager:ualInputCallback(target)
+	print("UAL SHOP INPUT CALLBACK")
+	UniversalAutoloadManager:onOpenSettingsEvent('UNIVERSALAUTOLOAD_SHOP_CONFIG', 1)
+end
+
+function UniversalAutoloadManager:onOpenSettingsEvent(actionName, inputValue, callbackState, isAnalog)
+	-- print("onOpenSettingsEvent")
 	local button = UniversalAutoloadManager.configButton
 	if button and button:getIsVisible() then
-		print("UAL SHOP CONFIG CALLBACK")
-	else
-		print("UAL shop config callback - DISABLED")
+		if not UniversalAutoloadManager.shopCongfigMenu then
+			UniversalAutoloadManager.shopCongfigMenu = ShopConfigMenuUALSettings.new()
+			g_gui:loadGui(UniversalAutoload.path.."gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", UniversalAutoloadManager.shopCongfigMenu)
+		end
+		g_gui:showDialog("ShopConfigMenuUALSettings")
+		-- UniversalAutoloadManager.shopCongfigMenu:delete()
+	end
+end
+
+function UniversalAutoloadManager:onEditLoadingAreaEvent(actionName, inputValue, callbackState, isAnalog)
+	-- print("onEditLoadingAreaEvent")
+	if UniversalAutoloadManager.shopVehicle then
+		local spec = UniversalAutoloadManager.shopVehicle.spec_universalAutoload
+		if spec and spec.isInsideShop then
+			local shopConfig = UniversalAutoloadManager.shopConfig or {}
+
+			UniversalAutoloadManager.pauseOnNextStep = nil
+			local ctrl = UniversalAutoloadManager.ctrlHeld
+			local shift = UniversalAutoloadManager.shiftHeld
+			if shift and ctrl then
+				spec.resetToDefault = true
+			else
+				shopConfig.enableEditing = shopConfig.enableEditing or false
+				shopConfig.enableEditing = not shopConfig.enableEditing
+			end
+
+		end
 	end
 end
 
@@ -774,14 +791,16 @@ function UniversalAutoloadManager.injectShopButton()
 		end
 		
 		local buyButton = g_shopConfigScreen.buyButton
-		local button = cloneButton(buyButton, g_i18n:getText("shop_configuration_text"), "ualClickCallback");
+		local button = cloneButton(buyButton, g_i18n:getText("shop_configuration_text"), "ualInputCallback");
 		UniversalAutoloadManager.configButton = button
 	end
+	
+	UniversalAutoloadManager.configButton:setVisible(false)
 
 end
 
--- ShopConfigScreen.ualClickCallback = Utils.prependedFunction(ShopConfigScreen.ualClickCallback, UniversalAutoloadManager.ualClickCallback);
--- ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.injectShopButton);
+ShopConfigScreen.ualInputCallback = Utils.prependedFunction(ShopConfigScreen.ualInputCallback, UniversalAutoloadManager.ualInputCallback);
+ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.injectShopButton);
 
 function UniversalAutoloadManager.injectMenu()
 	print("UAL - INJECT MENU")
@@ -866,22 +885,10 @@ function UniversalAutoloadManager:mouseEvent(posX, posY, isDown, isUp, button)
 		if spec and spec.isInsideShop then
 			local shopConfig = UniversalAutoloadManager.shopConfig or {}
 			
-			if button == 2 and isDown then
-				UniversalAutoloadManager.pauseOnNextStep = nil
-				local ctrl = UniversalAutoloadManager.ctrlHeld
-				local shift = UniversalAutoloadManager.shiftHeld
-				if shift and ctrl then
-					spec.resetToDefault = true
-				else
-					shopConfig.enableEditing = shopConfig.enableEditing or false
-					shopConfig.enableEditing = not shopConfig.enableEditing
-				end
-			end
-			
 			if button == 3 and isUp then
 				shopConfig.selected = nil
 			end
-
+			
 			if spec.loadingVolume and spec.loadingVolume.state == LoadingVolume.STATE.SHOP_CONFIG then
 				
 				local function isPointSelected(point)
@@ -890,7 +897,6 @@ function UniversalAutoloadManager:mouseEvent(posX, posY, isDown, isUp, button)
 						return true
 					end
 				end
-
 				
 				for n, bb in pairs(spec.loadingVolume.bbs) do
 					local centre, points, names = bb:getCubeFaces()
@@ -945,31 +951,42 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 
 end
 
-function UniversalAutoloadManager:registerShopActionEvent()
-	local triggerUp = false
-	local triggerDown = true
-	local triggerAlways = false
-	local startActive = true
-	local valid, actionId = g_inputBinding:registerActionEvent(InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG,
-		self, self.ualClickCallback, triggerUp, triggerDown, triggerAlways, startActive)
-	local nameAction = g_inputBinding.nameActions['UNIVERSALAUTOLOAD_SHOP_CONFIG']
-	-- print("valid:  " .. tostring(valid))
-	-- print("actionId:  " .. tostring(actionId))
-	-- print("nameAction:  " .. tostring(nameAction))
+
+function UniversalAutoloadManager:removeShopActionEvents()
+	UniversalAutoloadManager.actionIds = UniversalAutoloadManager.actionIds or {}
+	for _, actionId in pairs(UniversalAutoloadManager.actionIds) do
+		g_inputBinding:removeActionEvent(actionId)
+		UniversalAutoloadManager.actionIds[actionId] = nil
+	end
 end
+
+function UniversalAutoloadManager:registerShopActionEvents()
+	
+	local function registerShopActionEvent(id, callback)
+		local id = id or 'UNIVERSALAUTOLOAD_SHOP_CONFIG'
+		local callback = callback or 'ualInputCallback'
+		local triggerUp = false
+		local triggerDown = true
+		local triggerAlways = false
+		local startActive = true
+		local valid, actionId = g_inputBinding:registerActionEvent(InputAction[id],
+			self, self[callback], triggerUp, triggerDown, triggerAlways, startActive)
+		local nameAction = g_inputBinding.nameActions[id]
+		UniversalAutoloadManager.actionIds = UniversalAutoloadManager.actionIds or {}
+		table.insert(UniversalAutoloadManager.actionIds, actionId)
+	end
+	
+	registerShopActionEvent('UNIVERSALAUTOLOAD_SHOP_CONFIG', 'onOpenSettingsEvent')
+	registerShopActionEvent('UNIVERSALAUTOLOAD_SHOP_ADJUST', 'onEditLoadingAreaEvent')
+end
+
 
 -- AUTO CREATE LOADING VOLUMES
 function UniversalAutoloadManager.editLoadingVolumeInsideShop(vehicle)
 	local spec = vehicle.spec_universalAutoload
 	
 	if spec.loadingVolume.state == LoadingVolume.STATE.SHOP_CONFIG then
-		
-		local button = UniversalAutoloadManager.configButton
-		if button and not button:getIsVisible() then
-			button:setVisible(true)
-			UniversalAutoloadManager:registerShopActionEvent()
-		end
-		
+
 		local shopConfig = UniversalAutoloadManager.shopConfig
 		if not shopConfig or not shopConfig.enableEditing then
 			return
@@ -2088,8 +2105,6 @@ Player.readStream = Utils.overwrittenFunction(Player.readStream,
 		superFunc(self, streamId, connection, objectId)
 		print("UAL Player.readStream")
 		UniversalAutoload.disableAutoStrap = streamReadBool(streamId)
-		UniversalAutoload.manualLoadingOnly = streamReadBool(streamId)
-		UniversalAutoload.disableManualLoading = streamReadBool(streamId)
 	end
 )
 Player.writeStream = Utils.overwrittenFunction(Player.writeStream,
@@ -2097,8 +2112,6 @@ Player.writeStream = Utils.overwrittenFunction(Player.writeStream,
 		superFunc(self, streamId, connection)
 		print("UAL Player.writeStream")
 		streamWriteBool(streamId, UniversalAutoload.disableAutoStrap or false)
-		streamWriteBool(streamId, UniversalAutoload.manualLoadingOnly or false)
-		streamWriteBool(streamId, UniversalAutoload.disableManualLoading or false)
 	end
 )
 
@@ -2111,30 +2124,23 @@ FSBaseMission.sendInitialClientState = Utils.overwrittenFunction(FSBaseMission.s
 		print("connectedToDedicatedServer: " .. tostring(g_currentMission.connectedToDedicatedServer))
 
 		-- UniversalAutoload.disableAutoStrap = UniversalAutoload.disableAutoStrap or false
-		-- UniversalAutoload.manualLoadingOnly = UniversalAutoload.manualLoadingOnly or false
-		-- UniversalAutoload.disableManualLoading = UniversalAutoload.disableManualLoading or false
 		-- UniversalAutoload.pricePerLog = UniversalAutoload.pricePerLog or 0
 		-- UniversalAutoload.pricePerBale = UniversalAutoload.pricePerBale or 0
 		-- UniversalAutoload.pricePerPallet = UniversalAutoload.pricePerPallet or 0
 		
 		-- streamWriteBool(streamId, UniversalAutoload.disableAutoStrap)
-		-- streamWriteBool(streamId, UniversalAutoload.manualLoadingOnly)
-		-- streamWriteBool(streamId, UniversalAutoload.disableManualLoading)
 		-- streamWriteInt32(streamId, spec.pricePerLog)
 		-- streamWriteInt32(streamId, spec.pricePerBale)
 		-- streamWriteInt32(streamId, spec.pricePerPallet)
 		-- streamWriteInt32(streamId, spec.minLogLength)
 
 		-- UniversalAutoload.disableAutoStrap = streamReadBool(streamId)
-		-- UniversalAutoload.manualLoadingOnly = streamReadBool(streamId)
-		-- UniversalAutoload.disableManualLoading = streamReadBool(streamId)
 		-- spec.pricePerLog = streamReadInt32(streamId)
 		-- spec.pricePerBale = streamReadInt32(streamId)
 		-- spec.pricePerPallet = streamReadInt32(streamId)
 		-- spec.minLogLength = streamReadInt32(streamId)
 	end
 )
-
 
 function UniversalAutoloadManager:deleteMap()
 end

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<GUI name="shopConfigUALSettingsFrame" onOpen="onOpen" onClose="onClose" onCreate="onCreate">
+    <GuiElement profile="newLayer"/>
+	<Bitmap profile="dialogFullscreenBg"/>
+
+	<GuiElement profile="fs25_dialogBg" id="dialogElement" size="1600px 900px">
+		<ThreePartBitmap profile="fs25_dialogBgMiddleSmall"/>
+		<ThreePartBitmap profile="fs25_dialogBgTopSmall"/>
+		<ThreePartBitmap profile="fs25_dialogBgBottom"/>
+	
+		<GuiElement profile="fs25_dialogContentContainer">
+			<Text profile="fs25_dialogTitle" id="guiTitle" text="$l10n_ui_config_settings_ual" position="0px -20px"/>
+			<ThreePartBitmap profile="fs25_lineSeparatorTop" absoluteSizeOffset="100px 0px" position="0px -80px"/>
+			<Bitmap profile="fs25_settingsTooltipSeparator" height="680px" position="915px -110px"/>
+
+			<!-- <ScrollingLayout profile="fs25_settingsLayout" id="ualGeneralSettingsLayout"> -->
+				<!-- <Bitmap profile="fs25_multiTextOptionContainer"> -->
+					<!-- <BinaryOption profile="fs25_settingsBinaryOption" onClick="onClickBinaryOption" id="checkAutoHelp"> -->
+						<!-- <Text profile="fs25_multiTextOptionTooltip" name="ignore" text="$l10n_toolTip_autoHelp"/> -->
+					<!-- </BinaryOption> -->
+					<!-- <Text profile="fs25_settingsMultiTextOptionTitle" text="$l10n_setting_helpWindow"/> -->
+				<!-- </Bitmap> -->
+			<!-- </ScrollingLayout> -->
+
+		</GuiElement>
+
+		<BoxLayout profile="fs25_dialogButtonBox" id="buttonsPanel">
+			<Button profile="buttonBack" id="menuButtonBack" text="$l10n_button_back" onClick="onClickBack"/>
+			<Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+			<Button profile="buttonOK" id="menuButtonOk" text="$l10n_button_ok" onClick="onClickOk"/>
+			<Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+		</BoxLayout>
+
+	</GuiElement>
+</GUI>

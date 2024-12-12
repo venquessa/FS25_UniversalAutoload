@@ -101,8 +101,6 @@ function UniversalAutoload.initSpecialization()
 	print("*** REGISTER XML SCHEMAS ***")
 	if debugSchema then print("GLOBAL_DEFAULTS:") end
 	registerConfig(UniversalAutoload.xmlSchema, UniversalAutoload.globalKey, UniversalAutoload.GLOBAL_DEFAULTS)
-	if debugSchema then print("CONTAINER_DEFAULTS:") end
-	registerConfig(UniversalAutoload.xmlSchema, UniversalAutoload.containerKey, UniversalAutoload.CONTAINER_DEFAULTS)
 	if debugSchema then print("VEHICLE_DEFAULTS:") end
 	registerConfig(UniversalAutoload.xmlSchema, UniversalAutoload.vehicleSchemaKey, UniversalAutoload.VEHICLE_DEFAULTS)
 	if debugSchema then print("SAVEGAME_STATE_DEFAULTS:") end
@@ -336,19 +334,15 @@ function UniversalAutoload:updateActionEventKeys()
 			
 			spec.updateToggleLoading = true
 			registerActionEvent('UNLOAD_ALL', 'unloadAllActionEventId', 'actionEventUnloadAll', topPriority, true)
-			
-			if not UniversalAutoload.manualLoadingOnly then
-				
-				registerActionEvent('TOGGLE_LOADING', 'toggleLoadingActionEventId', 'actionEventToggleLoading', topPriority)
+			registerActionEvent('TOGGLE_LOADING', 'toggleLoadingActionEventId', 'actionEventToggleLoading', topPriority)
 
-				if spec.isBaleTrailer then
-					registerActionEvent('TOGGLE_BALE_COLLECTION', 'toggleBaleCollectionModeEventId', 'actionEventToggleBaleCollectionMode', topPriority)
-				end
+			if spec.isBaleTrailer then
+				registerActionEvent('TOGGLE_BALE_COLLECTION', 'toggleBaleCollectionModeEventId', 'actionEventToggleBaleCollectionMode', topPriority)
+			end
 
-				if not spec.isLogTrailer then
-					registerActionEvent('TOGGLE_FILTER', 'toggleLoadingFilterActionEventId', 'actionEventToggleFilter', midPriority)
-					spec.updateToggleFilter = true
-				end
+			if not spec.isLogTrailer then
+				registerActionEvent('TOGGLE_FILTER', 'toggleLoadingFilterActionEventId', 'actionEventToggleFilter', midPriority)
+				spec.updateToggleFilter = true
 			end
 			
 			if not spec.isLogTrailer then
@@ -1420,10 +1414,10 @@ function UniversalAutoload:updateLoadingTriggers()
 	-- create triggers
 	local sideBoundary = 2 * UniversalAutoload.TRIGGER_DELTA
 	local rearBoundary = 2 * UniversalAutoload.TRIGGER_DELTA
-	if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
+	if spec.enableSideLoading then
 		sideBoundary = spec.loadVolume.width/4
 	end
-	if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
+	if spec.enableRearLoading or spec.rearUnloadingOnly then
 		rearBoundary = spec.loadVolume.width/4
 	end
 
@@ -1445,47 +1439,38 @@ function UniversalAutoload:updateLoadingTriggers()
 		doUpdateTrigger("playerTrigger", width, height, length, tx, ty, tz)
 	end
 
-	if UniversalAutoload.manualLoadingOnly then
-		doRemoveTrigger("leftPickupTrigger")
-		doRemoveTrigger("rightPickupTrigger")
-		doRemoveTrigger("rearPickupTrigger")
-		doRemoveTrigger("frontPickupTrigger")
-		
-	else
+	local leftPickupTrigger = spec.triggers["leftPickupTrigger"]
+	local rightPickupTrigger = spec.triggers["rightPickupTrigger"]
+	if leftPickupTrigger and rightPickupTrigger then
+		local width = 1.66*spec.loadVolume.width
+		local height = 2*spec.loadVolume.height
+		local length = spec.loadVolume.length+spec.loadVolume.width/2
+		local tx, ty, tz = 1.1*(width+spec.loadVolume.width)/2, 0, 0
+		doUpdateTrigger("leftPickupTrigger", width, height, length, tx, ty, tz)
+		doUpdateTrigger("rightPickupTrigger", width, height, length, -tx, ty, tz)
+	end
 
-		local leftPickupTrigger = spec.triggers["leftPickupTrigger"]
-		local rightPickupTrigger = spec.triggers["rightPickupTrigger"]
-		if leftPickupTrigger and rightPickupTrigger then
-			local width = 1.66*spec.loadVolume.width
-			local height = 2*spec.loadVolume.height
-			local length = spec.loadVolume.length+spec.loadVolume.width/2
-			local tx, ty, tz = 1.1*(width+spec.loadVolume.width)/2, 0, 0
-			doUpdateTrigger("leftPickupTrigger", width, height, length, tx, ty, tz)
-			doUpdateTrigger("rightPickupTrigger", width, height, length, -tx, ty, tz)
-		end
-	
-		if spec.rearUnloadingOnly then
-			local width = spec.loadVolume.length+spec.loadVolume.width
-			local height = 2*spec.loadVolume.height
-			local length = 0.8*width
-			local tx, ty, tz = 0, 0, -1.1*(length+spec.loadVolume.length)/2
-			doUpdateTrigger("rearPickupTrigger", width, height, length, tx, ty, tz)
-		else
-			doRemoveTrigger("rearPickupTrigger")
-		end
-		
-		if spec.frontUnloadingOnly then
-			local width = spec.loadVolume.length+spec.loadVolume.width
-			local height = 2*spec.loadVolume.height
-			local length = 0.8*width
-			local tx, ty, tz = 0, 0, 1.1*(length+spec.loadVolume.length)/2
-			doUpdateTrigger("frontPickupTrigger", width, height, length, tx, ty, tz)
-		else
-			doRemoveTrigger("frontPickupTrigger")
-		end
+	if spec.rearUnloadingOnly then
+		local width = spec.loadVolume.length+spec.loadVolume.width
+		local height = 2*spec.loadVolume.height
+		local length = 0.8*width
+		local tx, ty, tz = 0, 0, -1.1*(length+spec.loadVolume.length)/2
+		doUpdateTrigger("rearPickupTrigger", width, height, length, tx, ty, tz)
+	else
+		doRemoveTrigger("rearPickupTrigger")
 	end
 	
-	if UniversalAutoload.manualLoadingOnly or spec.enableRearLoading or spec.rearUnloadingOnly then
+	if spec.frontUnloadingOnly then
+		local width = spec.loadVolume.length+spec.loadVolume.width
+		local height = 2*spec.loadVolume.height
+		local length = 0.8*width
+		local tx, ty, tz = 0, 0, 1.1*(length+spec.loadVolume.length)/2
+		doUpdateTrigger("frontPickupTrigger", width, height, length, tx, ty, tz)
+	else
+		doRemoveTrigger("frontPickupTrigger")
+	end
+
+	if spec.enableRearLoading or spec.rearUnloadingOnly then
 		local depth = 0.05
 		local recess = spec.loadVolume.width/4
 		local boundary = spec.loadVolume.width/4
@@ -1497,7 +1482,7 @@ function UniversalAutoload:updateLoadingTriggers()
 		doRemoveTrigger("rearAutoTrigger")
 	end
 	
-	if UniversalAutoload.manualLoadingOnly or spec.enableSideLoading then
+	if spec.enableSideLoading then
 		local depth = 0.05
 		local recess = spec.loadVolume.width/7
 		local boundary = 2*spec.loadVolume.width/3
@@ -1519,16 +1504,25 @@ function UniversalAutoload:onLoad(savegame)
 	
 	self.spec_universalAutoload = self[UniversalAutoload.specName]
 	local spec = self.spec_universalAutoload
+	local button = UniversalAutoloadManager.configButton
 
 	local isValidForAutoload = UniversalAutoloadManager.getIsValidForAutoload(self)
 	if not isValidForAutoload then
 		print(self:getFullName() .. ": NOT VALID FOR UAL")
 		UniversalAutoload.removeEventListeners(self)
 		spec.isAutoloadAvailable = false
+		if button and button:getIsVisible() then
+			button:setVisible(false)
+			UniversalAutoloadManager:removeShopActionEvents()
+		end
 		return
 	end
 
 	spec.isAutoloadAvailable = true
+	if button and not button:getIsVisible() then
+		button:setVisible(true)
+		UniversalAutoloadManager:registerShopActionEvents()
+	end
 	local configurationAdded = UniversalAutoloadManager.handleNewVehicleCreation(self)
 	
 	if configurationAdded then
@@ -2187,6 +2181,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 					end
 				end
 			end
+
 			if spec.loadingVolume then
 				spec.loadingVolume:draw(true)
 				if spec.loadingVolume.state == LoadingVolume.STATE.SHOP_CONFIG then
@@ -2864,7 +2859,7 @@ function UniversalAutoload:isValidForLoading(object)
 	end
 	
 	local isValidLoadFilter = not spec.currentLoadingFilter or (spec.currentLoadingFilter and UniversalAutoload.getPalletIsFull(object))
-	if not (UniversalAutoload.manualLoadingOnly or isValidLoadFilter) then
+	if not isValidLoadFilter then
 		if debugPallets then
 			g_currentMission:addExtraPrintText(object.i3dFilename, "NOT Valid Load Filter")
 		end
@@ -2882,9 +2877,6 @@ function UniversalAutoload:isValidForUnloading(object)
 end
 --
 function UniversalAutoload.isValidForManualLoading(object)
-	if UniversalAutoload.disableManualLoading then
-		return false
-	end
 	if object.isSplitShape then
 		return false
 	end
