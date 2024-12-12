@@ -176,7 +176,7 @@ end
 --
 function UniversalAutoload:ualGetFullName(superFunc)
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or not UniversalAutoload.showDebug then
 		return superFunc(self)
 	end
 	return superFunc(self).." - UAL #"..tostring(self.rootNode)
@@ -5460,7 +5460,6 @@ function UniversalAutoload:drawDebugDisplay()
 			local place = spec.testLocation
 			DebugUtil.drawDebugNode(spec.testLocation.node, getName(place.node))
 			local X, Y, Z = getWorldTranslation(spec.testLocation.node)
-			g_currentMission:addExtraPrintText(string.format("testLocation: %.2f, %.2f, %.2f", X, Y, Z))
 			-- UniversalAutoload.DrawDebugPallet( place.node, place.sizeX, place.sizeY, place.sizeZ, true, false, WHITE)
 		end
 
@@ -5592,7 +5591,6 @@ function UniversalAutoload:drawDebugDisplay()
 			local rx, ry, rz = b.rx, b.ry, b.rz
 			local sizeX, sizeY, sizeZ = b.sizeX, b.sizeY, b.sizeZ
 			DebugUtil.drawOverlapBox(x+dx, y+dy, z+dz, rx, ry, rz, sizeX, sizeY, sizeZ)
-			g_currentMission:addExtraPrintText(string.format("drawOverlapBox: %.2f, %.2f, %.2f", x+dx, y+dy, z+dz))
 		end
 
 		-- for id, object in pairs(UniversalAutoload.SPLITSHAPES_LOOKUP or {}) do
@@ -5600,7 +5598,7 @@ function UniversalAutoload:drawDebugDisplay()
 			-- DebugUtil.drawDebugNode(object.positionNodeId, getName(object.positionNodeId))
 		-- end
 	
-		g_currentMission:addExtraPrintText(tostring(self:getFullName() .. " # " .. (spec.validUnloadCount or "-") .. " / " .. (spec.totalAvailableCount or "-")))
+		g_currentMission:addExtraPrintText(tostring(self:getName() .. " # " .. (spec.validUnloadCount or "-") .. " / " .. (spec.totalAvailableCount or "-")))
 		
 		if self.isServer then
 			-- UniversalAutoload.testLoadAreaIsEmpty(self)
