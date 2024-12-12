@@ -28,6 +28,15 @@ ROOT.delete = Utils.appendedFunction(ROOT.delete, function(nodeId)
 	end
 end)
 
+SplitShapeUtil.splitShape = Utils.appendedFunction(SplitShapeUtil.splitShape, function(nodeId)
+	if UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] then
+		-- print("DO SPLIT SPLITSHAPE " .. tostring(nodeId))
+		local object = UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] 
+		UniversalAutoload.clearPalletFromAllVehicles(nil, object)
+		UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] = nil
+	end
+end)
+
 -- Create a new store pack to group all UAL supported vehicles
 g_storeManager:addModStorePack("UNIVERSALAUTOLOAD", g_i18n:getText("configuration_universalAutoload", g_currentModName), "icons/storePack_ual.dds", g_currentModDirectory)
 
