@@ -140,12 +140,12 @@ function LoadingVolume:draw(drawAll)
 			for n, bb in pairs(self.bbs) do
 				local centre, points, names = bb:getCubeFaces()
 				for i, p in pairs(points or {}) do
-					local r, g, b, a, solid = 1, 0, 1, 0.1, false
+					local r, g, b, a, solid = 1, 0, 1, 0.5, false
 					if selected and n==selected[1] and i==selected[2] then
 						r, g, b = 1, 1, 1
 						a, solid = 1, true
 					elseif hovered and n==hovered[1] and i==hovered[2] then
-						r, g, b = 1, 0, 1
+						r, g, b = 1, 0.025, 1
 						a, solid = 1, true
 					end
 					
