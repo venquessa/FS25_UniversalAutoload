@@ -22,7 +22,9 @@ UniversalAutoload.OBJECTS_LOOKUP = {}
 UniversalAutoload.SPLITSHAPES_LOOKUP = {}
 
 UniversalAutoload.ALL = "ALL"
+UniversalAutoload.DELTA = 0.005
 UniversalAutoload.SPACING = 0.0
+UniversalAutoload.BIGBAG_SPACING = 0.1
 UniversalAutoload.MAX_STACK = 5
 UniversalAutoload.LOG_SPACE = 0.25
 UniversalAutoload.LOG_FACTOR = 0.75
@@ -3482,13 +3484,14 @@ function UniversalAutoload:createLoadingPlace(containerType)
 		print("-------------------------------")
 	end
 	
-	if spec.currentLoadLength<=spec.loadArea[i].length and spec.currentLoadWidth<=spec.currentActualWidth then
+	local d = UniversalAutoload.DELTA
+	if spec.currentLoadLength<=spec.loadArea[i].length+d and spec.currentLoadWidth<=spec.currentActualWidth+d then
 		-- print("CREATE NEW LOADING PLACE")
 		loadPlace = {}
 		loadPlace.node = createTransformGroup("loadPlace")
-		loadPlace.sizeX = containerSizeX
-		loadPlace.sizeY = containerSizeY
-		loadPlace.sizeZ = containerSizeZ
+		loadPlace.sizeX = containerSizeX + d
+		loadPlace.sizeY = containerSizeY + d
+		loadPlace.sizeZ = containerSizeZ + d
 		loadPlace.flipYZ = containerFlipYZ
 		loadPlace.isRoundbale = isRoundbale
 		loadPlace.roundbaleOffset = roundbaleOffset
@@ -5206,6 +5209,11 @@ function UniversalAutoload.getContainerType(object)
 			newType.neverRotate = false
 			newType.alwaysRotate = false
 			newType.frontOffset = 0
+			
+			if containerType == "BIGBAG" then
+				newType.sizeX = size.x + UniversalAutoload.BIGBAG_SPACING
+				newType.sizeZ = size.z + UniversalAutoload.BIGBAG_SPACING
+			end
 			
 			if isRoundbale == true then
 				print("Round Bale flipYZ")
