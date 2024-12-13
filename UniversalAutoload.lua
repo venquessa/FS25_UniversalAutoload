@@ -2170,7 +2170,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 			else
 				UniversalAutoloadManager.createLoadingVolumeInsideShop(self)
 				if spec.wasResetToDefault then
-					local configFileName = spec.configFileName --:gsub(g_modsDirectory, "")
+					local configFileName = spec.configFileName
 					local selectedConfigs = spec.selectedConfigs
 					print(self.rootNode .. " was reset to default (" .. tostring(selectedConfigs) .. ")")
 					if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then

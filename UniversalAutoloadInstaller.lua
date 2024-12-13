@@ -353,7 +353,9 @@ function UniversalAutoloadManager.getConfigSettingsPosition(targetFileName, targ
 				break
 			end
 			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName", "MISSING")
-			if tostring(configFileName):gsub(g_modsDirectory, ""):lower() == tostring(targetFileName):gsub(g_modsDirectory, ""):lower() then
+			configFileName = UniversalAutoloadManager.cleanConfigFileName(configFileName)
+			targetFileName = UniversalAutoloadManager.cleanConfigFileName(targetFileName)
+			if tostring(configFileName):lower() == tostring(targetFileName):lower() then
 				
 				print("targetConfigId: " .. tostring(targetConfigId))
 				local j = 0
@@ -390,10 +392,15 @@ end
 function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(vehicle, configId, xmlFile)
 	local spec = vehicle.spec_universalAutoload
 
-	local configFileName = vehicle.configFileName --:gsub(g_modsDirectory, "")
+	local configFileName = UniversalAutoloadManager.cleanConfigFileName(vehicle.configFileName)
 	local index, subIndex, size = UniversalAutoloadManager.getConfigSettingsPosition(configFileName, configId, xmlFile)
 
 	if index then
+		local key = string.format(UniversalAutoload.vehicleKey, index)
+		if xmlFile:getValue(key .. "#configFileName") ~= configFileName then
+			print("CLEANING CONFIG FILE NAME: " .. configFileName)
+			xmlFile:setValue(key.."#configFileName", configFileName)
+		end
 		local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
 		configId = xmlFile:getValue(configKey .. "#selectedConfigs") or configId
 		print("UPDATE CONFIG #" .. index + 1 .. " == " .. configId .. " (#" ..subIndex + 1 .. ")")
@@ -440,12 +447,13 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 	
 	if not configId or not configFileName then
 		print("FIND CORRECT SETTINGS FILE POSITION:")
-		configFileName = vehicle.configFileName --:gsub(g_modsDirectory, "")
+		configFileName = UniversalAutoloadManager.cleanConfigFileName(vehicle.configFileName)
 		configId = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	end
 	
-	print("useConfigName = " .. tostring(spec.useConfigName))
+	print("configFileName = " .. tostring(configFileName))
 	print("selectedConfig = " .. tostring(configId))
+	print("useConfigName = " .. tostring(spec.useConfigName))
 	
 	return configFileName, configId
 end
@@ -581,7 +589,8 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 				break
 			end
 			
-			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName") --:gsub(g_modsDirectory, "")
+			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName")
+			configFileName = UniversalAutoloadManager.cleanConfigFileName(configFileName)
 			if UniversalAutoloadManager.getValidXmlName(configFileName) then
 				print(" [" .. i + 1 .. "] " .. configFileName)
 				
@@ -718,19 +727,42 @@ function UniversalAutoloadManager.getValidXmlName(ualConfigName)
 		return xmlFilename
 	end
 	
-	xmlFilename = g_modsDirectory..ualConfigName
+	xmlFilename = g_modsDirectory .. ualConfigName
 	if g_storeManager:getItemByXMLFilename(xmlFilename) then
 		return xmlFilename
 	end
 	
 	for i = 1, #g_dlcsDirectories do
 		local dlcsDir = g_dlcsDirectories[i].path
-		xmlFilename = dlcsDir..ualConfigName
+		xmlFilename = dlcsDir .. ualConfigName
 		if g_storeManager:getItemByXMLFilename(xmlFilename) then
 			return xmlFilename
 		end
 	end
 
+end
+
+function UniversalAutoloadManager.cleanConfigFileName(configFileName)
+
+	if configFileName == nil then
+		return
+	end
+
+	if configFileName:find(g_modsDirectory) then
+		-- print("CLEANED MOD FILE NAME")
+		return configFileName:gsub(g_modsDirectory, "")
+	end
+	
+	for i = 1, #g_dlcsDirectories do
+		local dlcsDir = g_dlcsDirectories[i].path
+		
+		if configFileName:find(dlcsDir) then
+			-- print("CLEANED DLC FILE NAME")
+			return configFileName:gsub(dlcsDir, "")
+		end
+	end
+	
+	return configFileName
 end
 
 function UniversalAutoloadManager.injectSpecialisation()
@@ -1276,7 +1308,7 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 
 		print("UniversalAutoload - supported vehicle: "..vehicle:getFullName().." #"..configId.." ("..description..")" )
 		
-		local configFileName = vehicle.configFileName
+		local configFileName = UniversalAutoloadManager.cleanConfigFileName(vehicle.configFileName)
 		local configGroup = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName]
 		if configGroup then
 			if debugVehicles then 
