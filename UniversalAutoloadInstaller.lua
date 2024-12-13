@@ -581,7 +581,6 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 	local xmlFile = UniversalAutoloadManager.openUserSettingsXMLFile(xmlFilename)
 	
 	if xmlFile then
-		print("IMPORT vehicle configurations")
 		local i = 0
 		while true do
 			local vehicleKey = string.format(UniversalAutoload.vehicleKey, i)
@@ -1643,46 +1642,47 @@ end
 	-- return string.format("UPDATED: %d vehicle configurations, %d container configurations", vehicleCount, objectCount)
 -- end
 --
--- function UniversalAutoloadManager:consoleAddPallets(palletType)
-
-	-- local pallets = {}
-	-- for _, fillType in pairs(g_fillTypeManager:getFillTypes()) do
-		-- local xmlName = fillType.palletFilename
-		-- if xmlName ~= nil and not xmlName:find("fillablePallet") then
-			-- pallets[fillType.name] = xmlName
-		-- end
-	-- end
-		
-	-- if palletType then
-		-- palletType = string.upper(palletType or "")
-		-- local xmlFilename = pallets[palletType]
-		-- if xmlFilename == nil then
-			-- return "Error: Invalid pallet type. Valid types are " .. table.concatKeys(pallets, ", ")
-		-- end
-
-		-- pallets = {}
-		-- pallets[palletType] = xmlFilename
-	-- end
+function UniversalAutoloadManager:consoleAddPallets(palletType)
 	
-	-- if g_currentMission.controlledVehicle ~= nil then
+    local pallets = {}
+    for _, fillType in pairs(g_fillTypeManager:getFillTypes()) do
+		local xmlName = fillType.palletFilename
+		if xmlName ~= nil and not xmlName:find("fillablePallet") then
+            pallets[fillType.name] = xmlName
+        end
+    end
 
-		-- local vehicles = UniversalAutoloadManager.getAttachedVehicles(g_currentMission.controlledVehicle)
-		-- local count = 0
+ 	if palletType then
+		palletType = string.upper(palletType or "")
+		local xmlFilename = pallets[palletType]
+		if xmlFilename == nil then
+			return "Error: Invalid pallet type. Valid types are " .. table.concatKeys(pallets, ", ")
+		end
+
+		pallets = {}
+		pallets[palletType] = xmlFilename
+	end
+
+	local currentVehicle = g_localPlayer and g_localPlayer.getCurrentVehicle()
+	if currentVehicle then
+
+		local vehicles = UniversalAutoloadManager.getAttachedVehicles(currentVehicle)
+		local count = 0
 		
-		-- if next(vehicles) ~= nil then
-			-- for vehicle, hasAutoload in pairs(vehicles) do
-				-- if hasAutoload and vehicle:getIsActiveForInput() then
-					-- if UniversalAutoload.createPallets(vehicle, pallets) then
-						-- count = count + 1
-					-- end
-				-- end
-			-- end
-		-- end
+		if next(vehicles) ~= nil then
+			for vehicle, hasAutoload in pairs(vehicles) do
+				if hasAutoload and vehicle:getIsActiveForInput() then
+					if UniversalAutoload.createPallets(vehicle, pallets) then
+						count = count + 1
+					end
+				end
+			end
+		end
 	
-		-- if count>0 then return "Begin adding pallets now.." end
-	-- end
-	-- return "Please enter a vehicle with a UAL trailer attached to use this command"
--- end
+		if count>0 then return "Begin adding pallets now.." end
+	end
+	return "Please enter a vehicle with a UAL trailer attached to use this command"
+end
 --
 -- function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
 
@@ -1931,7 +1931,7 @@ end
 					-- -- local mass = UniversalAutoload.getContainerMass(pallet)
 					-- -- local volume = config.sizeX * config.sizeY * config.sizeZ
 					-- -- print(string.format("%s, %f, %f, %f", config.name, volume, mass, mass/volume))
-					-- -- g_currentMission:removeVehicle(pallet, true)
+					-- -- g_currentMission.vehicleSystem:removeVehicle(pallet, true)
 				-- -- end
 				-- -- UniversalAutoload.testPallets = {}
 			-- -- end
@@ -2020,7 +2020,7 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 		local function asyncCallbackFunction(_, newVehicle, vehicleLoadState, arguments)
 			if vehicleLoadState == VehicleLoadingUtil.VEHICLE_LOAD_OK then
 				g_messageCenter:publish(MessageType.VEHICLE_RESET, vehicle, newVehicle)
-				g_currentMission:removeVehicle(vehicle)
+				g_currentMission.vehicleSystem:removeVehicle(vehicle)
 				if UniversalAutoloadManager.resetCount then
 					UniversalAutoloadManager.resetCount = UniversalAutoloadManager.resetCount + 1
 				end
@@ -2036,11 +2036,11 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 				end
 				if vehicle ~= nil then
 					print("ERROR RESETTING OLD VEHICLE: " .. vehicle:getFullName())
-					--g_currentMission:removeVehicle(vehicle)
+					--g_currentMission.vehicleSystem:removeVehicle(vehicle)
 				end
 				if newVehicle ~= nil then
 					print("ERROR RESETTING NEW VEHICLE: " .. newVehicle:getFullName())
-					--g_currentMission:removeVehicle(newVehicle)
+					--g_currentMission.vehicleSystem:removeVehicle(newVehicle)
 				end
 			end
 			
@@ -2097,10 +2097,10 @@ function UniversalAutoloadManager:loadMap(name)
 	print("IMPORT vehicle configurations")
 	local userSettingsFile = Utils.getFilename(UniversalAutoload.userSettingsFile, getUserProfileAppPath())
 	UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile)
-
 	UniversalAutoloadManager.detectKeybindingConflicts()
 	
 	if g_currentMission:getIsServer() and not g_currentMission.missionDynamicInfo.isMultiplayer then
+		print("ADD console commands:")
 		-- addConsoleCommand("ualAddBales", "Fill current vehicle with specified bales", "consoleAddBales", UniversalAutoloadManager)
 		-- addConsoleCommand("ualAddRoundBales_125", "Fill current vehicle with small round bales", "consoleAddRoundBales_125", UniversalAutoloadManager)
 		-- addConsoleCommand("ualAddRoundBales_150", "Fill current vehicle with medium round bales", "consoleAddRoundBales_150", UniversalAutoloadManager)
@@ -2108,7 +2108,7 @@ function UniversalAutoloadManager:loadMap(name)
 		-- addConsoleCommand("ualAddSquareBales_180", "Fill current vehicle with small square bales", "consoleAddSquareBales_180", UniversalAutoloadManager)
 		-- addConsoleCommand("ualAddSquareBales_220", "Fill current vehicle with medium square bales", "consoleAddSquareBales_220", UniversalAutoloadManager)
 		-- addConsoleCommand("ualAddSquareBales_240", "Fill current vehicle with large square bales", "consoleAddSquareBales_240", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddPallets", "Fill current vehicle with specified pallets (fill type)", "consoleAddPallets", UniversalAutoloadManager)
+		addConsoleCommand("ualAddPallets", "Fill current vehicle with specified pallets (fill type)", "consoleAddPallets", UniversalAutoloadManager)
 		-- addConsoleCommand("ualAddLogs", "Fill current vehicle with specified logs (length / fill type)", "consoleAddLogs", UniversalAutoloadManager)
 		-- addConsoleCommand("ualClearLoadedObjects", "Remove all loaded objects from current vehicle", "consoleClearLoadedObjects", UniversalAutoloadManager)
 		-- addConsoleCommand("ualResetVehicles", "Reset all vehicles with autoload (and any attached) to the shop", "consoleResetVehicles", UniversalAutoloadManager)
@@ -2116,28 +2116,26 @@ function UniversalAutoloadManager:loadMap(name)
 		-- addConsoleCommand("ualCreateBoundingBox", "Create a bounding box around all loaded pallets", "consoleCreateBoundingBox", UniversalAutoloadManager)
 		-- addConsoleCommand("ualSpawnTestPallets", "Create one of each pallet type (not loaded)", "consoleSpawnTestPallets", UniversalAutoloadManager)
 		-- addConsoleCommand("ualFullTest", "Test all the different loading types", "consoleFullTest", UniversalAutoloadManager)
-		
-		-- local oldCleanUp = getmetatable(_G).__index.cleanUp
-		-- getmetatable(_G).__index.cleanUp = function()
-			-- print("UNIVERSAL AUTOLOAD: CLEAN UP")
-			-- removeConsoleCommand("ualAddBales")
-			-- removeConsoleCommand("ualAddRoundBales_125")
-			-- removeConsoleCommand("ualAddRoundBales_150")
-			-- removeConsoleCommand("ualAddRoundBales_180")
-			-- removeConsoleCommand("ualAddSquareBales_180")
-			-- removeConsoleCommand("ualAddSquareBales_220")
-			-- removeConsoleCommand("ualAddSquareBales_240")
-			-- removeConsoleCommand("ualAddPallets")
-			-- removeConsoleCommand("ualAddLogs")
-			-- removeConsoleCommand("ualClearLoadedObjects")
-			-- removeConsoleCommand("ualResetVehicles")
-			-- removeConsoleCommand("ualImportLocalConfigurations")
-			-- removeConsoleCommand("ualCreateBoundingBox")
-			-- removeConsoleCommand("ualSpawnTestPallets")
-			-- removeConsoleCommand("ualFullTest")
-			-- oldCleanUp()
-		-- end
 	end
+end
+
+function UniversalAutoloadManager:deleteMap()
+	print("UNIVERSAL AUTOLOAD: CLEAN UP")
+	-- removeConsoleCommand("ualAddBales")
+	-- removeConsoleCommand("ualAddRoundBales_125")
+	-- removeConsoleCommand("ualAddRoundBales_150")
+	-- removeConsoleCommand("ualAddRoundBales_180")
+	-- removeConsoleCommand("ualAddSquareBales_180")
+	-- removeConsoleCommand("ualAddSquareBales_220")
+	-- removeConsoleCommand("ualAddSquareBales_240")
+	removeConsoleCommand("ualAddPallets")
+	-- removeConsoleCommand("ualAddLogs")
+	-- removeConsoleCommand("ualClearLoadedObjects")
+	-- removeConsoleCommand("ualResetVehicles")
+	-- removeConsoleCommand("ualImportLocalConfigurations")
+	-- removeConsoleCommand("ualCreateBoundingBox")
+	-- removeConsoleCommand("ualSpawnTestPallets")
+	-- removeConsoleCommand("ualFullTest")
 end
 
 -- SYNC SETTINGS:
@@ -2182,9 +2180,6 @@ FSBaseMission.sendInitialClientState = Utils.overwrittenFunction(FSBaseMission.s
 		-- spec.minLogLength = streamReadInt32(streamId)
 	end
 )
-
-function UniversalAutoloadManager:deleteMap()
-end
 
 function tableContainsValue(container, value)
 	for k, v in pairs(container) do

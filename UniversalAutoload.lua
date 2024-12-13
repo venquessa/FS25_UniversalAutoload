@@ -2174,7 +2174,6 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				if spec.wasResetToDefault then
 					local configFileName = spec.configFileName
 					local selectedConfigs = spec.selectedConfigs
-					print(self.rootNode .. " was reset to default (" .. tostring(selectedConfigs) .. ")")
 					if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
 						print("*** RESET TO DEFAULT CONFIG ***")
 						UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][selectedConfigs] = nil
@@ -2415,16 +2414,58 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 			spec.spawnPalletsDelayTime = spec.spawnPalletsDelayTime or 0
 			if spec.spawnPalletsDelayTime > UniversalAutoload.DELAY_TIME then
 				spec.spawnPalletsDelayTime = 0
+				
+				if spec.spawnedPallet then
+					-- print("LOAD SPAWNED PALLET")
+					local pallet = spec.spawnedPallet
+					-- print("updateLoopIndex: " .. pallet.updateLoopIndex)
 
-				local i = math.random(1, #spec.palletsToSpawn)
-				pallet = spec.palletsToSpawn[i]
-				if spec.lastSpawnedPallet then
-					if math.random(1, 100) > 50 then
-						pallet = spec.lastSpawnedPallet
+					if UniversalAutoload.loadObject(self, pallet) then
+						spec.spawnPalletsDelayTime = 0
+					else
+						spec.spawnPalletsDelayTime = UniversalAutoload.DELAY_TIME
+						pallet:delete()
+						
+						if spec.palletsToSpawn and #spec.palletsToSpawn>1 then
+							for i, name in pairs(spec.palletsToSpawn) do
+								if spec.spawningPallet == name then
+									if debugConsole then print("removing: " .. spec.spawningPallet) end
+									table.remove(spec.palletsToSpawn, i)
+									spec.trailerIsFull = false
+									break
+								end
+							end
+						end
+						if spec.palletsToSpawn and #spec.palletsToSpawn==1 then
+							spec.palletsToSpawn = nil
+						end
+					end
+					
+					spec.spawnedPallet = nil
+					spec.spawningPallet = nil
+					
+					if spec.trailerIsFull == true or not spec.palletsToSpawn then
+						spec.spawnPallets = false
+						spec.doPostLoadDelay = true
+						spec.doSetTensionBelts = true
+						spec.lastSpawnedPallet = nil
+						spec.palletsToSpawn = {}
+						print(self:getFullName() .. " ..adding pallets complete!")
 					end
 				end
-				UniversalAutoload.createPallet(self, pallet)
-				spec.lastSpawnedPallet = pallet
+				
+				if not spec.spawnedPallet and spec.palletsToSpawn and #spec.palletsToSpawn > 0 then
+					-- print("CREATE A NEW PALLET")
+					local i = math.random(1, #spec.palletsToSpawn)
+					pallet = spec.palletsToSpawn[i]
+					if spec.lastSpawnedPallet then
+						if math.random(1, 100) > 70 then
+							pallet = spec.lastSpawnedPallet
+						end
+					end
+					UniversalAutoload.createPallet(self, pallet)
+					spec.lastSpawnedPallet = pallet
+				end
 			else
 				spec.loadSpeedFactor = spec.loadSpeedFactor or 1
 				spec.spawnPalletsDelayTime = spec.spawnPalletsDelayTime + (spec.loadSpeedFactor*dt)
@@ -4774,52 +4815,31 @@ function UniversalAutoload:createPallet(xmlFilename)
 	local spec = self.spec_universalAutoload
 	spec.spawningPallet = xmlFilename
 
-	local x, y, z = getWorldTranslation(spec.loadVolume.rootNode)
-	local location = { x=x, y=y+10, z=z }
-
-	local function asyncCallbackFunction(vehicle, pallet, palletLoadState, arguments)
+	local function asyncCallbackFunction(_, pallets, palletLoadState, arguments)
 		if palletLoadState == VehicleLoadingState.OK then
-			local SPEC = vehicle.spec_universalAutoload
+			local pallet = pallets[1]
+			
 			local fillTypeIndex = pallet:getFillUnitFirstSupportedFillType(1)
 			pallet:addFillUnitFillLevel(1, 1, math.huge, fillTypeIndex, ToolType.UNDEFINED, nil)
-
-			if UniversalAutoload.loadObject(vehicle, pallet) then
-				SPEC.spawnPalletsDelayTime = 0
-			else
-				SPEC.spawnPalletsDelayTime = UniversalAutoload.DELAY_TIME
-				g_currentMission:removeVehicle(pallet, true)
-				
-				if SPEC.palletsToSpawn and #SPEC.palletsToSpawn>1 then
-					for i, name in pairs(SPEC.palletsToSpawn) do
-						if SPEC.spawningPallet == name then
-							if debugConsole then print("removing: " .. SPEC.spawningPallet) end
-							table.remove(SPEC.palletsToSpawn, i)
-							SPEC.trailerIsFull = false
-							break
-						end
-					end
-				end
-				if SPEC.palletsToSpawn and #SPEC.palletsToSpawn==1 then
-					SPEC.palletsToSpawn = nil
-				end
-			end
 			
-			SPEC.spawningPallet = nil
-			if SPEC.trailerIsFull == true or not SPEC.palletsToSpawn then
-				SPEC.spawnPallets = false
-				SPEC.doPostLoadDelay = true
-				SPEC.doSetTensionBelts = true
-				SPEC.lastSpawnedPallet = nil
-				SPEC.palletsToSpawn = {}
-				print(vehicle:getFullName() .. " ..adding pallets complete!")
-			end
+			spec.spawningPallet = nil
+			spec.spawnedPallet = pallet
 			return
 		end
 	end
 
-	local farmId = g_currentMission:getFarmId()
+	local x, y, z = getWorldTranslation(spec.loadVolume.rootNode)
+    local farmId = g_currentMission:getFarmId()
 	farmId = farmId ~= FarmManager.SPECTATOR_FARM_ID and farmId or 1
-	VehicleLoadingData.loadVehicle(xmlFilename, location, true, 0, VehiclePropertyState.OWNED, farmId, nil, nil, asyncCallbackFunction, self)
+
+    local data = VehicleLoadingData.new()
+    data:setFilename(xmlFilename)
+    data:setPosition(x, y + 10, z)
+    data:setPropertyState(VehiclePropertyState.OWNED)
+    data:setOwnerFarmId(farmId)
+	
+    data:load(asyncCallbackFunction)
+	
 end
 --
 function UniversalAutoload:createPallets(pallets)
@@ -4986,7 +5006,8 @@ function UniversalAutoload:clearLoadedObjects()
 				end
 				logCount = logCount + 1
 			elseif object.isRoundbale == nil then
-				g_currentMission:removeVehicle(object, true)
+				-- g_currentMission.vehicleSystem:removeVehicle(object, true)
+				object:delete()
 				palletCount = palletCount + 1
 			else
 				object:delete()
@@ -5079,7 +5100,7 @@ function UniversalAutoload.getContainerType(object)
 				if UniversalAutoload.INVALID_SPLITSHAPES[object.nodeId] == nil then
 					print("ZERO SIZE SPLITSHAPE " .. tostring(object.nodeId))
 					UniversalAutoload.INVALID_SPLITSHAPES[object.nodeId] = object
-					DebugUtil.printTableRecursively(object, "--", 0, 1)
+					-- DebugUtil.printTableRecursively(object, "--", 0, 1)
 				end
 				return nil
 			end
@@ -5124,7 +5145,10 @@ function UniversalAutoload.getContainerType(object)
 	local objectType = UniversalAutoload.LOADING_TYPES[name]
 	UniversalAutoload.INVALID_OBJECTS = UniversalAutoload.INVALID_OBJECTS or {}
 	if objectType == nil and not UniversalAutoload.INVALID_OBJECTS[name] then
-		
+
+		local size = nil
+		local offset = nil
+				
 		local isBale = object.isRoundbale ~= nil
 		local isRoundbale = object.isRoundbale == true
 		local isPallet = object.specializationsByName
@@ -5132,42 +5156,54 @@ function UniversalAutoload.getContainerType(object)
 					 and object.specializationsByName.fillUnit
 					 and object.specializationsByName.tensionBeltObject
 		
-		print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
 		if isPallet or isBale then
-			if isPallet then
-				print("Pallet")
-				-- DebugUtil.printTableRecursively(object.size or {}, "  ", 0, 1)
-				print("  width: " .. object.size.width)
-				print("  height: " .. object.size.height)
-				print("  length: " .. object.size.length)
-			elseif isBale then
-				if isRoundbale then
-					print("Round Bale")
-					print("  width: " .. object.width)
-					print("  height: " .. object.diameter)
-					print("  length: " .. object.diameter)
-				else
-					print("Square Bale")
-					print("  width: " .. object.width)
-					print("  height: " .. object.height)
-					print("  length: " .. object.length)
+			local objectIsInitialised = object.updateLoopIndex > 0
+			if objectIsInitialised then
+				print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
+				if isPallet then
+					print("Pallet")
+					print("  width: " .. object.size.width)
+					print("  height: " .. object.size.height)
+					print("  length: " .. object.size.length)
+				elseif isBale then
+					if isRoundbale then
+						print("Round Bale")
+						print("  width: " .. object.width)
+						print("  height: " .. object.diameter)
+						print("  length: " .. object.diameter)
+					else
+						print("Square Bale")
+						print("  width: " .. object.width)
+						print("  height: " .. object.height)
+						print("  length: " .. object.length)
+					end
 				end
+			
+				local boundingBox = BoundingBox.new(object)
+				size = boundingBox:getSize()
+				offset = boundingBox:getOffset()
+				print("  size X: " .. size.x)
+				print("  size Y: " .. size.y)
+				print("  size Z: " .. size.z)
+				print("  offset X: " .. offset.x)
+				print("  offset Y: " .. offset.y)
+				print("  offset Z: " .. offset.z)
+				
+			else
+				-- print("*** UNIVERSAL AUTOLOAD - OBJECT NOT INITIALISED: ".. name.." ***")
+				if object.size then
+					size = {x=object.size.width, y=object.size.height, z=object.size.length}
+				elseif isBale then
+					if isRoundbale then
+						size = {x=object.width, y=object.diameter, z=object.diameter}
+					else
+						size = {x=object.width, y=object.height, z=object.length}
+					end
+				end
+				-- DebugUtil.printTableRecursively(object or {}, "  ", 0, 1)
 			end
 			
-			local boundingBox = BoundingBox.new(object)
-			local size = boundingBox:getSize()
-			local offset = boundingBox:getOffset()
-			local rootNode = boundingBox:getRootNode()
-			print("rootNode: " .. rootNode)
-			print("  size X: " .. size.x)
-			print("  size Y: " .. size.y)
-			print("  size Z: " .. size.z)
-			print("  offset X: " .. offset.x)
-			print("  offset Y: " .. offset.y)
-			print("  offset Z: " .. offset.z)
-			-- DebugUtil.printTableRecursively(object or {}, "  ", 0, 1)
-			
-			if size.x==0 or size.y==0 or size.z==0 then
+			if not size or size.x==0 or size.y==0 or size.z==0 then
 				print("ZERO SIZE OBJECT")
 				UniversalAutoload.INVALID_OBJECTS[name] = true
 				return nil
@@ -5201,7 +5237,7 @@ function UniversalAutoload.getContainerType(object)
 			newType.sizeX = size.x + UniversalAutoload.SPACING
 			newType.sizeY = size.y + UniversalAutoload.SPACING
 			newType.sizeZ = size.z + UniversalAutoload.SPACING
-			newType.offset = offset
+			newType.offset = offset or {x=0, y=0, z=0}
 			newType.isBale = isBale
 			newType.isRoundbale = isRoundbale
 			newType.flipYZ = false
@@ -5223,17 +5259,21 @@ function UniversalAutoload.getContainerType(object)
 			end
 			
 			if isPallet then
-				newType.offset.y = -((size.y/2) - offset.y)
+				newType.offset.y = -((size.y/2) - newType.offset.y)
 			end
 			
 			newType.width = math.min(newType.sizeX, newType.sizeZ)
 			newType.length = math.max(newType.sizeX, newType.sizeZ)
-				
-			print(string.format("  >> %s [%.3f, %.3f, %.3f] - %s", newType.name,
-				newType.sizeX, newType.sizeY, newType.sizeZ, containerType ))
 			
-			UniversalAutoload.LOADING_TYPES[name] = newType
-			objectType = UniversalAutoload.LOADING_TYPES[name]
+			if objectIsInitialised then
+				print(string.format("  >> %s [%.3f, %.3f, %.3f] - %s", newType.name,
+					newType.sizeX, newType.sizeY, newType.sizeZ, containerType ))
+				
+				UniversalAutoload.LOADING_TYPES[name] = newType
+				objectType = UniversalAutoload.LOADING_TYPES[name]
+			else
+				return newType
+			end
 			
 		else
 			
