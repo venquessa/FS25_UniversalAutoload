@@ -5157,7 +5157,7 @@ function UniversalAutoload.getContainerType(object)
 					 and object.specializationsByName.tensionBeltObject
 		
 		if isPallet or isBale then
-			local objectIsInitialised = object.updateLoopIndex > 0
+			local objectIsInitialised = (isPallet and object.updateLoopIndex > 0) or true
 			if objectIsInitialised then
 				print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
 				if isPallet then
