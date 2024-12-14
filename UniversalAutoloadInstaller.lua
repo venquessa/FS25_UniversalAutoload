@@ -782,14 +782,10 @@ end
 
 function UniversalAutoloadManager:onOpenSettingsEvent(actionName, inputValue, callbackState, isAnalog)
 	-- print("onOpenSettingsEvent")
-	local button = UniversalAutoloadManager.configButton
-	if button and button:getIsVisible() then
-		if not UniversalAutoloadManager.shopCongfigMenu then
-			UniversalAutoloadManager.shopCongfigMenu = ShopConfigMenuUALSettings.new()
-			g_gui:loadGui(UniversalAutoload.path.."gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", UniversalAutoloadManager.shopCongfigMenu)
-		end
+	if UniversalAutoloadManager.shopCongfigMenu then
 		g_gui:showDialog("ShopConfigMenuUALSettings")
-		-- UniversalAutoloadManager.shopCongfigMenu:delete()
+	else
+		print("UAL menu not created")
 	end
 end
 
@@ -814,33 +810,7 @@ function UniversalAutoloadManager:onEditLoadingAreaEvent(actionName, inputValue,
 	end
 end
 
-function UniversalAutoloadManager.injectShopButton()
-	print("UAL - INJECT BUTTON")
-
-	if not UniversalAutoloadManager.configButton then
-		local function cloneButton(original, title, callback)
-			-- print("original")
-			-- DebugUtil.printTableRecursively(original, "--", 0, 1)
-			local button = original:clone(original.parent)
-			button:setText(title)
-			button:setVisible(false)
-			button:setCallback("onClickCallback", callback)
-			button:setInputAction(InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG)
-			button.parent:invalidateLayout()
-			return button
-		end
-		
-		local buyButton = g_shopConfigScreen.buyButton
-		local button = cloneButton(buyButton, g_i18n:getText("shop_configuration_text"), "ualInputCallback");
-		UniversalAutoloadManager.configButton = button
-	end
-	
-	UniversalAutoloadManager.configButton:setVisible(false)
-
-end
-
 ShopConfigScreen.ualInputCallback = Utils.prependedFunction(ShopConfigScreen.ualInputCallback, UniversalAutoloadManager.ualInputCallback);
-ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.injectShopButton);
 
 function UniversalAutoloadManager.injectMenu()
 	print("UAL - INJECT MENU")
@@ -991,8 +961,21 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 
 end
 
-
+function UniversalAutoloadManager:removeShopGui()
+	-- print("removeShopGui")
+	if UniversalAutoloadManager.configButton then
+		-- print("UAL - DELETE BUTTON")
+		UniversalAutoloadManager.configButton:delete()
+		UniversalAutoloadManager.configButton = nil
+	end
+	if UniversalAutoloadManager.shopCongfigMenu then
+		-- print("UAL - DELETE CONFIG MENU")
+		UniversalAutoloadManager.shopCongfigMenu:delete()
+		UniversalAutoloadManager.shopCongfigMenu = nil
+	end
+end
 function UniversalAutoloadManager:removeShopActionEvents()
+	-- print("removeShopActionEvents")
 	UniversalAutoloadManager.actionIds = UniversalAutoloadManager.actionIds or {}
 	for _, actionId in pairs(UniversalAutoloadManager.actionIds) do
 		g_inputBinding:removeActionEvent(actionId)
@@ -1000,8 +983,32 @@ function UniversalAutoloadManager:removeShopActionEvents()
 	end
 end
 
+function UniversalAutoloadManager:registerShopGui()
+	-- print("registerShopGui")
+	if not UniversalAutoloadManager.configButton then
+		local function cloneButton(original, title, callback)
+			local button = original:clone(original.parent)
+			button:setText(title)
+			button:setVisible(false)
+			button:setCallback("onClickCallback", callback)
+			button:setInputAction(InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG)
+			button.parent:invalidateLayout()
+			return button
+		end
+		
+		local buyButton = g_shopConfigScreen.buyButton
+		local button = cloneButton(buyButton, g_i18n:getText("shop_configuration_text"), "ualInputCallback");
+		UniversalAutoloadManager.configButton = button
+	end
+	UniversalAutoloadManager.configButton:setVisible(true)
+
+	if not UniversalAutoloadManager.shopCongfigMenu then
+		UniversalAutoloadManager.shopCongfigMenu = ShopConfigMenuUALSettings.new()
+		g_gui:loadGui(UniversalAutoload.path.."gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", UniversalAutoloadManager.shopCongfigMenu)
+	end
+end
 function UniversalAutoloadManager:registerShopActionEvents()
-	
+	-- print("registerShopActionEvents")
 	local function registerShopActionEvent(id, callback)
 		local id = id or 'UNIVERSALAUTOLOAD_SHOP_CONFIG'
 		local callback = callback or 'ualInputCallback'
@@ -1020,6 +1027,20 @@ function UniversalAutoloadManager:registerShopActionEvents()
 	registerShopActionEvent('UNIVERSALAUTOLOAD_SHOP_ADJUST', 'onEditLoadingAreaEvent')
 end
 
+
+function UniversalAutoloadManager.onValidUalShopVehicle(vehicle)
+	if vehicle.propertyState == VehiclePropertyState.SHOP_CONFIG then
+		UniversalAutoloadManager:registerShopGui()
+		UniversalAutoloadManager:registerShopActionEvents()
+	end
+end
+
+function UniversalAutoloadManager.onInvalidUalShopVehicle(vehicle)
+	if vehicle.propertyState == VehiclePropertyState.SHOP_CONFIG then
+		UniversalAutoloadManager:removeShopGui()
+		UniversalAutoloadManager:removeShopActionEvents()
+	end
+end
 
 -- AUTO CREATE LOADING VOLUMES
 function UniversalAutoloadManager.editLoadingVolumeInsideShop(vehicle)
@@ -2066,7 +2087,6 @@ end
 function UniversalAutoloadManager:loadMap(name)
 	print("UAL - LOADMAP")
 	-- UniversalAutoloadManager.injectMenu()
-	-- UniversalAutoloadManager.injectShopButton()
 	UniversalAutoloadManager.injectSpecialisation()
 	
 	g_messageCenter:subscribe(BuyVehicleEvent, UniversalAutoloadManager.onVehicleBuyEvent, UniversalAutoloadManager)
@@ -2116,6 +2136,14 @@ function UniversalAutoloadManager:loadMap(name)
 		-- addConsoleCommand("ualCreateBoundingBox", "Create a bounding box around all loaded pallets", "consoleCreateBoundingBox", UniversalAutoloadManager)
 		-- addConsoleCommand("ualSpawnTestPallets", "Create one of each pallet type (not loaded)", "consoleSpawnTestPallets", UniversalAutoloadManager)
 		-- addConsoleCommand("ualFullTest", "Test all the different loading types", "consoleFullTest", UniversalAutoloadManager)
+	end
+	
+	local showDlg = tostring(UniversalAutoload.name):find("fs25planet") or tostring(UniversalAutoload.name):find("_0_") or nil
+	if showDlg then
+		local dlg = InfoDialog.new()
+		g_gui:loadGui("dataS/gui/dialogs/InfoDialog.xml", "InfoDialog", dlg)
+		dlg.dialogTextElement:setText("PLEASE DON'T USE SCUMMY THIRD-PARTY MOD SITES")
+		dlg:show()
 	end
 end
 

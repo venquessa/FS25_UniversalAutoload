@@ -1506,25 +1506,19 @@ function UniversalAutoload:onLoad(savegame)
 	
 	self.spec_universalAutoload = self[UniversalAutoload.specName]
 	local spec = self.spec_universalAutoload
-	local button = UniversalAutoloadManager.configButton
 
 	local isValidForAutoload = UniversalAutoloadManager.getIsValidForAutoload(self)
 	if not isValidForAutoload then
 		print(self:getFullName() .. ": NOT VALID FOR UAL")
 		UniversalAutoload.removeEventListeners(self)
 		spec.isAutoloadAvailable = false
-		if button and button:getIsVisible() then
-			button:setVisible(false)
-			UniversalAutoloadManager:removeShopActionEvents()
-		end
+		UniversalAutoloadManager.onInvalidUalShopVehicle(self)
 		return
 	end
 
 	spec.isAutoloadAvailable = true
-	if button and not button:getIsVisible() then
-		button:setVisible(true)
-		UniversalAutoloadManager:registerShopActionEvents()
-	end
+	UniversalAutoloadManager.onValidUalShopVehicle(self)
+	
 	local configurationAdded = UniversalAutoloadManager.handleNewVehicleCreation(self)
 	
 	if configurationAdded then
