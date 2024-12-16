@@ -5270,8 +5270,8 @@ function UniversalAutoload.getContainerType(object)
 			end
 			
 		else
-			
-			print("...new object type was not valid")
+			-- print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
+			-- print("...new object type was not valid")
 			UniversalAutoload.INVALID_OBJECTS[name] = true
 		end
 		-- DebugUtil.printTableRecursively(object or {}, "--", 0, 1)
