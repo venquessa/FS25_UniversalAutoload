@@ -111,62 +111,62 @@ UniversalAutoload.VEHICLE_TYPES = {} -- vehicleTypes with autoload spec
 UniversalAutoload.LOADING_TYPES = {} -- known container object types
 
 UniversalAutoload.GLOBAL_DEFAULTS = {
-	{id="showDebug", default=false, valueType="BOOL", key="#showDebug", description="Show the full graphical debugging display for all vehicles in game"},
-	{id="highPriority", default=true, valueType="BOOL", key="#highPriority", description="Apply high priority to all UAL key bindings in the F1 menu"},
-	{id="disableAutoStrap", default=false, valueType="BOOL", key="#disableAutoStrap", description="Disable the automatic application of tension belts"},
-	{id="pricePerLog", default=0, valueType="FLOAT", key="#pricePerLog", description="The price charged for each auto-loaded log (default is zero)"},
-	{id="pricePerBale", default=0, valueType="FLOAT", key="#pricePerBale", description="The price charged for each auto-loaded bale (default is zero)"},
-	{id="pricePerPallet", default=0, valueType="FLOAT", key="#pricePerPallet", description="The price charged for each auto-loaded pallet (default is zero)"},
-	{id="minLogLength", default=0, valueType="FLOAT", key="#minLogLength", description="The global minimum length for logs that will be autoloaded (default is zero)"},
+	{id="showDebug", default=false, valueType="BOOL", key="#showDebug"}, --Show the full graphical debugging display for all vehicles in game
+	{id="highPriority", default=true, valueType="BOOL", key="#highPriority"}, --Apply high priority to all UAL key bindings in the F1 menu
+	{id="disableAutoStrap", default=false, valueType="BOOL", key="#disableAutoStrap"}, --Disable the automatic application of tension belts
+	{id="pricePerLog", default=0, valueType="FLOAT", key="#pricePerLog"}, --The price charged for each auto-loaded log (default is zero)
+	{id="pricePerBale", default=0, valueType="FLOAT", key="#pricePerBale"}, --The price charged for each auto-loaded bale (default is zero)
+	{id="pricePerPallet", default=0, valueType="FLOAT", key="#pricePerPallet"}, --The price charged for each auto-loaded pallet (default is zero)
+	{id="minLogLength", default=0, valueType="FLOAT", key="#minLogLength"}, --The global minimum length for logs that will be autoloaded (default is zero)
 }
 
 UniversalAutoload.OPTIONS_DEFAULTS = {
-	{id="isBoxTrailer", default=false, valueType="BOOL", key="#isBoxTrailer", description="If trailer is enclosed with a rear door"},
-	{id="isLogTrailer", default=false, valueType="BOOL", key="#isLogTrailer", description="If trailer is a logging trailer - will load only logs, dropped from above"},
-	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer", description="If trailer should use an automatic bale collection mode"},
-	{id="isBaleProcessor", default=false, valueType="BOOL", key="#isBaleProcessor", description="If trailer should consume bales (e.g. TMR Mixer or Straw Blower)"},
-	{id="isCurtainTrailer", default=false, valueType="BOOL", key="#isCurtainTrailer", description="Automatically detect the available load side (if the trailer has curtain sides)"},
-	{id="enableRearLoading", default=false, valueType="BOOL", key="#enableRearLoading", description="Use the automatic rear loading trigger"},
-	{id="enableSideLoading", default=false, valueType="BOOL", key="#enableSideLoading", description="Use the automatic side loading triggers"},
-	{id="noLoadingIfFolded", default=false, valueType="BOOL", key="#noLoadingIfFolded", description="Prevent loading when folded"},
-	{id="noLoadingIfUnfolded", default=false, valueType="BOOL", key="#noLoadingIfUnfolded", description="Prevent loading when unfolded"},
-	{id="noLoadingIfCovered", default=false, valueType="BOOL", key="#noLoadingIfCovered", description="Prevent loading when covered"},
-	{id="noLoadingIfUncovered", default=false, valueType="BOOL", key="#noLoadingIfUncovered", description="Prevent loading when uncovered"},
-	{id="rearUnloadingOnly", default=false, valueType="BOOL", key="#rearUnloadingOnly", description="Use rear unloading zone only (not side zones)"},
-	{id="frontUnloadingOnly", default=false, valueType="BOOL", key="#frontUnloadingOnly", description="Use front unloading zone only (not side zones)"},
-	{id="horizontalLoading", default=false, valueType="BOOL", key="#horizontalLoading", description="Start with horizontal loading enabled (can be toggled if key is bound)"},
-	{id="disableAutoStrap", default=false, valueType="BOOL", key="#disableAutoStrap", description="Disable the automatic application of tension belts"},
-	{id="disableHeightLimit", default=false, valueType="BOOL", key="#disableHeightLimit", description="Disable the density based stacking height limit"},
-	{id="zonesOverlap", default=false, valueType="BOOL", key="#zonesOverlap", description="Flag to identify when the loading areas overlap each other"},
-	{id="offsetRoot", default=nil, valueType="STRING", key="#offsetRoot", description="Vehicle i3d node that area offsets are relative to"},
-	{id="minLogLength", default=0, valueType="FLOAT", key="#minLogLength", description="The minimum length for logs that will be autoloaded (default is zero)"},
-	{id="showDebug", default=false, valueType="BOOL", key="#showDebug", description="Show the full graphical debugging display for this vehicle"},
+	{id="isBoxTrailer", default=false, valueType="BOOL", key="#isBoxTrailer"}, --If trailer is enclosed with a rear door
+	{id="isLogTrailer", default=false, valueType="BOOL", key="#isLogTrailer"}, --If trailer is a logging trailer - will load only logs, dropped from above
+	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer"}, --If trailer should use an automatic bale collection mode
+	{id="isBaleProcessor", default=false, valueType="BOOL", key="#isBaleProcessor"}, --If trailer should consume bales (e.g. TMR Mixer or Straw Blower)
+	{id="isCurtainTrailer", default=false, valueType="BOOL", key="#isCurtainTrailer"}, --Automatically detect the available load side (if the trailer has curtain sides)
+	{id="enableRearLoading", default=false, valueType="BOOL", key="#enableRearLoading"}, --Use the automatic rear loading trigger
+	{id="enableSideLoading", default=false, valueType="BOOL", key="#enableSideLoading"}, --Use the automatic side loading triggers
+	{id="noLoadingIfFolded", default=false, valueType="BOOL", key="#noLoadingIfFolded"}, --Prevent loading when folded
+	{id="noLoadingIfUnfolded", default=false, valueType="BOOL", key="#noLoadingIfUnfolded"}, --Prevent loading when unfolded
+	{id="noLoadingIfCovered", default=false, valueType="BOOL", key="#noLoadingIfCovered"}, --Prevent loading when covered
+	{id="noLoadingIfUncovered", default=false, valueType="BOOL", key="#noLoadingIfUncovered"}, --Prevent loading when uncovered
+	{id="rearUnloadingOnly", default=false, valueType="BOOL", key="#rearUnloadingOnly"}, --Use rear unloading zone only (not side zones)
+	{id="frontUnloadingOnly", default=false, valueType="BOOL", key="#frontUnloadingOnly"}, --Use front unloading zone only (not side zones)
+	{id="horizontalLoading", default=false, valueType="BOOL", key="#horizontalLoading"}, --Start with horizontal loading enabled (can be toggled if key is bound)
+	{id="disableAutoStrap", default=false, valueType="BOOL", key="#disableAutoStrap"}, --Disable the automatic application of tension belts
+	{id="disableHeightLimit", default=false, valueType="BOOL", key="#disableHeightLimit"}, --Disable the density based stacking height limit
+	{id="zonesOverlap", default=false, valueType="BOOL", key="#zonesOverlap"}, --Flag to identify when the loading areas overlap each other
+	{id="offsetRoot", default=nil, valueType="STRING", key="#offsetRoot"}, --Vehicle i3d node that area offsets are relative to
+	{id="minLogLength", default=0, valueType="FLOAT", key="#minLogLength"}, --The minimum length for logs that will be autoloaded (default is zero)
+	{id="showDebug", default=false, valueType="BOOL", key="#showDebug"}, --Show the full graphical debugging display for this vehicle
 }
 
 UniversalAutoload.LOADING_AREA_DEFAULTS = {
-	{id="offset", default="0 0 0", valueType="VECTOR_TRANS", key="#offset", description="Offset to the centre of the loading area"},
-	{id="offsetRoot", default=nil, valueType="STRING", key="#offsetRoot", description="Vehicle i3d node that this area offset is relative to"},
-	{id="width", default=0, valueType="FLOAT", key="#width", description="Width of the loading area"},
-	{id="length", default=0, valueType="FLOAT", key="#length", description="Length of the loading area"},
-	{id="height", default=0, valueType="FLOAT", key="#height", description="Height of the loading area"},
-	{id="baleHeight", default=nil, valueType="FLOAT", key="#baleHeight", description="Height of the loading area for BALES only"},
-	{id="widthAxis", default=nil, valueType="STRING", key="#widthAxis", description="Axis name to extend width of the loading area"},
-	{id="lengthAxis", default=nil, valueType="STRING", key="#lengthAxis", description="Axis name to extend length of the loading area"},
-	{id="heightAxis", default=nil, valueType="STRING", key="#heightAxis", description="Axis name to extend height of the loading area"},
-	{id="offsetFrontAxis", default=nil, valueType="STRING", key="#offsetFrontAxis", description="Axis name to adjust the front position of the loading area"},
-	{id="offsetRearAxis", default=nil, valueType="STRING", key="#offsetRearAxis", description="Axis name to adjust the rear position of the loading area"},
-	{id="reverseWidthAxis", default=false, valueType="BOOL", key="#reverseWidthAxis", description="Reverses direction of width extension if true"},
-	{id="reverseLengthAxis", default=false, valueType="BOOL", key="#reverseLengthAxis", description="Reverses direction of length extension if true"},
-	{id="reverseHeightAxis", default=false, valueType="BOOL", key="#reverseHeightAxis", description="Reverses direction of height extension if true"},
-	{id="noLoadingIfFolded", default=false, valueType="BOOL", key="#noLoadingIfFolded", description="Prevent loading when folded (for this area only)"},
-	{id="noLoadingIfUnfolded", default=false, valueType="BOOL", key="#noLoadingIfUnfolded", description="Prevent loading when unfolded (for this area only)"},
-	{id="noLoadingIfCovered", default=false, valueType="BOOL", key="#noLoadingIfCovered", description="Prevent loading when covered (for this area only)"},
-	{id="noLoadingIfUncovered", default=false, valueType="BOOL", key="#noLoadingIfUncovered", description="Prevent loading when uncovered (for this area only)"},
+	{id="offset", default="0 0 0", valueType="VECTOR_TRANS", key="#offset"}, --Offset to the centre of the loading area
+	{id="offsetRoot", default=nil, valueType="STRING", key="#offsetRoot"}, --Vehicle i3d node that this area offset is relative to
+	{id="width", default=0, valueType="FLOAT", key="#width"}, --Width of the loading area
+	{id="length", default=0, valueType="FLOAT", key="#length"}, --Length of the loading area
+	{id="height", default=0, valueType="FLOAT", key="#height"}, --Height of the loading area
+	{id="baleHeight", default=nil, valueType="FLOAT", key="#baleHeight"}, --Height of the loading area for BALES only
+	{id="widthAxis", default=nil, valueType="STRING", key="#widthAxis"}, --Axis name to extend width of the loading area
+	{id="lengthAxis", default=nil, valueType="STRING", key="#lengthAxis"}, --Axis name to extend length of the loading area
+	{id="heightAxis", default=nil, valueType="STRING", key="#heightAxis"}, --Axis name to extend height of the loading area
+	{id="offsetFrontAxis", default=nil, valueType="STRING", key="#offsetFrontAxis"}, --Axis name to adjust the front position of the loading area
+	{id="offsetRearAxis", default=nil, valueType="STRING", key="#offsetRearAxis"}, --Axis name to adjust the rear position of the loading area
+	{id="reverseWidthAxis", default=false, valueType="BOOL", key="#reverseWidthAxis"}, --Reverses direction of width extension if true
+	{id="reverseLengthAxis", default=false, valueType="BOOL", key="#reverseLengthAxis"}, --Reverses direction of length extension if true
+	{id="reverseHeightAxis", default=false, valueType="BOOL", key="#reverseHeightAxis"}, --Reverses direction of height extension if true
+	{id="noLoadingIfFolded", default=false, valueType="BOOL", key="#noLoadingIfFolded"}, --Prevent loading when folded (for this area only)
+	{id="noLoadingIfUnfolded", default=false, valueType="BOOL", key="#noLoadingIfUnfolded"}, --Prevent loading when unfolded (for this area only)
+	{id="noLoadingIfCovered", default=false, valueType="BOOL", key="#noLoadingIfCovered"}, --Prevent loading when covered (for this area only)
+	{id="noLoadingIfUncovered", default=false, valueType="BOOL", key="#noLoadingIfUncovered"}, --Prevent loading when uncovered (for this area only)
 }
 
 UniversalAutoload.CONFIG_DEFAULTS = {
-	{id="selectedConfigs", default="ALL", valueType="STRING", key="#selectedConfigs", description="Selected Configuration Names"},
-	{id="useConfigName", default=nil, valueType="STRING", key="#useConfigName", description="Specific configuration to be used for selected configs"},
+	{id="selectedConfigs", default="ALL", valueType="STRING", key="#selectedConfigs"}, --Selected Configuration Names
+	{id="useConfigName", default=nil, valueType="STRING", key="#useConfigName"}, --Specific configuration to be used for selected configs
 	{
 		key = ".loadingArea(?)",
 		name = "loadingArea",
@@ -180,7 +180,7 @@ UniversalAutoload.CONFIG_DEFAULTS = {
 }
 	
 UniversalAutoload.VEHICLE_DEFAULTS = {
-	{id="configFileName", default=nil, valueType="STRING", key="#configFileName", description="Vehicle config file xml full path - used to identify supported vehicles"},
+	{id="configFileName", default=nil, valueType="STRING", key="#configFileName"}, --Vehicle config file xml full path - used to identify supported vehicles
 	{
 		key = ".configuration(?)",
 		name = "spec",
@@ -189,22 +189,22 @@ UniversalAutoload.VEHICLE_DEFAULTS = {
 }
 
 UniversalAutoload.SAVEGAME_STATE_DEFAULTS = {
-	{id="tipside", default="none", valueType="STRING", key="#tipside", description="Last used tip side"},
-	{id="loadside", default="both", valueType="STRING", key="#loadside", description="Last used load side"},
-	{id="loadWidth", default=0, valueType="FLOAT", key="#loadWidth", description="Last used load width"},
-	{id="loadLength", default=0, valueType="FLOAT", key="#loadLength", description="Last used load length"},
-	{id="loadHeight", default=0, valueType="FLOAT", key="#loadHeight", description="Last used load height"},
-	{id="actualWidth", default=0, valueType="FLOAT", key="#actualWidth", description="Last used expected load width"},
-	{id="actualLength", default=0, valueType="FLOAT", key="#actualLength", description="Last used complete load length"},
-	{id="layerCount", default=0, valueType="INT", key="#layerCount", description="Number of layers that are currently loaded"},
-	{id="layerHeight", default=0, valueType="FLOAT", key="#layerHeight", description="Total height of the currently loaded layers"},
-	{id="nextLayerHeight", default=0, valueType="FLOAT", key="#nextLayerHeight", description="Height for the next layer (highest point in previous layer)"},
-	{id="loadAreaIndex", default=1, valueType="INT", key="#loadAreaIndex", description="Last used load area"},
-	{id="materialIndex", default=1, valueType="INT", key="#materialIndex", description="Last used material type"},
-	{id="containerIndex", default=1, valueType="INT", key="#containerIndex", description="Last used container type"},
-	{id="loadingFilter", default=false, valueType="BOOL", key="#loadingFilter", description="TRUE=Load full pallets only; FALSE=Load any pallets"},
-	{id="useHorizontalLoading", default=false, valueType="BOOL", key="#useHorizontalLoading", description="Last used horizontal loading state"},
-	{id="baleCollectionMode", default=false, valueType="BOOL", key="#baleCollectionMode", description="Enable manual toggling of the automatic bale collection mode"},
+	{id="tipside", default="none", valueType="STRING", key="#tipside"}, --Last used tip side
+	{id="loadside", default="both", valueType="STRING", key="#loadside"}, --Last used load side
+	{id="loadWidth", default=0, valueType="FLOAT", key="#loadWidth"}, --Last used load width
+	{id="loadLength", default=0, valueType="FLOAT", key="#loadLength"}, --Last used load length
+	{id="loadHeight", default=0, valueType="FLOAT", key="#loadHeight"}, --Last used load height
+	{id="actualWidth", default=0, valueType="FLOAT", key="#actualWidth"}, --Last used expected load width
+	{id="actualLength", default=0, valueType="FLOAT", key="#actualLength"}, --Last used complete load length
+	{id="layerCount", default=0, valueType="INT", key="#layerCount"}, --Number of layers that are currently loaded
+	{id="layerHeight", default=0, valueType="FLOAT", key="#layerHeight"}, --Total height of the currently loaded layers
+	{id="nextLayerHeight", default=0, valueType="FLOAT", key="#nextLayerHeight"}, --Height for the next layer (highest point in previous layer)
+	{id="loadAreaIndex", default=1, valueType="INT", key="#loadAreaIndex"}, --Last used load area
+	{id="materialIndex", default=1, valueType="INT", key="#materialIndex"}, --Last used material type
+	{id="containerIndex", default=1, valueType="INT", key="#containerIndex"}, --Last used container type
+	{id="loadingFilter", default=false, valueType="BOOL", key="#loadingFilter"}, --TRUE=Load full pallets only; FALSE=Load any pallets
+	{id="useHorizontalLoading", default=false, valueType="BOOL", key="#useHorizontalLoading"}, --Last used horizontal loading state
+	{id="baleCollectionMode", default=false, valueType="BOOL", key="#baleCollectionMode"}, --Enable manual toggling of the automatic bale collection mode
 }
 
 function iterateDefaultsTable(tbl, parentKey, currentKey, currentValue, action)
@@ -440,7 +440,7 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 	local configFileName, configId
 	
 	if spec.selectedConfigs and spec.configFileName then
-		print("ALREADY SET WITH:")
+		print("WAS ALREADY SET WITH:")
 		configId = spec.selectedConfigs
 		configFileName = spec.configFileName
 	end
@@ -451,9 +451,9 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 		configId = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	end
 	
-	print("configFileName = " .. tostring(configFileName))
-	print("selectedConfig = " .. tostring(configId))
-	print("useConfigName = " .. tostring(spec.useConfigName))
+	print(" configFileName = " .. tostring(configFileName))
+	print(" selectedConfig = " .. tostring(configId))
+	print(" useConfigName = " .. tostring(spec.useConfigName))
 	
 	return configFileName, configId
 end
@@ -471,8 +471,7 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 	if xmlFile then
 
 		local function writeSettingToFile(k, v, parentKey, currentKey, currentValue, finalValue)
-			if currentKey and finalValue ~= nil and finalValue ~= v.default then
-				print("  >> " .. tostring(currentKey) .. " = " .. tostring(finalValue) .. " - " .. tostring(v.default))
+			if currentKey and finalValue ~= nil then
 				if v.valueType == "VECTOR_TRANS" then
 					if type(finalValue) == "string" then
 						local vector = {}
@@ -484,10 +483,16 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 						error("Unexpected type for VECTOR_TRANS: " .. tostring(finalValue))
 					end
 				end
-				if type(finalValue) == "table" and v.valueType == "VECTOR_TRANS" then
-					xmlFile:setValue(parentKey..currentKey, unpack(finalValue))
+				
+				if finalValue == v.default then
+					xmlFile:removeProperty(parentKey..currentKey)
 				else
-					xmlFile:setValue(parentKey..currentKey, finalValue)
+					print("  >> " .. tostring(currentKey) .. " = " .. tostring(finalValue))
+					if type(finalValue) == "table" and v.valueType == "VECTOR_TRANS" then
+						xmlFile:setValue(parentKey..currentKey, unpack(finalValue))
+					else
+						xmlFile:setValue(parentKey..currentKey, finalValue)
+					end
 				end
 			end
 		end
@@ -581,6 +586,7 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 	local xmlFile = UniversalAutoloadManager.openUserSettingsXMLFile(xmlFilename)
 	
 	if xmlFile then
+		local xmlWasCleaned = false
 		local i = 0
 		while true do
 			local vehicleKey = string.format(UniversalAutoload.vehicleKey, i)
@@ -589,10 +595,17 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 			end
 			
 			local configFileName = xmlFile:getValue(vehicleKey .. "#configFileName")
-			configFileName = UniversalAutoloadManager.cleanConfigFileName(configFileName)
+			configFileName, removedPart = UniversalAutoloadManager.cleanConfigFileName(configFileName)
+			if removedPart ~= nil then
+				print("CLEANING CONFIG FILE NAME: " .. configFileName .. removedPart)
+				xmlFile:setValue(vehicleKey .. "#configFileName", configFileName)
+				print("... replaced with: " .. configFileName)
+				xmlWasCleaned = true
+			end
+			
 			if UniversalAutoloadManager.getValidXmlName(configFileName) then
 				print(" [" .. i + 1 .. "] " .. configFileName)
-				
+
 				local j = 0
 				while true do
 					local configKey = vehicleKey .. string.format(".configuration(%d)", j)
@@ -614,6 +627,12 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 					local configGroup = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName]
 					local selectedConfigs = xmlFile:getValue(configKey.."#selectedConfigs", UniversalAutoload.ALL)
 					local useConfigName = xmlFile:getValue(configKey.."#useConfigName", nil)
+					
+					if useConfigName == nil and tostring(selectedConfigs):find("|") then
+						local oldConfig = selectedConfigs
+						selectedConfigs = tostring(selectedConfigs):match("^(.-)|")
+						print("*** SUGGEST REPAIRING CONFIG: " .. oldConfig .. " - using " .. selectedConfigs .. " ***")
+					end
 
 					if not configGroup[selectedConfigs] or overwriteExisting then
 						configuration.useConfigName = useConfigName
@@ -636,6 +655,10 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 			end
 
 			i = i + 1
+		end
+		
+		if xmlWasCleaned then
+			xmlFile:save()
 		end
 		
 		xmlFile:delete()
@@ -749,7 +772,7 @@ function UniversalAutoloadManager.cleanConfigFileName(configFileName)
 
 	if configFileName:find(g_modsDirectory) then
 		-- print("CLEANED MOD FILE NAME")
-		return configFileName:gsub(g_modsDirectory, "")
+		return configFileName:gsub(g_modsDirectory, ""), g_modsDirectory
 	end
 	
 	for i = 1, #g_dlcsDirectories do
@@ -757,7 +780,7 @@ function UniversalAutoloadManager.cleanConfigFileName(configFileName)
 		
 		if configFileName:find(dlcsDir) then
 			-- print("CLEANED DLC FILE NAME")
-			return configFileName:gsub(dlcsDir, "")
+			return configFileName:gsub(dlcsDir, ""), dlcsDir
 		end
 	end
 	
@@ -784,8 +807,6 @@ function UniversalAutoloadManager:onOpenSettingsEvent(actionName, inputValue, ca
 	-- print("onOpenSettingsEvent")
 	if UniversalAutoloadManager.shopCongfigMenu then
 		g_gui:showDialog("ShopConfigMenuUALSettings")
-	else
-		print("UAL menu not created")
 	end
 end
 
@@ -810,7 +831,24 @@ function UniversalAutoloadManager:onEditLoadingAreaEvent(actionName, inputValue,
 	end
 end
 
-ShopConfigScreen.ualInputCallback = Utils.prependedFunction(ShopConfigScreen.ualInputCallback, UniversalAutoloadManager.ualInputCallback);
+function UniversalAutoloadManager.onSetStoreItem()
+	if UniversalAutoloadManager.configButton then
+		UniversalAutoloadManager.configButton:setVisible(false)
+	end
+	if UniversalAutoloadManager.shopCongfigMenu then
+		UniversalAutoloadManager.shopCongfigMenu:setNewVehicle(nil)
+	end
+end
+
+ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.onSetStoreItem)
+ShopConfigScreen.ualInputCallback = Utils.prependedFunction(ShopConfigScreen.ualInputCallback, UniversalAutoloadManager.ualInputCallback)
+
+ShopConfigScreen.onClickBuy = Utils.prependedFunction(ShopConfigScreen.onClickBuy, function() print("onClickBuy") end)
+ShopConfigScreen.onClickConfigAction = Utils.prependedFunction(ShopConfigScreen.onClickConfigAction, function() print("onClickConfigAction") end)
+ShopConfigScreen.onClickLease = Utils.prependedFunction(ShopConfigScreen.onClickLease, function() print("onClickLease") end)
+ShopConfigScreen.onVehicleBought = Utils.prependedFunction(ShopConfigScreen.onVehicleBought, function() print("onVehicleBought") end)
+ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease, function() print("onYesNoLease") end)
+ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBuy, function() print("onYesNoBuy") end)
 
 function UniversalAutoloadManager.injectMenu()
 	print("UAL - INJECT MENU")
@@ -947,44 +985,32 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 		local spec = UniversalAutoloadManager.shopVehicle.spec_universalAutoload
 		if spec and spec.isInsideShop then
 			-- print("KEY: " .. tostring(sym) .. " + " .. tostring(modifier))
-			if sym == 308 then
+			if sym == Input['KEY_lalt'] then
 				UniversalAutoloadManager.altHeld = isDown
 			end
-			if sym == 306 then
+			if sym == Input['KEY_lctrl'] then
 				UniversalAutoloadManager.ctrlHeld = isDown
 			end
-			if sym == 304 then
+			if sym == Input['KEY_lshift'] then
 				UniversalAutoloadManager.shiftHeld = isDown
+			end
+			if sym == Input['KEY_esc'] and isDown then
+				if UniversalAutoloadManager.shopCongfigMenu then
+					UniversalAutoloadManager.shopCongfigMenu.onClickBack()
+				end
+			end
+			if sym == Input['KEY_return'] and isDown then
+				if UniversalAutoloadManager.shopCongfigMenu then
+					UniversalAutoloadManager.shopCongfigMenu.onClickOk()
+				end
 			end
 		end
 	end
 
 end
 
-function UniversalAutoloadManager:removeShopGui()
-	-- print("removeShopGui")
-	if UniversalAutoloadManager.configButton then
-		-- print("UAL - DELETE BUTTON")
-		UniversalAutoloadManager.configButton:delete()
-		UniversalAutoloadManager.configButton = nil
-	end
-	if UniversalAutoloadManager.shopCongfigMenu then
-		-- print("UAL - DELETE CONFIG MENU")
-		UniversalAutoloadManager.shopCongfigMenu:delete()
-		UniversalAutoloadManager.shopCongfigMenu = nil
-	end
-end
-function UniversalAutoloadManager:removeShopActionEvents()
-	-- print("removeShopActionEvents")
-	UniversalAutoloadManager.actionIds = UniversalAutoloadManager.actionIds or {}
-	for _, actionId in pairs(UniversalAutoloadManager.actionIds) do
-		g_inputBinding:removeActionEvent(actionId)
-		UniversalAutoloadManager.actionIds[actionId] = nil
-	end
-end
-
-function UniversalAutoloadManager:registerShopGui()
-	-- print("registerShopGui")
+function UniversalAutoloadManager.createShopGui()
+	-- print("createShopGui")
 	if not UniversalAutoloadManager.configButton then
 		local function cloneButton(original, title, callback)
 			local button = original:clone(original.parent)
@@ -1000,13 +1026,26 @@ function UniversalAutoloadManager:registerShopGui()
 		local button = cloneButton(buyButton, g_i18n:getText("shop_configuration_text"), "ualInputCallback");
 		UniversalAutoloadManager.configButton = button
 	end
-	UniversalAutoloadManager.configButton:setVisible(true)
 
 	if not UniversalAutoloadManager.shopCongfigMenu then
 		UniversalAutoloadManager.shopCongfigMenu = ShopConfigMenuUALSettings.new()
 		g_gui:loadGui(UniversalAutoload.path.."gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", UniversalAutoloadManager.shopCongfigMenu)
 	end
 end
+function UniversalAutoloadManager.deleteShopGui()
+	-- print("deleteShopGui")
+	if UniversalAutoloadManager.configButton then
+		-- print("UAL - DELETE BUTTON")
+		UniversalAutoloadManager.configButton:delete()
+		UniversalAutoloadManager.configButton = nil
+	end
+	if UniversalAutoloadManager.shopCongfigMenu then
+		-- print("UAL - DELETE CONFIG MENU")
+		UniversalAutoloadManager.shopCongfigMenu:delete()
+		UniversalAutoloadManager.shopCongfigMenu = nil
+	end
+end
+
 function UniversalAutoloadManager:registerShopActionEvents()
 	-- print("registerShopActionEvents")
 	local function registerShopActionEvent(id, callback)
@@ -1026,19 +1065,28 @@ function UniversalAutoloadManager:registerShopActionEvents()
 	registerShopActionEvent('UNIVERSALAUTOLOAD_SHOP_CONFIG', 'onOpenSettingsEvent')
 	registerShopActionEvent('UNIVERSALAUTOLOAD_SHOP_ADJUST', 'onEditLoadingAreaEvent')
 end
-
+function UniversalAutoloadManager:removeShopActionEvents()
+	-- print("removeShopActionEvents")
+	UniversalAutoloadManager.actionIds = UniversalAutoloadManager.actionIds or {}
+	for _, actionId in pairs(UniversalAutoloadManager.actionIds) do
+		g_inputBinding:removeActionEvent(actionId)
+		UniversalAutoloadManager.actionIds[actionId] = nil
+	end
+end
 
 function UniversalAutoloadManager.onValidUalShopVehicle(vehicle)
 	if vehicle.propertyState == VehiclePropertyState.SHOP_CONFIG then
-		UniversalAutoloadManager:registerShopGui()
 		UniversalAutoloadManager:registerShopActionEvents()
+		UniversalAutoloadManager.configButton:setVisible(true)
+		UniversalAutoloadManager.shopCongfigMenu:setNewVehicle(vehicle)
 	end
 end
 
 function UniversalAutoloadManager.onInvalidUalShopVehicle(vehicle)
 	if vehicle.propertyState == VehiclePropertyState.SHOP_CONFIG then
-		UniversalAutoloadManager:removeShopGui()
 		UniversalAutoloadManager:removeShopActionEvents()
+		UniversalAutoloadManager.configButton:setVisible(false)
+		UniversalAutoloadManager.shopCongfigMenu:setNewVehicle(nil)
 	end
 end
 
@@ -1409,7 +1457,14 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 					return
 				end
 
-				print("TO DO: import the rest of the parameters here...")
+				for k, v in pairs(UniversalAutoload.OPTIONS_DEFAULTS) do
+					local id = v.id
+					if id and spec[id] ~= importSpec[id] then
+						print(tostring(id) .. " = " .. tostring(importSpec[id]))
+						spec[id] = importSpec[id]
+					end
+				end
+				
 				spec.loadArea = spec.loadArea or {}
 				importSpec.loadArea = importSpec.loadArea or {}
 				for i, boundingBox in (shopVolume.bbs) do
@@ -2088,6 +2143,7 @@ function UniversalAutoloadManager:loadMap(name)
 	print("UAL - LOADMAP")
 	-- UniversalAutoloadManager.injectMenu()
 	UniversalAutoloadManager.injectSpecialisation()
+	UniversalAutoloadManager.createShopGui()
 	
 	g_messageCenter:subscribe(BuyVehicleEvent, UniversalAutoloadManager.onVehicleBuyEvent, UniversalAutoloadManager)
 
@@ -2164,6 +2220,8 @@ function UniversalAutoloadManager:deleteMap()
 	-- removeConsoleCommand("ualCreateBoundingBox")
 	-- removeConsoleCommand("ualSpawnTestPallets")
 	-- removeConsoleCommand("ualFullTest")
+	
+	UniversalAutoloadManager.deleteShopGui()
 end
 
 -- SYNC SETTINGS:

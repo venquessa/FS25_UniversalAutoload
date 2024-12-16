@@ -7,6 +7,8 @@
 		<!-- TITLES -->
 		<text name="ui_global_settings_ual" text="Global Settings"/>
 		<text name="ui_config_settings_ual" text="Autoload Settings"/>
+		<text name="ui_vehicle_options_ual" text="Vehicle Options"/>
+		<text name="ui_loading_area_options_ual" text="Loading Area Options"/>
 		
 		<!-- GLOBAL -->
 		<text name="ui_global_showDebug" text="Show Debug"/>
@@ -26,6 +28,12 @@
 		<text name="ui_global_tooltip_minLogLength" text="The global minimum length for logs that will be autoloaded"/>
 
 		<!-- OPTIONS -->
+		<text name="ui_option_enableAutoload" text="Enable Autoload"/>
+		<text name="ui_option_trailerType" text="Trailer Type"/>
+		<text name="ui_option_unloadingType" text="Unloading Position"/>
+		<text name="ui_option_rearOnly" text="Rear Only"/>
+		<text name="ui_option_frontOnly" text="Front Only"/>
+		
 		<text name="ui_option_isBoxTrailer" text="Box Trailer"/>
 		<text name="ui_option_isLogTrailer" text="Log Trailer"/>
 		<text name="ui_option_isBaleTrailer" text="Bale Trailer"/>
@@ -46,6 +54,10 @@
 		<text name="ui_option_offsetRoot" text="Offset Root"/>
 		<text name="ui_option_minLogLength" text="Min Log Length"/>
 		<text name="ui_option_showDebug" text="Show Debug"/>
+		
+		<text name="ui_option_tooltip_enableAutoload" text="If Autoload is enabled or disabled for this vehicle"/>
+		<text name="ui_option_tooltip_trailerType" text="The special type of trailer, e.g. bale, log, curtain"/>
+		<text name="ui_option_tooltip_unloadingType" text="Use a special unloading position (front or rear)"/>
 		
 		<text name="ui_option_tooltip_isBoxTrailer" text="If trailer is enclosed with a rear door"/>
 		<text name="ui_option_tooltip_isLogTrailer" text="If trailer is a logging trailer - will load only logs dropped from above"/>

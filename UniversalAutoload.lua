@@ -18,7 +18,6 @@ UniversalAutoload.vehicleSchemaKey = "universalAutoload.vehicleConfigurations.ve
 UniversalAutoload.containerKey = "universalAutoload.containerConfigurations.container(%d)"
 UniversalAutoload.containerSchemaKey = "universalAutoload.containerConfigurations.container(?)"
 
-UniversalAutoload.OBJECTS_LOOKUP = {}
 UniversalAutoload.SPLITSHAPES_LOOKUP = {}
 
 UniversalAutoload.ALL = "ALL"
