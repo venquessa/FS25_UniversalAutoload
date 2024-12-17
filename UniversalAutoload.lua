@@ -1107,7 +1107,7 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 					-- if debugLoading then print("PARTIALLY UNLOADED...") end
 					-- spec.partiallyUnloaded = true
 					
-					if not UniversalAutoload.disableAutoStrap then
+					if UniversalAutoload.isUsingAutoStrap(self) then
 						spec.doSetTensionBelts = true
 						spec.doPostLoadDelay = true
 					end
@@ -1156,7 +1156,7 @@ function UniversalAutoload:resetLoadingState(noEventSend)
 	local spec = self.spec_universalAutoload
 	
 	if self.isServer then
-		if spec.doSetTensionBelts and not spec.disableAutoStrap and not spec.baleCollectionMode and not UniversalAutoload.disableAutoStrap then
+		if spec.doSetTensionBelts and not spec.baleCollectionMode and UniversalAutoload.isUsingAutoStrap(self) then
 			self:setAllTensionBeltsActive(true)
 		end
 		spec.postLoadDelayTime = 0
@@ -2570,7 +2570,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 						UniversalAutoload.addToPhysics(self, object)
 					end
 				end
-				if not UniversalAutoload.disableAutoStrap then
+				if UniversalAutoload.isUsingAutoStrap(self) then
 					self:setAllTensionBeltsActive(false)
 					spec.doSetTensionBelts = true
 					spec.doPostLoadDelay = true
@@ -2585,7 +2585,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 					local lastObject = nil
 					local loadedObject = false
 					for index, object in ipairs(spec.sortedObjectsToLoad or {}) do
-						if not UniversalAutoload.disableAutoStrap then
+						if UniversalAutoload.isUsingAutoStrap(self) then
 							local vehicle = UniversalAutoload.isStrappedOnOtherVehicle(self, object)
 							if vehicle then
 								vehicle:setAllTensionBeltsActive(false)
@@ -2924,6 +2924,17 @@ function UniversalAutoload.isValidForManualLoading(object)
 		-- return true
 	-- end
 	-- HandToolHands.getIsHoldingItem() ??
+end
+--
+function UniversalAutoload:isUsingAutoStrap()
+	-- print("SHOULD USE AUTO STRAP")
+	local spec = self.spec_universalAutoload
+	
+	if spec.disableAutoStrap or UniversalAutoload.disableAutoStrap then
+		return false
+	else
+		return true
+	end	
 end
 --
 function UniversalAutoload:isUsingLayerLoading()

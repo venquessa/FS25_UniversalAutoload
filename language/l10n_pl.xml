@@ -5,68 +5,82 @@
 		<text name="configuration_universalAutoload" text="Universalne Autoładowanie"/>
 		
 		<!-- TITLES -->
-		<text name="ui_global_settings_ual" text="Ustawienia globalne"/>
-		<text name="ui_config_settings_ual" text="Ustawienia autoload"/>
+		<text name="ui_global_settings_ual" text="Global Settings"/>
+		<text name="ui_config_settings_ual" text="Autoload Settings"/>
+		<text name="ui_vehicle_options_ual" text="Vehicle Options"/>
+		<text name="ui_loading_area_options_ual" text="Loading Area Options"/>
 		
 		<!-- GLOBAL -->
-		<text name="ui_global_showDebug" text="Pokaż debugowanie"/>
-		<text name="ui_global_highPriority" text="Wysoki priorytet"/>
-		<text name="ui_global_disableAutoStrap" text="Wyłącz automatyczne pasy"/>
-		<text name="ui_global_pricePerLog" text="Koszt za kłodę"/>
-		<text name="ui_global_pricePerBale" text="Koszt za belę"/>
-		<text name="ui_global_pricePerPallet" text="Koszt za paletę"/>
-		<text name="ui_global_minLogLength" text="Minimalna długość kłody"/>
+		<text name="ui_global_showDebug" text="Show Debug"/>
+		<text name="ui_global_highPriority" text="High Priority"/>
+		<text name="ui_global_disableAutoStrap" text="Disable Auto-Strap"/>
+		<text name="ui_global_pricePerLog" text="Price Per Log"/>
+		<text name="ui_global_pricePerBale" text="Price Per Bale"/>
+		<text name="ui_global_pricePerPallet" text="Price Per Pallet"/>
+		<text name="ui_global_minLogLength" text="Min Log Length"/>
 		
-		<text name="ui_global_tooltip_showDebug" text="Pokaż pełny graficzny wyświetlacz debugowania dla wszystkich pojazdów w grze"/>
-		<text name="ui_global_tooltip_highPriority" text="Zastosuj wysoki priorytet dla wszystkich przypisań klawiszy UAL w menu F1"/>
-		<text name="ui_global_tooltip_disableAutoStrap" text="Wyłącz automatyczne stosowanie pasów transportowych"/>
-		<text name="ui_global_tooltip_pricePerLog" text="Kwota pobierana za każdą automatycznie załadowaną kłodę"/>
-		<text name="ui_global_tooltip_pricePerBale" text="Kwota pobierana za każdą automatycznie załadowaną belę"/>
-		<text name="ui_global_tooltip_pricePerPallet" text="Kwota pobierana za każdą automatycznie załadowaną paletę"/>
-		<text name="ui_global_tooltip_minLogLength" text="Minimalna długość kłód, które będą automatycznie ładowane"/>
+		<text name="ui_global_tooltip_showDebug" text="Show the full graphical debugging display for all vehicles in game"/>
+		<text name="ui_global_tooltip_highPriority" text="Apply high priority to all UAL key bindings in the F1 menu"/>
+		<text name="ui_global_tooltip_disableAutoStrap" text="Disable the automatic application of tension belts"/>
+		<text name="ui_global_tooltip_pricePerLog" text="The price charged for each auto-loaded log"/>
+		<text name="ui_global_tooltip_pricePerBale" text="The price charged for each auto-loaded bale"/>
+		<text name="ui_global_tooltip_pricePerPallet" text="The price charged for each auto-loaded pallet"/>
+		<text name="ui_global_tooltip_minLogLength" text="The global minimum length for logs that will be autoloaded"/>
 
 		<!-- OPTIONS -->
-		<text name="ui_option_isBoxTrailer" text="Przyczepa skrzyniowa"/>
-		<text name="ui_option_isLogTrailer" text="Przyczepa do kłód"/>
-		<text name="ui_option_isBaleTrailer" text="Przyczepa do bel"/>
-		<text name="ui_option_isBaleProcessor" text="Zużywanie bel"/>
-		<text name="ui_option_isCurtainTrailer" text="Przyczepa z plandeką"/>
-		<text name="ui_option_enableRearLoading" text="Włącz załadunek od tyłu"/>
-		<text name="ui_option_enableSideLoading" text="Włącz załadunek z boku"/>
-		<text name="ui_option_noLoadingIfFolded" text="Brak załadunku, jeśli złożona"/>
-		<text name="ui_option_noLoadingIfUnfolded" text="Brak załadunku, jeśli rozłożona"/>
-		<text name="ui_option_noLoadingIfCovered" text="Brak załadunku, jeśli przykryta"/>
-		<text name="ui_option_noLoadingIfUncovered" text="Brak załadunku, jeśli odkryta"/>
-		<text name="ui_option_rearUnloadingOnly" text="Tylko rozładunek od tyłu"/>
-		<text name="ui_option_frontUnloadingOnly" text="Tylko rozładunek od przodu"/>
-		<text name="ui_option_horizontalLoading" text="Załadunek poziomy"/>
-		<text name="ui_option_disableAutoStrap" text="Wyłącz automatyczne pasy"/>
-		<text name="ui_option_disableHeightLimit" text="Wyłącz limit wysokości"/>
-		<text name="ui_option_zonesOverlap" text="Nakładanie się stref"/>
-		<text name="ui_option_offsetRoot" text="Punkt odniesienia przesunięcia"/>
-		<text name="ui_option_minLogLength" text="Minimalna długość kłody"/>
-		<text name="ui_option_showDebug" text="Pokaż debugowanie"/>
+		<text name="ui_option_enableAutoload" text="Enable Autoload"/>
+		<text name="ui_option_trailerType" text="Trailer Type"/>
+		<text name="ui_option_unloadingType" text="Unloading Position"/>
+		<text name="ui_option_rearOnly" text="Rear Only"/>
+		<text name="ui_option_frontOnly" text="Front Only"/>
 		
-		<text name="ui_option_tooltip_isBoxTrailer" text="Jeśli przyczepa jest zamknięta i posiada tylne drzwi"/>
-		<text name="ui_option_tooltip_isLogTrailer" text="Jeśli przyczepa jest do kłód - będzie ładować tylko kłody zrzucone z góry"/>
-		<text name="ui_option_tooltip_isBaleTrailer" text="Jeśli przyczepa powinna używać automatycznego trybu zbierania bel"/>
-		<text name="ui_option_tooltip_isBaleProcessor" text="Jeśli przyczepa powinna zużywać bele (np. paszowóz lub dmuchawa do słomy)"/>
-		<text name="ui_option_tooltip_isCurtainTrailer" text="Automatycznie wykrywa dostępne strony załadunku (jeśli przyczepa ma plandeki)"/>
-		<text name="ui_option_tooltip_enableRearLoading" text="Użyj automatycznego wyzwalacza załadunku od tyłu"/>
-		<text name="ui_option_tooltip_enableSideLoading" text="Użyj automatycznych wyzwalaczy załadunku bocznego"/>
-		<text name="ui_option_tooltip_noLoadingIfFolded" text="Uniemożliwia załadunek, gdy złożona"/>
-		<text name="ui_option_tooltip_noLoadingIfUnfolded" text="Uniemożliwia załadunek, gdy rozłożona"/>
-		<text name="ui_option_tooltip_noLoadingIfCovered" text="Uniemożliwia załadunek, gdy przykryta"/>
-		<text name="ui_option_tooltip_noLoadingIfUncovered" text="Uniemożliwia załadunek, gdy odkryta"/>
-		<text name="ui_option_tooltip_rearUnloadingOnly" text="Użyj tylko tylnej strefy rozładunku (bez bocznych stref)"/>
-		<text name="ui_option_tooltip_frontUnloadingOnly" text="Użyj tylko przedniej strefy rozładunku (bez bocznych stref)"/>
-		<text name="ui_option_tooltip_horizontalLoading" text="Rozpocznij z włączonym załadunkiem poziomym (można przełączyć, jeśli klawisz jest przypisany)"/>
-		<text name="ui_option_tooltip_disableAutoStrap" text="Wyłącz automatyczne stosowanie pasów transportowych"/>
-		<text name="ui_option_tooltip_disableHeightLimit" text="Wyłącz limit wysokości oparty na gęstości stosu"/>
-		<text name="ui_option_tooltip_zonesOverlap" text="Flaga identyfikująca, kiedy strefy załadunku się nakładają"/>
-		<text name="ui_option_tooltip_offsetRoot" text="Węzeł i3d pojazdu, względem którego określane są przesunięcia stref"/>
-		<text name="ui_option_tooltip_minLogLength" text="Minimalna długość kłód, które będą automatycznie ładowane"/>
-		<text name="ui_option_tooltip_showDebug" text="Pokaż pełny graficzny wyświetlacz debugowania dla tego pojazdu"/>
+		<text name="ui_option_noLoadingFolded" text="No Loading If Folded"/>
+		<text name="ui_option_folded" text="Folded"/>
+		<text name="ui_option_unfolded" text="Unfolded"/>
+		
+		<text name="ui_option_noLoadingCovered" text="No Loading If Covered"/>
+		<text name="ui_option_covered" text="Covered"/>
+		<text name="ui_option_uncovered" text="Uncovered"/>
+
+		<text name="ui_option_isBoxTrailer" text="Box Trailer"/>
+		<text name="ui_option_isLogTrailer" text="Log Trailer"/>
+		<text name="ui_option_isBaleTrailer" text="Bale Trailer"/>
+		<text name="ui_option_isBaleProcessor" text="Bale Processor"/>
+		<text name="ui_option_isCurtainTrailer" text="Curtain Trailer"/>
+		<text name="ui_option_enableRearLoading" text="Enable Rear Loading"/>
+		<text name="ui_option_enableSideLoading" text="Enable Side Loading"/>
+
+		<text name="ui_option_rearUnloadingOnly" text="Rear Unloading Only"/>
+		<text name="ui_option_frontUnloadingOnly" text="Front Unloading Only"/>
+		<text name="ui_option_horizontalLoading" text="Horizontal Loading"/>
+		<text name="ui_option_disableAutoStrap" text="Automatic Tension Belts"/>
+		<text name="ui_option_disableHeightLimit" text="Limit Stacking Height"/>
+		<text name="ui_option_zonesOverlap" text="Zones Overlap"/>
+		<text name="ui_option_offsetRoot" text="Offset Root"/>
+		<text name="ui_option_minLogLength" text="Min Log Length"/>
+		
+		<text name="ui_option_tooltip_enableAutoload" text="If Autoload is enabled or disabled for this vehicle"/>
+		<text name="ui_option_tooltip_trailerType" text="The special type of trailer, e.g. bale, log, curtain"/>
+		<text name="ui_option_tooltip_unloadingType" text="Use a special unloading position (front or rear)"/>
+		<text name="ui_option_tooltip_noLoadingFolded" text="Prevent loading when either folded or unfolded"/>
+		<text name="ui_option_tooltip_noLoadingCovered" text="Prevent loading when either covered or uncovered"/>
+		
+		<text name="ui_option_tooltip_isBoxTrailer" text="If trailer is enclosed with a rear door"/>
+		<text name="ui_option_tooltip_isLogTrailer" text="If trailer is a logging trailer - will load only logs dropped from above"/>
+		<text name="ui_option_tooltip_isBaleTrailer" text="If trailer should use an automatic bale collection mode"/>	
+		<text name="ui_option_tooltip_isBaleProcessor" text="If trailer should consume bales (e.g. TMR Mixer or Straw Blower)"/>
+		<text name="ui_option_tooltip_isCurtainTrailer" text="Automatically detect the available load side (if the trailer has curtain sides)"/>
+		<text name="ui_option_tooltip_enableRearLoading" text="Use the automatic rear loading trigger"/>
+		<text name="ui_option_tooltip_enableSideLoading" text="Use the automatic side loading triggers"/>
+
+		<text name="ui_option_tooltip_rearUnloadingOnly" text="Use rear unloading zone only (no side zones)"/>
+		<text name="ui_option_tooltip_frontUnloadingOnly" text="Use front unloading zone only (no side zones)"/>
+		<text name="ui_option_tooltip_horizontalLoading" text="Start with horizontal loading enabled (can be toggled if key is bound)"/>
+		<text name="ui_option_tooltip_disableAutoStrap" text="Automatic application of tension belts after loading or unloading"/>
+		<text name="ui_option_tooltip_disableHeightLimit" text="Limit the height of pallet stacking based on density "/>
+		<text name="ui_option_tooltip_zonesOverlap" text="Flag to identify when the loading areas overlap each other"/>
+		<text name="ui_option_tooltip_offsetRoot" text="Vehicle i3d node that area offsets are relative to"/>
+		<text name="ui_option_tooltip_minLogLength" text="The minimum length for logs that will be autoloaded"/>
 
 		<!-- LOADING_AREA -->
 		<text name="ui_loadArea_offset" text="Przesunięcie"/>

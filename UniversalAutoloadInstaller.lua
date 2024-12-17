@@ -984,24 +984,38 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 		
 		local spec = UniversalAutoloadManager.shopVehicle.spec_universalAutoload
 		if spec and spec.isInsideShop then
-			-- print("KEY: " .. tostring(sym) .. " + " .. tostring(modifier))
+
 			if sym == Input['KEY_lalt'] then
 				UniversalAutoloadManager.altHeld = isDown
+				return
 			end
 			if sym == Input['KEY_lctrl'] then
 				UniversalAutoloadManager.ctrlHeld = isDown
+				return
 			end
 			if sym == Input['KEY_lshift'] then
 				UniversalAutoloadManager.shiftHeld = isDown
+				return
 			end
-			if sym == Input['KEY_esc'] and isDown then
-				if UniversalAutoloadManager.shopCongfigMenu then
-					UniversalAutoloadManager.shopCongfigMenu.onClickBack()
+
+			if isDown and UniversalAutoloadManager.shopCongfigMenu then
+				if UniversalAutoloadManager.shopCongfigMenu.isActive ~= true then
+					print("menu already closed...")
+					return
 				end
-			end
-			if sym == Input['KEY_return'] and isDown then
-				if UniversalAutoloadManager.shopCongfigMenu then
-					UniversalAutoloadManager.shopCongfigMenu.onClickOk()
+				-- local actionId = g_inputBinding.nameActions['MENU_BACK'] --UNIVERSALAUTOLOAD_SHOP_CONFIG
+				-- local actionBindings = g_inputDisplayManager.actionBindings[actionId]
+				-- for i, binding in pairs(actionBindings) do
+					-- local key = binding.unmodifiedAxis
+					-- print(tostring(key) .. " = " .. tostring(Input[key]))
+					-- -- if sym == Input[key] and isDown then
+						-- -- UniversalAutoloadManager.shopCongfigMenu.onClickClose()
+						-- -- return
+					-- -- end
+				-- end
+				if sym == Input['KEY_esc'] and isDown then
+					UniversalAutoloadManager.shopCongfigMenu.onClickClose()
+					return
 				end
 			end
 		end
@@ -1078,6 +1092,7 @@ function UniversalAutoloadManager.onValidUalShopVehicle(vehicle)
 	if vehicle.propertyState == VehiclePropertyState.SHOP_CONFIG then
 		UniversalAutoloadManager:registerShopActionEvents()
 		UniversalAutoloadManager.configButton:setVisible(true)
+		UniversalAutoloadManager.configButton.parent:invalidateLayout()
 		UniversalAutoloadManager.shopCongfigMenu:setNewVehicle(vehicle)
 	end
 end
