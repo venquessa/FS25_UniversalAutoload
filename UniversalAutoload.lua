@@ -4298,7 +4298,7 @@ end
 function UniversalAutoload.getSplitShapeObject( objectId )
 
 	if not entityExists(objectId) then
-		-- print("entity NOT exists")
+		print("entity NOT exists")
 		UniversalAutoload.SPLITSHAPES_LOOKUP[objectId] = nil
 		return
 	end
@@ -4891,7 +4891,7 @@ function UniversalAutoload:createLog(length, treeType, growthState)
 
 	local x, y, z = getWorldTranslation(spec.loadVolume.rootNode)
 	dirX, dirY, dirZ = localDirectionToWorld(spec.loadVolume.rootNode, 0, 0, 1)
-	y = y + 50
+	y = y + 20
 
 	local variationIndex = 0
 	local treeTypeDesc = g_treePlantManager.nameToTreeType[treeType]
@@ -4900,38 +4900,38 @@ function UniversalAutoload:createLog(length, treeType, growthState)
 	if treeId ~= 0 then
 		if getFileIdHasSplitShapes(splitShapeFileId) then
 			local tree = {
-				node = treeId,
-				growthStateI = growthState,
-				variationIndex = variationIndex,
-				x = x,
-				y = y,
-				z = z,
-				rx = 0,
-				ry = 0,
-				rz = 0,
-				treeType = treeTypeDesc.index,
-				splitShapeFileId = splitShapeFileId,
-				hasSplitShapes = true
+				["node"] = treeId,
+				["growthStateI"] = growthState,
+				["variationIndex"] = variationIndex,
+				["x"] = x,
+				["y"] = y,
+				["z"] = z,
+				["rx"] = 0,
+				["ry"] = 0,
+				["rz"] = 0,
+				["treeType"] = treeTypeDesc.index,
+				["splitShapeFileId"] = splitShapeFileId,
+				["hasSplitShapes"] = true
 			}
-
 			table.insert(g_treePlantManager.treesData.splitTrees, tree)
 
-			g_treePlantManager.loadTreeTrunkData = {
-				framesLeft = 2,
-				shape = treeId + 2,
-				x = x,
-				y = y,
-				z = z,
-				length = length,
-				offset = 0.5,
-				dirX = dirX,
-				dirY = dirY,
-				dirZ = dirZ,
-				delimb = true,
-				useOnlyStump = p127,
-				cutTreeTrunkCallback = TreePlantManager.cutTreeTrunkCallback
+			local loadTreeTrunkData = {
+				["framesLeft"] = 2,
+				["shape"] = treeId + 2,
+				["x"] = x,
+				["y"] = y,
+				["z"] = z,
+				["length"] = length,
+				["offset"] = 0.5,
+				["dirX"] = dirX,
+				["dirY"] = dirY,
+				["dirZ"] = dirZ,
+				["delimb"] = true,
+				["useOnlyStump"] = false,
+				["cutTreeTrunkCallback"] = TreePlantManager.cutTreeTrunkCallback
 			}
-
+			-- table.insert(g_treePlantManager.loadTreeTrunkDatas, loadTreeTrunkData)
+			
 		else
 			delete(treeId)
 		end

@@ -43,7 +43,7 @@ g_storeManager:addModStorePack("UNIVERSALAUTOLOAD", g_i18n:getText("configuratio
 -- external classes
 source(UniversalAutoload.path .. "scripts/BoundingBox.lua")
 source(UniversalAutoload.path .. "scripts/LoadingVolume.lua")
-source(UniversalAutoload.path .. "gui/InGameMenuUALSettings.lua")
+source(UniversalAutoload.path .. "gui/ModSettingsMenu.lua")
 source(UniversalAutoload.path .. "gui/ShopConfigMenuUALSettings.lua")
 
 -- class variables
@@ -846,6 +846,12 @@ ShopConfigScreen.onClickLease = Utils.prependedFunction(ShopConfigScreen.onClick
 ShopConfigScreen.onVehicleBought = Utils.prependedFunction(ShopConfigScreen.onVehicleBought, function() print("onVehicleBought") end)
 ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease, function() print("onYesNoLease") end)
 ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBuy, function() print("onYesNoBuy") end)
+ShopConfigScreen.inputEvent = Utils.prependedFunction(ShopConfigScreen.inputEvent,
+function(self, action, value, direction)
+	if action == InputAction.MENU_BACK then
+		print("ShopConfigScreen inputEvent: " .. tostring(action) .. " - " .. tostring(value))
+	end
+end)
 
 function UniversalAutoloadManager.injectGlobalMenu()
 	-- print("UAL - injectGlobalMenu")
@@ -912,13 +918,12 @@ function UniversalAutoloadManager.injectGlobalMenu()
 		inGameMenu:rebuildTabList()
 	end
 
-	local guiUALSettings = InGameMenuUALSettings.new(g_i18n)
-	g_gui:loadGui(UniversalAutoload.path .. "gui/InGameMenuUALSettings.xml", "inGameMenuUALSettings", guiUALSettings, true)
+	local modSettings = ModSettingsMenu.register()
 	
 	local function isEnabledPredicate()
 		return function () return true end
 	end
-	fixInGameMenu(guiUALSettings,"inGameMenuUALSettings", 2, isEnabledPredicate())
+	fixInGameMenu(modSettings,"ModSettingsMenu", 2, isEnabledPredicate())
 	
 end
 
@@ -994,27 +999,7 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 				UniversalAutoloadManager.shiftHeld = isDown
 				return
 			end
-
-			if isDown and UniversalAutoloadManager.shopCongfigMenu then
-				if UniversalAutoloadManager.shopCongfigMenu.isActive ~= true then
-					-- print("menu already closed...")
-					return
-				end
-				-- local actionId = g_inputBinding.nameActions['MENU_BACK'] --UNIVERSALAUTOLOAD_SHOP_CONFIG
-				-- local actionBindings = g_inputDisplayManager.actionBindings[actionId]
-				-- for i, binding in pairs(actionBindings) do
-					-- local key = binding.unmodifiedAxis
-					-- print(tostring(key) .. " = " .. tostring(Input[key]))
-					-- -- if sym == Input[key] and isDown then
-						-- -- UniversalAutoloadManager.shopCongfigMenu.onClickClose()
-						-- -- return
-					-- -- end
-				-- end
-				if sym == Input['KEY_esc'] and isDown then
-					UniversalAutoloadManager.shopCongfigMenu.onClickClose()
-					return
-				end
-			end
+			
 		end
 	end
 
@@ -1039,8 +1024,7 @@ function UniversalAutoloadManager.createShopGui()
 	end
 
 	if not UniversalAutoloadManager.shopCongfigMenu then
-		UniversalAutoloadManager.shopCongfigMenu = ShopConfigMenuUALSettings.new()
-		g_gui:loadGui(UniversalAutoload.path.."gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", UniversalAutoloadManager.shopCongfigMenu)
+		UniversalAutoloadManager.shopCongfigMenu = ShopConfigMenuUALSettings.register()
 	end
 end
 function UniversalAutoloadManager.deleteShopGui()
@@ -1714,7 +1698,7 @@ function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
 	end
 	
 	local availableLogTypes = {
-		TRANSPORT = 6,
+		TRANSPORT = 20,
 		
 		-- OAK = 3.3,
 		-- ELM = 3.5,
@@ -2105,7 +2089,7 @@ end
 function UniversalAutoloadManager:loadMap(name)
 	-- print("UAL - LOADMAP")
 	UniversalAutoloadManager.createShopGui()
-	UniversalAutoloadManager.injectGlobalMenu()
+	-- UniversalAutoloadManager.injectGlobalMenu()
 	UniversalAutoloadManager.injectSpecialisation()
 	
 	g_messageCenter:subscribe(BuyVehicleEvent, UniversalAutoloadManager.onVehicleBuyEvent, UniversalAutoloadManager)

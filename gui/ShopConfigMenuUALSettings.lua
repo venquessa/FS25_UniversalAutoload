@@ -1,6 +1,12 @@
 ShopConfigMenuUALSettings = {}
 local ShopConfigMenuUALSettings_mt = Class(ShopConfigMenuUALSettings, TabbedMenuFrameElement)
 
+function ShopConfigMenuUALSettings.register()
+	local shopCongfigMenu = ShopConfigMenuUALSettings.new()
+	g_gui:loadGui(UniversalAutoload.path .. "gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", shopCongfigMenu, true)
+	return shopCongfigMenu
+end
+
 function ShopConfigMenuUALSettings.new(vehicle, subclass_mt)
 	
 	local self = ShopConfigMenuUALSettings:superClass().new(nil, subclass_mt or ShopConfigMenuUALSettings_mt)
@@ -157,8 +163,8 @@ function ShopConfigMenuUALSettings:onCreateNoLoadingCovered(control)
 	}
 end
 
-function ShopConfigMenuUALSettings:onClickMultiOption(id, control, state)
-	print("CLICKED " .. tostring(control.id) .. " = " .. tostring(not state) .. " (" .. tostring(id) .. ")")
+function ShopConfigMenuUALSettings:onClickMultiOption(id, control, direction)
+	print("CLICKED " .. tostring(control.id) .. " = " .. tostring(not direction) .. " (" .. tostring(id) .. ")")
 		
 	local vehicle = self.vehicle
 	if not vehicle then
@@ -213,8 +219,8 @@ function ShopConfigMenuUALSettings:onClickMultiOption(id, control, state)
 	
 end
 
-function ShopConfigMenuUALSettings:onClickBinaryOption(id, control, state)
-	print("CLICKED " .. tostring(control.id) .. " = " .. tostring(not state) .. " (" .. tostring(id) .. ")")
+function ShopConfigMenuUALSettings:onClickBinaryOption(id, control, direction)
+	print("CLICKED " .. tostring(control.id) .. " = " .. tostring(not direction) .. " (" .. tostring(id) .. ")")
 	
 	local vehicle = self.vehicle
 	if not vehicle then
@@ -222,20 +228,28 @@ function ShopConfigMenuUALSettings:onClickBinaryOption(id, control, state)
 	end
 	
 	if control == self.enableAutoloadCheckBox then
-		vehicle.isAutoloadAvailable = not state
+		vehicle.isAutoloadAvailable = not direction
 		self:updateSettings()
 	elseif control == self.horizontalLoadingCheckBox then
-		vehicle.horizontalLoading = not state
+		vehicle.horizontalLoading = not direction
 	elseif control == self.enableSideLoadingCheckBox then
-		vehicle.enableSideLoading = not state
+		vehicle.enableSideLoading = not direction
 	elseif control == self.enableRearLoadingCheckBox then
-		vehicle.enableRearLoading = not state
+		vehicle.enableRearLoading = not direction
 	elseif control == self.disableAutoStrapCheckBox then
-		vehicle.disableAutoStrap = state
+		vehicle.disableAutoStrap = direction
 	elseif control == self.disableHeightLimitCheckBox then
-		vehicle.disableHeightLimit = state
+		vehicle.disableHeightLimit = direction
 	end
 
+end
+
+function ShopConfigMenuUALSettings.inputEvent(self, action, value, direction)
+	if action == InputAction.MENU_BACK then
+		-- print("INPUT MENU_BACK")
+		self:onClickClose()
+		return true
+	end
 end
 
 function ShopConfigMenuUALSettings:onOpen()
