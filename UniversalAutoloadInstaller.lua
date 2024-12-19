@@ -140,7 +140,6 @@ UniversalAutoload.OPTIONS_DEFAULTS = {
 	{id="zonesOverlap", default=false, valueType="BOOL", key="#zonesOverlap"}, --Flag to identify when the loading areas overlap each other
 	{id="offsetRoot", default=nil, valueType="STRING", key="#offsetRoot"}, --Vehicle i3d node that area offsets are relative to
 	{id="minLogLength", default=0, valueType="FLOAT", key="#minLogLength"}, --The minimum length for logs that will be autoloaded (default is zero)
-	{id="showDebug", default=false, valueType="BOOL", key="#showDebug"}, --Show the full graphical debugging display for this vehicle
 }
 
 UniversalAutoload.LOADING_AREA_DEFAULTS = {
@@ -538,7 +537,7 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(vehicle, xmlFil
 end
 
 function UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile, overwriteExisting)
-	print("UAL - IMPORT CONFIGS")
+	-- print("UAL - IMPORT CONFIGS")
 
 	if not fileExists(userSettingsFile) then
 		print("CREATING settings file")
@@ -552,7 +551,7 @@ function UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile, ov
 end
 --
 function UniversalAutoloadManager.ImportGlobalSettings(xmlFilename, overwriteExisting)
-	print("UAL - IMPORT GLOBAL SETTINGS")
+	-- print("UAL - IMPORT GLOBAL SETTINGS")
 
 	if g_currentMission:getIsServer() then
 
@@ -619,7 +618,7 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 					end
 
 					if not UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
-						print("ADDING SHOP ITEM " .. configFileName)
+						-- print("ADDING SHOP ITEM " .. configFileName)
 						UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] = {}
 						table.addElement(g_storeManager:getPackItems("UNIVERSALAUTOLOAD"), configFileName)
 					end
@@ -643,9 +642,7 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 						if UniversalAutoload.showDebug then print("  ALREADY EXISTS: "..configFileName.." ["..selectedConfigs.."]") end
 					end
 
-					print("  >> "..configFileName.." ["..selectedConfigs.."] "
-						.. (useConfigName and ("(" .. useConfigName .. ")") or "")
-						.. (configuration.showDebug and " DEBUG" or "") )
+					print("  >> "..configFileName.." ["..selectedConfigs.."] ".. (useConfigName and ("(" .. useConfigName .. ")") or ""))
 
 					j = j + 1
 				end
@@ -788,7 +785,7 @@ function UniversalAutoloadManager.cleanConfigFileName(configFileName)
 end
 
 function UniversalAutoloadManager.injectSpecialisation()
-	print("UAL - INJECT SPEC:")
+	-- print("UAL - injectSpecialisation")
 	for typeName, vehicleType in pairs(g_vehicleTypeManager.types) do
 		if SpecializationUtil.hasSpecialization(TensionBelts, vehicleType.specializations)
 		and not SpecializationUtil.hasSpecialization(UniversalAutoload, vehicleType.specializations) then
@@ -850,8 +847,8 @@ ShopConfigScreen.onVehicleBought = Utils.prependedFunction(ShopConfigScreen.onVe
 ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease, function() print("onYesNoLease") end)
 ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBuy, function() print("onYesNoBuy") end)
 
-function UniversalAutoloadManager.injectMenu()
-	print("UAL - INJECT MENU")
+function UniversalAutoloadManager.injectGlobalMenu()
+	-- print("UAL - injectGlobalMenu")
 	
 	local function fixInGameMenu(frame, pageName, position, predicateFunc)
 		local inGameMenu = g_gui.screenControllers[InGameMenu] --g_inGameMenu
@@ -1000,7 +997,7 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 
 			if isDown and UniversalAutoloadManager.shopCongfigMenu then
 				if UniversalAutoloadManager.shopCongfigMenu.isActive ~= true then
-					print("menu already closed...")
+					-- print("menu already closed...")
 					return
 				end
 				-- local actionId = g_inputBinding.nameActions['MENU_BACK'] --UNIVERSALAUTOLOAD_SHOP_CONFIG
@@ -1024,7 +1021,7 @@ function UniversalAutoloadManager:keyEvent(unicode, sym, modifier, isDown)
 end
 
 function UniversalAutoloadManager.createShopGui()
-	-- print("createShopGui")
+	-- print("UAL - createShopGui")
 	if not UniversalAutoloadManager.configButton then
 		local function cloneButton(original, title, callback)
 			local button = original:clone(original.parent)
@@ -1047,7 +1044,7 @@ function UniversalAutoloadManager.createShopGui()
 	end
 end
 function UniversalAutoloadManager.deleteShopGui()
-	-- print("deleteShopGui")
+	-- print("UAL - deleteShopGui")
 	if UniversalAutoloadManager.configButton then
 		-- print("UAL - DELETE BUTTON")
 		UniversalAutoloadManager.configButton:delete()
@@ -1061,7 +1058,7 @@ function UniversalAutoloadManager.deleteShopGui()
 end
 
 function UniversalAutoloadManager:registerShopActionEvents()
-	-- print("registerShopActionEvents")
+	-- print("UAL - registerShopActionEvents")
 	local function registerShopActionEvent(id, callback)
 		local id = id or 'UNIVERSALAUTOLOAD_SHOP_CONFIG'
 		local callback = callback or 'ualInputCallback'
@@ -1080,7 +1077,7 @@ function UniversalAutoloadManager:registerShopActionEvents()
 	registerShopActionEvent('UNIVERSALAUTOLOAD_SHOP_ADJUST', 'onEditLoadingAreaEvent')
 end
 function UniversalAutoloadManager:removeShopActionEvents()
-	-- print("removeShopActionEvents")
+	-- print("UAL - removeShopActionEvents")
 	UniversalAutoloadManager.actionIds = UniversalAutoloadManager.actionIds or {}
 	for _, actionId in pairs(UniversalAutoloadManager.actionIds) do
 		g_inputBinding:removeActionEvent(actionId)
@@ -1659,80 +1656,6 @@ function UniversalAutoloadManager:consoleResetVehicles()
 	
 end
 --
--- function UniversalAutoloadManager:consoleImportLocalConfigurations()
-
-	-- local oldVehicleConfigurations = deepCopy(UniversalAutoload.VEHICLE_CONFIGURATIONS)
-	-- local oldContainerConfigurations = deepCopy(UniversalAutoload.LOADING_TYPES)
-	-- local userSettingsFile = Utils.getFilename(UniversalAutoload.userSettingsFile, getUserProfileAppPath())
-	-- local vehicleCount, objectCount = UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile, true)
-	
-	-- g_currentMission.isReloadingVehicles = true
-	-- if vehicleCount > 0 then
-		-- vehicleCount = 0
-		-- local doResetVehicle = false
-		-- for key, configGroup in pairs(UniversalAutoload.VEHICLE_CONFIGURATIONS) do
-			-- local foundFirstMatch = false
-			-- for index, config in pairs(configGroup) do
-				-- if oldVehicleConfigurations[key] and oldVehicleConfigurations[key][index]
-				-- and not deepCompare(oldVehicleConfigurations[key][index], config) then
-					-- -- FIRST LOOK IF THIS IS THE CURRENT CONTROLLED VECHILE
-					-- for _, vehicle in pairs(UniversalAutoload.VEHICLES) do
-						-- -- print(vehicle.configFileName .. " - " .. tostring(vehicle.spec_universalAutoload.boughtConfig) .. " / " .. index)
-						-- if string.find(vehicle.configFileName, key) and vehicle.spec_universalAutoload.boughtConfig == index then
-							-- local rootVehicle = vehicle:getRootVehicle()
-							-- if rootVehicle == g_currentMission.controlledVehicle then
-								-- foundFirstMatch = true
-								-- print("APPLYING UPDATED SETTINGS: " .. vehicle:getFullName())
-								-- if not UniversalAutoloadManager.resetVehicle(vehicle) then
-									-- print("THIS IS CURRENT CONTROLLED VEHICLE: " .. vehicle:getFullName())
-									-- doResetVehicle = true
-								-- end
-							-- end
-						-- end
-					-- end
-					-- -- THEN CHECK ALL THE OTHERS - but we can only reset one at a time
-					-- for _, vehicle in pairs(UniversalAutoload.VEHICLES) do
-						-- if string.find(vehicle.configFileName, key) and vehicle.spec_universalAutoload.boughtConfig == index then
-							-- if not foundFirstMatch then
-								-- foundFirstMatch = true
-								-- vehicleCount = vehicleCount + 1
-								-- print("APPLYING UPDATED SETTINGS: " .. vehicle:getFullName())
-								-- if not UniversalAutoloadManager.resetVehicle(vehicle) then
-									-- doResetVehicle = true
-								-- end
-							-- else
-								-- print("ONLY ONE OF EACH VEHICLE CONFIGURATION CAN BE RESET USING THIS COMMAND")
-							-- end
-						-- end
-					-- end
-				-- end
-			-- end
-		-- end
-		-- if doResetVehicle then
-			-- g_currentMission:consoleCommandReloadVehicle()
-		-- else
-			-- g_currentMission.isReloadingVehicles = false
-		-- end
-	-- end
-	
-	-- if objectCount > 0 then
-		-- objectCount = 0
-		-- for key, value in pairs(UniversalAutoload.LOADING_TYPES) do
-			-- if not deepCompare(oldContainerConfigurations[key], value) then
-				-- objectCount = objectCount + 1
-			-- end
-		-- end
-	-- end
-	
-	-- if vehicleCount > 0 and objectCount == 0 then
-		-- return string.format("UPDATED: %d vehicle configurations", vehicleCount)
-	-- end
-	-- if objectCount > 0 and vehicleCount == 0 then
-		-- return string.format("UPDATED: %d container configurations", objectCount)
-	-- end
-	-- return string.format("UPDATED: %d vehicle configurations, %d container configurations", vehicleCount, objectCount)
--- end
---
 function UniversalAutoloadManager:consoleAddPallets(palletType)
 	
     local pallets = {}
@@ -1775,206 +1698,229 @@ function UniversalAutoloadManager:consoleAddPallets(palletType)
 	return "Please enter a vehicle with a UAL trailer attached to use this command"
 end
 --
--- function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
+function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
 
-	-- local length = nil
-	-- local treeTypeName = "PINE"
+	local length = nil
+	local treeTypeName = "TRANSPORT"
 	
-	-- if tonumber(arg1) then
-		-- length = tonumber(arg1)
-		-- treeTypeName = arg2
-	-- elseif tonumber(arg2) then
-		-- length = tonumber(arg2)
-		-- treeTypeName = arg1
-	-- elseif arg1 ~= nil then
-		-- treeTypeName = arg1
-	-- end
+	if tonumber(arg1) then
+		length = tonumber(arg1)
+		treeTypeName = arg2
+	elseif tonumber(arg2) then
+		length = tonumber(arg2)
+		treeTypeName = arg1
+	elseif arg1 ~= nil then
+		treeTypeName = arg1
+	end
 	
-	-- local availableLogTypes
-
-	-- if not g_modIsLoaded["pdlc_forestryPack"] then
-		-- availableLogTypes = {
-			-- OAK = 3.5,
-			-- ELM = 3.5,
-			-- PINE = 30,
-			-- BIRCH = 5,
-			-- MAPLE = 2,
-			-- POPLAR = 18,
-			-- SPRUCE = 34,
-			-- WILLOW = 2.5,
-			-- CYPRESS = 2.5,
-			-- HICKORY = 4.2,
-			-- STONEPINE = 8,
-		-- }
-	-- else
-		-- availableLogTypes = {
-			-- OAK = 3.5,
-			-- ELM = 3.5,
-			-- PINE = 30,
-			-- BIRCH = 5,
-			-- MAPLE = 2,
-			-- POPLAR = 18,
-			-- SPRUCE = 34,
-			-- WILLOW = 2.5,
-			-- CYPRESS = 2.5,
-			-- HICKORY = 4.2,
-			-- DEADWOOD = 20,
-			-- STONEPINE = 8,
-			-- GIANTSEQUOIA = 7,
-			-- PONDEROSAPINE = 32,
-			-- LODGEPOLEPINE = 32
-		-- }
-	-- end
-
-	-- treeTypeName = string.upper(treeTypeName or "")
-	-- if availableLogTypes[treeTypeName]==nil then
-		-- return "Error: Invalid lumber type. Valid types are " .. table.concatKeys(availableLogTypes, ", ")
-	-- end
-	
-	-- local maxLength = availableLogTypes[treeTypeName]
-	-- if treeTypeName == 'ELM' then treeTypeName = 'AMERICANELM' end
-	-- if treeTypeName == 'HICKORY' then treeTypeName = 'SHAGBARKHICKORY' end
-	-- if length == nil then length = maxLength end
-	-- if length > maxLength then
-		-- print("using maximum length " .. maxLength .. "m")
-		-- length = maxLength
-	-- end
-	
-	-- if g_currentMission.controlledVehicle ~= nil then
-
-		-- local vehicles = UniversalAutoloadManager.getAttachedVehicles(g_currentMission.controlledVehicle)
-		-- local count = 0
+	local availableLogTypes = {
+		TRANSPORT = 6,
 		
-		-- if next(vehicles) ~= nil then
-			-- for vehicle, hasAutoload in pairs(vehicles) do
-				-- if hasAutoload and vehicle:getIsActiveForInput() then
-					-- local maxSingleLength = UniversalAutoload.getMaxSingleLength(vehicle)
-					-- if length > maxSingleLength then
-						-- length = maxSingleLength - 0.1
-						-- print("resizing to fit trailer " .. length .. "m")
-					-- end
-					-- if UniversalAutoload.createLogs(vehicle, treeTypeName, length) then
-						-- count = count + 1
-					-- end
-				-- end
-			-- end
-		-- end
+		-- OAK = 3.3,
+		-- ELM = 3.5,
+		-- PINE = 30,
+		-- BIRCH = 5,
+		-- MAPLE = 2,
+		-- POPLAR = 18,
+		-- SPRUCE = 34,
+		-- WILLOW = 2.5,
+		-- CYPRESS = 2.5,
+		-- HICKORY = 4.2,
+		-- STONEPINE = 8,
+	}
+
+--        OAK :: table: 0x0000014100525398
+--        APPLE :: table: 0x0000014100776008
+--        ASPEN :: table: 0x0000014100776548
+--        BEECH :: table: 0x0000014100525458
+--        CHERRY :: table: 0x0000014100775798
+--        RAVAGED :: table: 0x000001410078c968
+--        BOXELDER :: table: 0x00000141007758b8
+--        DEADWOOD :: table: 0x0000014100776878
+--        TRANSPORT :: table: 0x00000141007765a8
+--        CHINESEELM :: table: 0x00000141007755e8
+--        GOLDENRAIN :: table: 0x0000014100775438
+--        AMERICANELM :: table: 0x0000014100524048
+--        LODGEPOLEPINE :: table: 0x0000014100776a88
+--        BETULAERMANII :: table: 0x0000014100775eb8
+--        TILIAAMURENSIS :: table: 0x000001410078c9f8
+--        JAPANESEZELKOVA :: table: 0x00000141007753d8
+--        NORTHERNCATALPA :: table: 0x0000014100774f58
+--        PINUSSYLVESTRIS :: table: 0x000001410078c2d8
+--        SHAGBARKHICKORY :: table: 0x0000014100777f28
+--        DOWNYSERVICEBERRY :: table: 0x0000014100522db8
+--        PINUSTABULIFORMIS :: table: 0x000001410078c788
+
+--        ASH :: table: 0x0000014100525008
+--        PINE :: table: 0x00000141005264a8
+--        MAPLE :: table: 0x00000141005253f8
+--        LARCH :: table: 0x0000014100525ea8
+--        BIRCH :: table: 0x0000014100525b48
+--        LOCUST :: table: 0x0000014100524fd8
+--        SPRUCE :: table: 0x00000141004f2968
+--        POPLAR :: table: 0x0000014100524078
+--        WILLOW :: table: 0x0000014100777148
+--        CYPRESS :: table: 0x0000014100523da8
+--        MAHOGANY :: table: 0x00000141005247f8
+--        OLIVETREE :: table: 0x0000014100777058
+--        STONEPINE :: table: 0x0000014100777538
+--        PAGODADOGWOOD :: table: 0x0000014100522a58
+--        PONDEROSAPINE :: table: 0x0000014100776a58
+
+
+	treeTypeName = string.upper(treeTypeName or "")
+	if availableLogTypes[treeTypeName]==nil then
+		return "Error: Invalid lumber type. Valid types are " .. table.concatKeys(availableLogTypes, ", ")
+	end
 	
-		-- if count>0 then return "Begin adding logs now.." end
-	-- end
-	-- return "Please enter a vehicle with a UAL trailer attached to use this command"
--- end
+	local maxLength = availableLogTypes[treeTypeName]
+	if treeTypeName == 'ELM' then treeTypeName = 'AMERICANELM' end
+	if treeTypeName == 'HICKORY' then treeTypeName = 'SHAGBARKHICKORY' end
+	if length == nil then length = maxLength end
+	if length > maxLength then
+		print("using maximum length " .. maxLength .. "m")
+		length = maxLength
+	end
+	
+	local controlledVehicle = g_localPlayer and g_localPlayer.getCurrentVehicle()
+	if controlledVehicle then
+
+		local vehicles = UniversalAutoloadManager.getAttachedVehicles(controlledVehicle)
+		local count = 0
+		
+		if next(vehicles) ~= nil then
+			for vehicle, hasAutoload in pairs(vehicles) do
+				if hasAutoload and vehicle:getIsActiveForInput() then
+					local maxSingleLength = UniversalAutoload.getMaxSingleLength(vehicle)
+					if length > maxSingleLength then
+						length = maxSingleLength - 0.1
+						print("resizing to fit trailer " .. length .. "m")
+					end
+					local growthState = 5 --math.random(5,15)
+					if UniversalAutoload.createLogs(vehicle, length, treeTypeName, growthState) then
+						count = count + 1
+					end
+				end
+			end
+		end
+	
+		if count>0 then return "Begin adding logs now.." end
+	end
+	return "Please enter a vehicle with a UAL trailer attached to use this command"
+end
 --
--- function UniversalAutoloadManager:consoleAddBales(fillTypeName, isRoundbale, width, height, length, wrapState, modName)
-	-- local usage = "ualAddBales fillTypeName isRoundBale [width] [height/diameter] [length] [wrapState] [modName]"
+function UniversalAutoloadManager:consoleAddBales(fillTypeName, isRoundbale, width, height, length, wrapState, modName)
+	local usage = "ualAddBales fillTypeName isRoundBale [width] [height/diameter] [length] [wrapState] [modName]"
 
-	-- fillTypeName = Utils.getNoNil(fillTypeName, "STRAW")
-	-- isRoundbale = Utils.stringToBoolean(isRoundbale)
-	-- width = width ~= nil and tonumber(width) or nil
-	-- height = height ~= nil and tonumber(height) or nil
-	-- length = length ~= nil and tonumber(length) or nil
+	fillTypeName = Utils.getNoNil(fillTypeName, "STRAW")
+	isRoundbale = Utils.stringToBoolean(isRoundbale)
+	width = width ~= nil and tonumber(width) or nil
+	height = height ~= nil and tonumber(height) or nil
+	length = length ~= nil and tonumber(length) or nil
 
-	-- if wrapState ~= nil and tonumber(wrapState) == nil then
-		-- Logging.error("Invalid wrapState '%s'. Number expected", wrapState, usage)
+	if wrapState ~= nil and tonumber(wrapState) == nil then
+		Logging.error("Invalid wrapState '%s'. Number expected", wrapState, usage)
 
-		-- return
-	-- end
+		return
+	end
 
-	-- wrapState = tonumber(wrapState or 0)
-	-- local fillTypeIndex = g_fillTypeManager:getFillTypeIndexByName(fillTypeName)
+	wrapState = tonumber(wrapState or 0)
+	local fillTypeIndex = g_fillTypeManager:getFillTypeIndexByName(fillTypeName)
 
-	-- if fillTypeIndex == nil then
-		-- Logging.error("Invalid fillTypeName '%s' (e.g. STRAW). Use %s", fillTypeName, usage)
+	if fillTypeIndex == nil then
+		Logging.error("Invalid fillTypeName '%s' (e.g. STRAW). Use %s", fillTypeName, usage)
 
-		-- return
-	-- end
+		return
+	end
 
-	-- local xmlFilename, _ = g_baleManager:getBaleXMLFilename(fillTypeIndex, isRoundbale, width, height, length, height, modName)
+	local xmlFilename, _ = g_baleManager:getBaleXMLFilename(fillTypeIndex, isRoundbale, width, height, length, height, modName)
 
-	-- if xmlFilename == nil then
-		-- Logging.error("Could not find bale for given size attributes! (%s)", usage)
-		-- g_baleManager:consoleCommandListBales()
+	if xmlFilename == nil then
+		Logging.error("Could not find bale for given size attributes! (%s)", usage)
+		g_baleManager:consoleCommandListBales()
 
-		-- return
-	-- end
+		return
+	end
 	
-	-- bale = {}
-	-- bale.xmlFile = xmlFilename
-	-- bale.fillTypeIndex = fillTypeIndex
-	-- bale.wrapState = wrapState
+	bale = {}
+	bale.xmlFile = xmlFilename
+	bale.fillTypeIndex = fillTypeIndex
+	bale.wrapState = wrapState
 	
-	-- if g_currentMission.controlledVehicle ~= nil then
+	local controlledVehicle = g_localPlayer and g_localPlayer.getCurrentVehicle()
+	if controlledVehicle then
 
-		-- local vehicles = UniversalAutoloadManager.getAttachedVehicles(g_currentMission.controlledVehicle)
-		-- local count = 0
+		local vehicles = UniversalAutoloadManager.getAttachedVehicles(controlledVehicle)
+		local count = 0
 		
-		-- if next(vehicles) ~= nil then
-			-- for vehicle, hasAutoload in pairs(vehicles) do
-				-- if hasAutoload and vehicle:getIsActiveForInput() then
-					-- if UniversalAutoload.createBales(vehicle, bale) then
-						-- count = count + 1
-					-- end
-				-- end
-			-- end
-		-- end
+		if next(vehicles) ~= nil then
+			for vehicle, hasAutoload in pairs(vehicles) do
+				if hasAutoload and vehicle:getIsActiveForInput() then
+					if UniversalAutoload.createBales(vehicle, bale) then
+						count = count + 1
+					end
+				end
+			end
+		end
 
-		-- if count>0 then return "Begin adding bales now.." end
-	-- end
-	-- return "Please enter a vehicle with a UAL trailer attached to use this command"
--- end
+		if count>0 then return "Begin adding bales now.." end
+	end
+	return "Please enter a vehicle with a UAL trailer attached to use this command"
+end
 -- --
--- function UniversalAutoloadManager:consoleAddRoundBales_125(fillTypeName)
-	-- return UniversalAutoloadManager:consoleAddBales(fillTypeName or "DRYGRASS_WINDROW", "true", "1.2", "1.25")
--- end
+function UniversalAutoloadManager:consoleAddRoundBales_125(fillTypeName)
+	return UniversalAutoloadManager:consoleAddBales(fillTypeName or "DRYGRASS_WINDROW", "true", "1.2", "1.25")
+end
+--
+function UniversalAutoloadManager:consoleAddRoundBales_150(fillTypeName)
+	return UniversalAutoloadManager:consoleAddBales(fillTypeName or "DRYGRASS_WINDROW", "true", "1.2", "1.5")
+end
+--
+function UniversalAutoloadManager:consoleAddRoundBales_180(fillTypeName)
+	return UniversalAutoloadManager:consoleAddBales(fillTypeName or "DRYGRASS_WINDROW", "true", "1.2", "1.8")
+end
+--
+function UniversalAutoloadManager:consoleAddSquareBales_180(fillTypeName)
+	return UniversalAutoloadManager:consoleAddBales(fillTypeName or "STRAW", "false", "1.2", "0.9", "1.8")
+end
+--
+function UniversalAutoloadManager:consoleAddSquareBales_220(fillTypeName)
+	return UniversalAutoloadManager:consoleAddBales(fillTypeName or "STRAW", "false", "1.2", "0.9", "2.2")
+end
+--
+function UniversalAutoloadManager:consoleAddSquareBales_240(fillTypeName)
+	return UniversalAutoloadManager:consoleAddBales(fillTypeName or "STRAW", "false", "1.2", "0.9", "2.4")
+end
 -- --
--- function UniversalAutoloadManager:consoleAddRoundBales_150(fillTypeName)
-	-- return UniversalAutoloadManager:consoleAddBales(fillTypeName or "DRYGRASS_WINDROW", "true", "1.2", "1.5")
--- end
--- --
--- function UniversalAutoloadManager:consoleAddRoundBales_180(fillTypeName)
-	-- return UniversalAutoloadManager:consoleAddBales(fillTypeName or "DRYGRASS_WINDROW", "true", "1.2", "1.8")
--- end
--- --
--- function UniversalAutoloadManager:consoleAddSquareBales_180(fillTypeName)
-	-- return UniversalAutoloadManager:consoleAddBales(fillTypeName or "STRAW", "false", "1.2", "0.9", "1.8")
--- end
--- --
--- function UniversalAutoloadManager:consoleAddSquareBales_220(fillTypeName)
-	-- return UniversalAutoloadManager:consoleAddBales(fillTypeName or "STRAW", "false", "1.2", "0.9", "2.2")
--- end
--- --
--- function UniversalAutoloadManager:consoleAddSquareBales_240(fillTypeName)
-	-- return UniversalAutoloadManager:consoleAddBales(fillTypeName or "STRAW", "false", "1.2", "0.9", "2.4")
--- end
--- --
--- function UniversalAutoloadManager:consoleClearLoadedObjects()
+function UniversalAutoloadManager:consoleClearLoadedObjects()
 	
-	-- local palletCount, balesCount, logCount = 0, 0, 0
-	-- if g_currentMission.controlledVehicle ~= nil then
-		-- local vehicles = UniversalAutoloadManager.getAttachedVehicles(g_currentMission.controlledVehicle)
-		-- if next(vehicles) ~= nil then
-			-- for vehicle, hasAutoload in pairs(vehicles) do
-				-- if hasAutoload and vehicle:getIsActiveForInput() then
-					-- P, B, L = UniversalAutoload.clearLoadedObjects(vehicle)
-					-- palletCount = palletCount + P
-					-- balesCount = balesCount + B
-					-- logCount = logCount + L
-				-- end
-			-- end
-		-- end
-	-- end
+	local palletCount, balesCount, logCount = 0, 0, 0
+	local controlledVehicle = g_localPlayer and g_localPlayer.getCurrentVehicle()
+	if controlledVehicle then
+		local vehicles = UniversalAutoloadManager.getAttachedVehicles(controlledVehicle)
+		if next(vehicles) ~= nil then
+			for vehicle, hasAutoload in pairs(vehicles) do
+				if hasAutoload and vehicle:getIsActiveForInput() then
+					P, B, L = UniversalAutoload.clearLoadedObjects(vehicle)
+					palletCount = palletCount + P
+					balesCount = balesCount + B
+					logCount = logCount + L
+				end
+			end
+		end
+	end
 
-	-- if palletCount > 0 and balesCount == 0 and logCount == 0 then
-		-- return string.format("REMOVED: %d pallets", palletCount)
-	-- end
-	-- if balesCount > 0 and palletCount == 0 and logCount == 0 then
-		-- return string.format("REMOVED: %d bales", balesCount)
-	-- end
-	-- if logCount > 0 and palletCount == 0 and balesCount == 0 then
-		-- return string.format("REMOVED: %d logs", logCount)
-	-- end
-	-- return string.format("REMOVED: %d pallets, %d bales, %d logs", palletCount, balesCount, logCount)
--- end
+	if palletCount > 0 and balesCount == 0 and logCount == 0 then
+		return string.format("REMOVED: %d pallets", palletCount)
+	end
+	if balesCount > 0 and palletCount == 0 and logCount == 0 then
+		return string.format("REMOVED: %d bales", balesCount)
+	end
+	if logCount > 0 and palletCount == 0 and balesCount == 0 then
+		return string.format("REMOVED: %d logs", logCount)
+	end
+	return string.format("REMOVED: %d pallets, %d bales, %d logs", palletCount, balesCount, logCount)
+end
 -- --
 -- function UniversalAutoloadManager:consoleCreateBoundingBox()
 	-- local usage = "Usage: ualCreateBoundingBox"
@@ -1991,9 +1937,10 @@ end
 -- function UniversalAutoloadManager:consoleSpawnTestPallets()
 	-- local usage = "Usage: consoleSpawnTestPallets"
 	
-	-- if g_currentMission.controlledVehicle ~= nil then
+	-- local controlledVehicle = g_localPlayer and g_localPlayer.getCurrentVehicle()
+	-- if controlledVehicle then
 	
-		-- local vehicles = UniversalAutoloadManager.getAttachedVehicles(g_currentMission.controlledVehicle)
+		-- local vehicles = UniversalAutoloadManager.getAttachedVehicles(controlledVehicle)
 		
 		-- if next(vehicles) ~= nil then
 			-- for vehicle, hasAutoload in pairs(vehicles) do
@@ -2087,7 +2034,7 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 	end
 
 	local rootVehicle = vehicle:getRootVehicle()
-	if rootVehicle ~= nil then
+	if rootVehicle then
 		if UniversalAutoloadManager.getIsTrainCarriage(vehicle) then
 			print("*** CANNOT RESET TRAIN - terrible things will happen ***")
 			if UniversalAutoloadManager.resetCount then
@@ -2095,7 +2042,8 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 			end
 			return true
 		end
-		if rootVehicle == g_currentMission.controlledVehicle then
+		local controlledVehicle = g_localPlayer and g_localPlayer.getCurrentVehicle()
+		if controlledVehicle and rootVehicle == controlledVehicle then
 			print("*** Resetting with standard console command ***")
 			UniversalAutoload.clearLoadedObjects(vehicle)
 			return false
@@ -2155,10 +2103,10 @@ end
 
 -- MAIN LOAD MAP FUNCTION
 function UniversalAutoloadManager:loadMap(name)
-	print("UAL - LOADMAP")
-	-- UniversalAutoloadManager.injectMenu()
-	UniversalAutoloadManager.injectSpecialisation()
+	-- print("UAL - LOADMAP")
 	UniversalAutoloadManager.createShopGui()
+	UniversalAutoloadManager.injectGlobalMenu()
+	UniversalAutoloadManager.injectSpecialisation()
 	
 	g_messageCenter:subscribe(BuyVehicleEvent, UniversalAutoloadManager.onVehicleBuyEvent, UniversalAutoloadManager)
 
@@ -2185,23 +2133,22 @@ function UniversalAutoloadManager:loadMap(name)
 	end
 
 	-- USER SETTINGS FIRST
-	print("IMPORT vehicle configurations")
 	local userSettingsFile = Utils.getFilename(UniversalAutoload.userSettingsFile, getUserProfileAppPath())
 	UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile)
 	UniversalAutoloadManager.detectKeybindingConflicts()
 	
 	if g_currentMission:getIsServer() and not g_currentMission.missionDynamicInfo.isMultiplayer then
 		print("ADD console commands:")
-		-- addConsoleCommand("ualAddBales", "Fill current vehicle with specified bales", "consoleAddBales", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddRoundBales_125", "Fill current vehicle with small round bales", "consoleAddRoundBales_125", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddRoundBales_150", "Fill current vehicle with medium round bales", "consoleAddRoundBales_150", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddRoundBales_180", "Fill current vehicle with large round bales", "consoleAddRoundBales_180", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddSquareBales_180", "Fill current vehicle with small square bales", "consoleAddSquareBales_180", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddSquareBales_220", "Fill current vehicle with medium square bales", "consoleAddSquareBales_220", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddSquareBales_240", "Fill current vehicle with large square bales", "consoleAddSquareBales_240", UniversalAutoloadManager)
+		addConsoleCommand("ualAddBales", "Fill current vehicle with specified bales", "consoleAddBales", UniversalAutoloadManager)
+		addConsoleCommand("ualAddRoundBales_125", "Fill current vehicle with small round bales", "consoleAddRoundBales_125", UniversalAutoloadManager)
+		addConsoleCommand("ualAddRoundBales_150", "Fill current vehicle with medium round bales", "consoleAddRoundBales_150", UniversalAutoloadManager)
+		addConsoleCommand("ualAddRoundBales_180", "Fill current vehicle with large round bales", "consoleAddRoundBales_180", UniversalAutoloadManager)
+		addConsoleCommand("ualAddSquareBales_180", "Fill current vehicle with small square bales", "consoleAddSquareBales_180", UniversalAutoloadManager)
+		addConsoleCommand("ualAddSquareBales_220", "Fill current vehicle with medium square bales", "consoleAddSquareBales_220", UniversalAutoloadManager)
+		addConsoleCommand("ualAddSquareBales_240", "Fill current vehicle with large square bales", "consoleAddSquareBales_240", UniversalAutoloadManager)
 		addConsoleCommand("ualAddPallets", "Fill current vehicle with specified pallets (fill type)", "consoleAddPallets", UniversalAutoloadManager)
-		-- addConsoleCommand("ualAddLogs", "Fill current vehicle with specified logs (length / fill type)", "consoleAddLogs", UniversalAutoloadManager)
-		-- addConsoleCommand("ualClearLoadedObjects", "Remove all loaded objects from current vehicle", "consoleClearLoadedObjects", UniversalAutoloadManager)
+		addConsoleCommand("ualAddLogs", "Fill current vehicle with specified logs (length / fill type)", "consoleAddLogs", UniversalAutoloadManager)
+		addConsoleCommand("ualClearLoadedObjects", "Remove all loaded objects from current vehicle", "consoleClearLoadedObjects", UniversalAutoloadManager)
 		-- addConsoleCommand("ualResetVehicles", "Reset all vehicles with autoload (and any attached) to the shop", "consoleResetVehicles", UniversalAutoloadManager)
 		-- addConsoleCommand("ualImportLocalConfigurations", "Force reload configurations from mod settings", "consoleImportLocalConfigurations", UniversalAutoloadManager)
 		-- addConsoleCommand("ualCreateBoundingBox", "Create a bounding box around all loaded pallets", "consoleCreateBoundingBox", UniversalAutoloadManager)
@@ -2209,27 +2156,23 @@ function UniversalAutoloadManager:loadMap(name)
 		-- addConsoleCommand("ualFullTest", "Test all the different loading types", "consoleFullTest", UniversalAutoloadManager)
 	end
 	
-	local showDlg = tostring(UniversalAutoload.name):find("fs25planet") or tostring(UniversalAutoload.name):find("_0_") or nil
-	if showDlg then
-		local dlg = InfoDialog.new()
-		g_gui:loadGui("dataS/gui/dialogs/InfoDialog.xml", "InfoDialog", dlg)
-		dlg.dialogTextElement:setText("PLEASE DON'T USE SCUMMY THIRD-PARTY MOD SITES")
-		dlg:show()
+	if tostring(UniversalAutoload.name):find("fs25planet") or tostring(UniversalAutoload.name):find("_0_") then
+		InfoDialog.show("PLEASE DON'T USE SCUMMY THIRD-PARTY MOD SITES")
 	end
 end
 
 function UniversalAutoloadManager:deleteMap()
 	print("UNIVERSAL AUTOLOAD: CLEAN UP")
-	-- removeConsoleCommand("ualAddBales")
-	-- removeConsoleCommand("ualAddRoundBales_125")
-	-- removeConsoleCommand("ualAddRoundBales_150")
-	-- removeConsoleCommand("ualAddRoundBales_180")
-	-- removeConsoleCommand("ualAddSquareBales_180")
-	-- removeConsoleCommand("ualAddSquareBales_220")
-	-- removeConsoleCommand("ualAddSquareBales_240")
+	removeConsoleCommand("ualAddBales")
+	removeConsoleCommand("ualAddRoundBales_125")
+	removeConsoleCommand("ualAddRoundBales_150")
+	removeConsoleCommand("ualAddRoundBales_180")
+	removeConsoleCommand("ualAddSquareBales_180")
+	removeConsoleCommand("ualAddSquareBales_220")
+	removeConsoleCommand("ualAddSquareBales_240")
 	removeConsoleCommand("ualAddPallets")
-	-- removeConsoleCommand("ualAddLogs")
-	-- removeConsoleCommand("ualClearLoadedObjects")
+	removeConsoleCommand("ualAddLogs")
+	removeConsoleCommand("ualClearLoadedObjects")
 	-- removeConsoleCommand("ualResetVehicles")
 	-- removeConsoleCommand("ualImportLocalConfigurations")
 	-- removeConsoleCommand("ualCreateBoundingBox")

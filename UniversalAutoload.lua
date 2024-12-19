@@ -2330,12 +2330,23 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 			spec.spawnBalesDelayTime = spec.spawnBalesDelayTime or 0
 			if spec.spawnBalesDelayTime > UniversalAutoload.DELAY_TIME then
 				spec.spawnBalesDelayTime = 0
-				bale = spec.baleToSpawn
-				local baleObject = UniversalAutoload.createBale(self, bale.xmlFile, bale.fillTypeIndex, bale.wrapState)
-				if baleObject and not UniversalAutoload.loadObject(self, baleObject) then
-					baleObject:delete()
+				
+				local failedToLoad = false
+				local failedToCreate = false
+				if spec.spawnedBale then
+					-- print("LOAD SPAWNED BALE")
+					local baleObject = spec.spawnedBale
+					if entityExists(baleObject.nodeId) and not UniversalAutoload.loadObject(self, baleObject) then
+						baleObject:delete()
+						failedToLoad = true
+					end
+					spec.spawnedBale = nil
+				else
+					spec.spawnedBale = UniversalAutoload.createBale(self, bale.xmlFile, bale.fillTypeIndex, bale.wrapState)
+					failedToCreate = spec.spawnedBale == nil
 				end
-				if baleObject == nil or spec.currentLoadingPlace == nil then
+
+				if failedToCreate or failedToLoad then
 					spec.spawnBales = false
 					spec.doPostLoadDelay = true
 					spec.doSetTensionBelts = true
@@ -2355,15 +2366,14 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				if spec.spawnedLogId == nil then
 					if not UniversalAutoload.spawningLog then
 						log = spec.logToSpawn
-						spec.spawnedLogId = UniversalAutoload.createLog(self, log.treeType, log.length)
-						UniversalAutoload.createdLogId = nil
-						UniversalAutoload.createdTreeId = spec.spawnedLogId
+						spec.spawnedLogId = UniversalAutoload.createLog(self, log.length, log.treeType, log.growthState)
+						UniversalAutoload.createdLogId = spec.spawnedLogId
 						if spec.spawnedLogId == nil then
 							spec.spawnLogsDelayTime = 0
 						end
 					end
 				else
-					if not g_treePlantManager.loadTreeTrunkData and UniversalAutoload.createdLogId then
+					if UniversalAutoload.createdLogId then
 
 						local logId = UniversalAutoload.createdLogId
 						if entityExists(logId) then
@@ -2372,8 +2382,6 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								if not UniversalAutoload.loadObject(self, logObject) then
 									delete(logId)
 									spec.currentLoadingPlace = nil
-								end
-								if spec.currentLoadingPlace == nil then
 									spec.spawnLogs = false
 									spec.doPostLoadDelay = true
 									spec.doSetTensionBelts = true
@@ -2390,7 +2398,6 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 							spec.spawnedLogId = nil
 							UniversalAutoload.spawningLog = false
 							UniversalAutoload.createdLogId = nil
-							UniversalAutoload.createdTreeId = nil
 							print("..error spawning log - aborting!")
 						end
 					end
@@ -2411,7 +2418,6 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				if spec.spawnedPallet then
 					-- print("LOAD SPAWNED PALLET")
 					local pallet = spec.spawnedPallet
-					-- print("updateLoopIndex: " .. pallet.updateLoopIndex)
 
 					if UniversalAutoload.loadObject(self, pallet) then
 						spec.spawnPalletsDelayTime = 0
@@ -4851,7 +4857,7 @@ function UniversalAutoload:createPallets(pallets)
 	
 	if spec and spec.isAutoloadAvailable then
 		if spec.isLogTrailer then
-			print("Log trailer - cannot load bales")
+			print("Log trailer - cannot load pallets")
 			return false
 		end
 		if debugConsole then print("ADD PALLETS: " .. self:getFullName()) end
@@ -4874,7 +4880,7 @@ function UniversalAutoload:createPallets(pallets)
 	end
 end
 --
-function UniversalAutoload:createLog(treeType, length)
+function UniversalAutoload:createLog(length, treeType, growthState)
 	local spec = self.spec_universalAutoload
 	
 	if UniversalAutoload.spawningLog then
@@ -4886,29 +4892,23 @@ function UniversalAutoload:createLog(treeType, length)
 	local x, y, z = getWorldTranslation(spec.loadVolume.rootNode)
 	dirX, dirY, dirZ = localDirectionToWorld(spec.loadVolume.rootNode, 0, 0, 1)
 	y = y + 50
-	
-	if treeType == 'SPRUCE' then
-		if math.random(1, 100) > 50 then treeType = 'SPRUCE1' else treeType = 'SPRUCE2' end
-	end
-	if treeType == 'WILLOW' then
-		if math.random(1, 100) > 50 then treeType = 'WILLOW1' else treeType = 'WILLOW2' end
-	end
 
-	local treeTypeDesc = g_treePlantManager:getTreeTypeDescFromName(treeType)
-	local growthState = #treeTypeDesc.treeFilenames
-	local treeId, splitShapeFileId = g_treePlantManager:loadTreeNode(treeTypeDesc, x, y, z, 0, 0, 0, growthState)
+	local variationIndex = 0
+	local treeTypeDesc = g_treePlantManager.nameToTreeType[treeType]
+	local treeId, splitShapeFileId = g_treePlantManager:loadTreeNode(treeTypeDesc, x, y, z, 0, 0, 0, growthState, variationIndex)
 
 	if treeId ~= 0 then
 		if getFileIdHasSplitShapes(splitShapeFileId) then
 			local tree = {
 				node = treeId,
-				growthState = growthState,
-				z = z,
-				y = y,
+				growthStateI = growthState,
+				variationIndex = variationIndex,
 				x = x,
-				rz = 0,
-				ry = 0,
+				y = y,
+				z = z,
 				rx = 0,
+				ry = 0,
+				rz = 0,
 				treeType = treeTypeDesc.index,
 				splitShapeFileId = splitShapeFileId,
 				hasSplitShapes = true
@@ -4917,27 +4917,30 @@ function UniversalAutoload:createLog(treeType, length)
 			table.insert(g_treePlantManager.treesData.splitTrees, tree)
 
 			g_treePlantManager.loadTreeTrunkData = {
-				offset = 0.5,
 				framesLeft = 2,
 				shape = treeId + 2,
 				x = x,
 				y = y,
 				z = z,
 				length = length,
+				offset = 0.5,
 				dirX = dirX,
 				dirY = dirY,
 				dirZ = dirZ,
-				delimb = true
+				delimb = true,
+				useOnlyStump = p127,
+				cutTreeTrunkCallback = TreePlantManager.cutTreeTrunkCallback
 			}
+
 		else
 			delete(treeId)
 		end
 	end
 	
-	return treeId
+	return treeId + 2
 end
 --
-function UniversalAutoload:createLogs(treeType, length)
+function UniversalAutoload:createLogs(length, treeType, growthState)
 	local spec = self.spec_universalAutoload
 	
 	if spec and spec.isAutoloadAvailable then
@@ -4948,9 +4951,11 @@ function UniversalAutoload:createLogs(treeType, length)
 		UniversalAutoload.clearLoadedObjects(self)		
 		self:setAllTensionBeltsActive(false)
 		spec.spawnLogs = true
-		spec.logToSpawn = {}
-		spec.logToSpawn.treeType = treeType
-		spec.logToSpawn.length = length
+		spec.logToSpawn = {
+			length = length,
+			treeType = treeType,
+			growthState = growthState,
+		}
 		return true
 	end
 end
@@ -4970,9 +4975,8 @@ function UniversalAutoload:createBale(xmlFilename, fillTypeIndex, wrapState)
 		baleObject:setWrappingState(wrapState)
 		baleObject:setOwnerFarmId(farmId, true)
 		baleObject:register()
+		return baleObject
 	end
-	
-	return baleObject
 end
 --
 function UniversalAutoload:createBales(bale)
@@ -5484,7 +5488,7 @@ end
 function UniversalAutoload:drawDebugDisplay()
 	local spec = self.spec_universalAutoload
 
-	if (UniversalAutoload.showLoading or UniversalAutoload.showDebug or spec.showDebug) and not g_gui:getIsGuiVisible() then
+	if (UniversalAutoload.showLoading or UniversalAutoload.showDebug) and not g_gui:getIsGuiVisible() then
 		
 		local RED     = { 1.0, 0.1, 0.1 }
 		local GREEN   = { 0.1, 1.0, 0.1 }
@@ -5515,7 +5519,7 @@ function UniversalAutoload:drawDebugDisplay()
 			-- UniversalAutoload.DrawDebugPallet( place.node, place.sizeX, place.sizeY, place.sizeZ, true, false, WHITE)
 		end
 
-		if UniversalAutoload.showDebug or spec.showDebug then
+		if UniversalAutoload.showDebug then
 			for _, trigger in pairs(spec.triggers or {}) do
 				local w, h, l = trigger.width or 1, trigger.height or 1, trigger.length or 1
 				if trigger.name == "rearAutoTrigger" or trigger.name == "leftAutoTrigger" or trigger.name == "rightAutoTrigger" then
@@ -5585,7 +5589,7 @@ function UniversalAutoload:drawDebugDisplay()
 				end
 			end
 			
-			if UniversalAutoload.showDebug or spec.showDebug then
+			if UniversalAutoload.showDebug then
 				local W, H, L = spec.loadVolume.width, spec.loadVolume.height, spec.loadVolume.length
 				UniversalAutoload.DrawDebugPallet( spec.loadVolume.rootNode, W, H, L, true, false, MAGENTA )
 				
@@ -5597,20 +5601,20 @@ function UniversalAutoload:drawDebugDisplay()
 			
 			for i, loadArea in pairs(spec.loadArea or {}) do
 				local W, H, L = loadArea.width, loadArea.height, loadArea.length
-				if not (UniversalAutoload.showDebug or spec.showDebug) then H = 0 end
+				if not UniversalAutoload.showDebug then H = 0 end
 				
 				if UniversalAutoload.getIsLoadingAreaAllowed(self, i) then
 					UniversalAutoload.DrawDebugPallet( loadArea.rootNode,  W, H, L, true, false, WHITE )
 					UniversalAutoload.DrawDebugPallet( loadArea.startNode, W, 0, 0, true, false, GREEN )
 					UniversalAutoload.DrawDebugPallet( loadArea.endNode,   W, 0, 0, true, false, RED )
 					
-					if (UniversalAutoload.showDebug or spec.showDebug) and loadArea.baleHeight then
+					if UniversalAutoload.showDebug and loadArea.baleHeight then
 						H = loadArea.baleHeight
 						UniversalAutoload.DrawDebugPallet( loadArea.rootNode, W, H, L, true, false, YELLOW )
 					end
 				else
 					UniversalAutoload.DrawDebugPallet( loadArea.rootNode,  W, H, L, true, false, GREY )
-					if (UniversalAutoload.showDebug or spec.showDebug) and loadArea.baleHeight then
+					if UniversalAutoload.showDebug and loadArea.baleHeight then
 						H = loadArea.baleHeight
 						UniversalAutoload.DrawDebugPallet( loadArea.rootNode, W, H, L, true, false, GREY )
 					end
@@ -5706,21 +5710,6 @@ function UniversalAutoload.DrawDebugPallet( node, w, h, l, showCube, showAxis, c
 	
 	end
 
-end
-
--- DETECT SPAWNED LOGS
-local oldAddToPhysics = getmetatable(_G).__index.addToPhysics
-getmetatable(_G).__index.addToPhysics = function(node, ...)
-
-	oldAddToPhysics(node, ...)
-	
-	if node ~= 0 and node then
-		if getRigidBodyType(node) == RigidBodyType.DYNAMIC and getSplitType(node) ~= 0 then
-			if not UniversalAutoload.createdLogId and UniversalAutoload.createdTreeId and node > UniversalAutoload.createdTreeId then
-				UniversalAutoload.createdLogId = node
-			end
-		end
-	end
 end
 
 -- ADD CUSTOM STRINGS FROM ModDesc.xml TO GLOBAL g_i18n
