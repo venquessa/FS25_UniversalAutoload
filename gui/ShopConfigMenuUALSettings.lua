@@ -3,7 +3,7 @@ local ShopConfigMenuUALSettings_mt = Class(ShopConfigMenuUALSettings, TabbedMenu
 
 function ShopConfigMenuUALSettings.register()
 	local shopCongfigMenu = ShopConfigMenuUALSettings.new()
-	g_gui:loadGui(UniversalAutoload.path .. "gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", shopCongfigMenu, true)
+	g_gui:loadGui(UniversalAutoload.path .. "gui/ShopConfigMenuUALSettings.xml", "ShopConfigMenuUALSettings", shopCongfigMenu)
 	return shopCongfigMenu
 end
 
