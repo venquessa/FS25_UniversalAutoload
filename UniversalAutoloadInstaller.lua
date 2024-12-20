@@ -1453,55 +1453,12 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 		print("CREATE SHOP VEHICLE: " .. vehicle:getFullName())
 		spec.isInsideShop = true
 		UniversalAutoloadManager.shopVehicle = vehicle
-		-- configuration will be handled in onUpdate loop
 		return configurationAdded
 		
 	elseif vehicle.propertyState == VehiclePropertyState.OWNED
 		or vehicle.propertyState == VehiclePropertyState.LEASED then
 		print("CREATE REAL VEHICLE: " .. vehicle:getFullName())
 		spec.isInsideShop = false
-		
-		-- local importVehicle = nil
-		-- if UniversalAutoloadManager.shopVehicle then
-			-- print("SHOP VEHICLE STILL EXISTS " .. UniversalAutoloadManager.shopVehicle.rootNode )
-			-- importVehicle = UniversalAutoloadManager.shopVehicle
-		-- elseif UniversalAutoloadManager.lastShopVehicle then
-			-- print("WORKSHOP VEHICLE STILL EXISTS " .. UniversalAutoloadManager.lastShopVehicle.rootNode )
-			-- importVehicle = UniversalAutoloadManager.lastShopVehicle
-			-- UniversalAutoloadManager.lastShopVehicle = nil
-		-- end
-		
-		-- local importSpec = importVehicle and importVehicle.spec_universalAutoload
-		-- if importSpec and UniversalAutoloadManager.shopConfig then
-			-- local configsMatch = spec.selectedConfigs == importSpec.selectedConfigs
-			-- local configNamesMatch = spec.useConfigName == nil or importSpec.useConfigName == nil or spec.useConfigName == importSpec.useConfigName
-		
-			-- if configsMatch and configNamesMatch then
-	
-				-- print("CLONE SETTINGS FROM SHOP VEHICLE")
-				-- if not importSpec.loadArea then
-					-- print("ERROR: importSpec.loadArea is nil")
-					-- return
-				-- end
-
-				-- local importSpec = importVehicle.spec_universalAutoload
-				-- for k, v in pairs(UniversalAutoload.OPTIONS_DEFAULTS) do
-					-- local id = v.id
-					-- print(tostring(id) .. " = " .. tostring(importSpec[id]))
-					-- spec[id] = importSpec[id]
-				-- end
-				
-				-- spec.loadArea = {}
-				-- for i, loadArea in (importSpec.loadArea) do
-					-- spec.loadArea[i] = deepCopy(importSpec.loadArea[i])
-				-- end
-				-- configurationAdded = true
-
-				-- print("DEBUG: spec after cloning:")
-				-- DebugUtil.printTableRecursively(spec, "  --", 0, 2)
-			-- end
-		-- end
-		
 		return configurationAdded
 	end
 end

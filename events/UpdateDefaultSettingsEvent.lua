@@ -51,6 +51,7 @@ function UpdateDefaultSettingsEvent:readStream(streamId, connection)
 	local selectedConfigs = streamReadString(streamId)
 	print("selectedConfigs: " .. tostring(selectedConfigs))
 	local useConfigName = streamReadString(streamId)
+	useConfigName = useConfigName ~= "" and useConfigName or nil
 	print("useConfigName: " .. tostring(useConfigName))
 
 	local config = {}
@@ -110,7 +111,7 @@ function UpdateDefaultSettingsEvent:writeStream(streamId, connection)
 	print("selectedConfigs: " .. tostring(self.selectedConfigs))
 	streamWriteString(streamId, self.selectedConfigs)
 	print("useConfigName: " .. tostring(spec.useConfigName))
-	streamWriteString(streamId, spec.useConfigName)
+	streamWriteString(streamId, spec.useConfigName or "")
 	
 	print("options:")
 	iterateDefaultsTable(UniversalAutoload.OPTIONS_DEFAULTS, "", ".options", spec, sendValues)
