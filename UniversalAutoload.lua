@@ -69,7 +69,7 @@ source(g_currentModDirectory.."events/StopLoadingEvent.lua")
 source(g_currentModDirectory.."events/UnloadingEvent.lua")
 source(g_currentModDirectory.."events/UpdateActionEvents.lua")
 source(g_currentModDirectory.."events/WarningMessageEvent.lua")
-source(g_currentModDirectory.."events/ChangeSettingsEvent.lua")
+source(g_currentModDirectory.."events/UpdateDefaultSettingsEvent.lua")
 
 
 -- REQUIRED SPECIALISATION FUNCTIONS
@@ -992,8 +992,12 @@ end
 --
 function UniversalAutoload:createSortedObjectsToLoad(availableObjects)
 	local spec = self.spec_universalAutoload
-
+	
 	sortedObjectsToLoad = {}
+	if not spec.loadArea then
+		return sortedObjectsToLoad
+	end
+
 	for object, _ in pairs(availableObjects or {}) do
 	
 		local node = UniversalAutoload.getObjectPositionNode(object)
@@ -1292,7 +1296,7 @@ function UniversalAutoload:initialiseTransformGroups(actualRootNode)
 	local triggersRootNode, sharedLoadRequestId = g_i3DManager:loadSharedI3DFile(i3dFilename, false, false)
 
 	-- create triggers
-	local function doCreateTrigger(id, callback)
+	local function doCreateTrigger(id, callback, width, height, length, tx, ty, tz, rx, ry, rz)
 		local newTrigger = {}
 		newTrigger.name = id
 		newTrigger.node = I3DUtil.getChildByName(triggersRootNode, id)
@@ -1301,9 +1305,30 @@ function UniversalAutoload:initialiseTransformGroups(actualRootNode)
 			addTrigger(newTrigger.node, callback, self)
 			spec.triggers[id] = newTrigger
 			-- print("  created " .. newTrigger.name)
+			
+			if width and height and length then
+				local trigger = newTrigger
+				local d = 2*UniversalAutoload.TRIGGER_DELTA
+				setScale(trigger.node, width-d, height-d, length-d)
+				setRotation(trigger.node, rx or 0, ry or 0, rz or 0)
+				setTranslation(trigger.node, tx or 0, ty or 0, tz or 0)
+				
+				local sx, sy, sz = getScale(trigger.node)
+				trigger.width = width/sx
+				trigger.height = height/sy
+				trigger.length = length/sz
+			end
 		end
 	end
-	
+
+
+	-- local width = 1.66*self.size.width
+	-- local height = 1.66*self.size.height
+	-- local length = self.size.length+self.size.width/2
+	-- local tx, ty, tz = 1.1*(width+self.size.width)/2, 0, 0
+	-- doCreateTrigger("leftPickupTrigger", "ualLoadingTrigger_Callback", width, height, length, tx, ty, tz)
+	-- doCreateTrigger("rightPickupTrigger", "ualLoadingTrigger_Callback", width, height, length, -tx, ty, tz)
+
 	doCreateTrigger("unloadingTrigger", "ualUnloadingTrigger_Callback")
 	doCreateTrigger("playerTrigger", "ualPlayerTrigger_Callback")
 	doCreateTrigger("leftPickupTrigger", "ualLoadingTrigger_Callback")
@@ -1506,28 +1531,24 @@ function UniversalAutoload:onLoad(savegame)
 	self.spec_universalAutoload = self[UniversalAutoload.specName]
 	local spec = self.spec_universalAutoload
 
-	local isValidForAutoload = UniversalAutoloadManager.getIsValidForAutoload(self)
-	if not isValidForAutoload then
+	if UniversalAutoloadManager.getIsValidForAutoload(self) then
+		if UniversalAutoloadManager.handleNewVehicleCreation(self) then
+			print(self:getFullName() .. ": UAL ACTIVATED")
+		else
+			print(self:getFullName() .. ": UAL SETTINGS NOT ADDED")
+		end
+		spec.isAutoloadAvailable = true
+		UniversalAutoloadManager.onValidUalShopVehicle(self)
+	else	
 		print(self:getFullName() .. ": NOT VALID FOR UAL")
-		UniversalAutoload.removeEventListeners(self)
 		spec.isAutoloadAvailable = false
+		UniversalAutoload.removeEventListeners(self)
 		UniversalAutoloadManager.onInvalidUalShopVehicle(self)
 		return
 	end
 
-	spec.isAutoloadAvailable = true
-	UniversalAutoloadManager.onValidUalShopVehicle(self)
-	
-	local configurationAdded = UniversalAutoloadManager.handleNewVehicleCreation(self)
-	
-	if configurationAdded then
-		print(self:getFullName() .. ": UAL ACTIVATED")
-	else
-		print(self:getFullName() .. ": UAL SETTINGS WERE NOT ADDED")
-	end
-
 	if self.isServer and self.propertyState ~= VehiclePropertyState.SHOP_CONFIG then
-		print("INITIALISE UAL VEHICLE (ON LOAD) " ..tostring(self.rootNode))
+		print("SERVER - INITIALISE REAL UAL VEHICLE (ON LOAD) " ..tostring(self.rootNode))
 		
 		UniversalAutoload.VEHICLES[self] = self
 		if self.addDeleteListener then
@@ -1545,7 +1566,7 @@ function UniversalAutoload:onLoad(savegame)
 		
 		--update size and position
 		if spec.loadArea and #spec.loadArea > 0 then
-			print("INITIALISE UAL VEHICLE (ON LOAD 2) " ..tostring(self.rootNode))
+			print("SERVER - INITIALISE UAL VEHICLE (ON LOAD 2) " ..tostring(self.rootNode))
 			UniversalAutoload.updateLoadAreaTransformGroups(self)
 			UniversalAutoload.updateLoadingTriggers(self)
 			spec.initialised = true
@@ -2805,7 +2826,7 @@ end
 --
 function UniversalAutoload:isValidForLoading(object)
 	local spec = self.spec_universalAutoload
-	local maxLength = spec.loadArea[spec.currentLoadAreaIndex or 1].length
+	local maxLength = spec.loadArea and spec.loadArea[spec.currentLoadAreaIndex or 1].length or 0
 	local minLength = spec.minLogLength or 0
 	if minLength > maxLength or not spec.isLogTrailer then
 		minLength = 0
@@ -3058,70 +3079,6 @@ function UniversalAutoload:countActivePallets()
 		end
 	end
 end
---
-function UniversalAutoload:createBoundingBox()
-	local spec = self.spec_universalAutoload
-
-	if next(spec.loadedObjects) then
-		spec.boundingBox = {}
-		
-		local x0, y0, z0 = math.huge, math.huge, math.huge
-		local x1, y1, z1 = -math.huge, -math.huge, -math.huge
-		for object, _ in pairs(spec.loadedObjects) do
-			-- print("  loaded object: " .. tostring(object.id).." ("..tostring(object.currentSavegameId or "BALE")..")")
-			
-			local node = UniversalAutoload.getObjectPositionNode(object)
-			if node then
-			
-				local containerType = UniversalAutoload.getContainerType(object)
-				local w, h, l = containerType.sizeX, containerType.sizeY, containerType.sizeZ
-				local xx,xy,xz = localDirectionToLocal(node, spec.loadVolume.rootNode, w,0,0)
-				local yx,yy,yz = localDirectionToLocal(node, spec.loadVolume.rootNode, 0,h,0)
-				local zx,zy,zz = localDirectionToLocal(node, spec.loadVolume.rootNode, 0,0,l)
-				
-				local W, H, L = math.abs(xx+yx+zx), math.abs(xy+yy+zy), math.abs(xz+yz+zz)
-				if containerType.flipYZ then
-					L, H = math.abs(xy+yy+zy), math.abs(xz+yz+zz)
-				end
-				
-				local X, Y, Z = localToLocal(node, spec.loadVolume.rootNode, 0, 0, 0)
-				if containerType.isBale then Y = Y-(H/2) end
-				
-				-- include object in bounding box
-				if x0 > X-(W/2) then x0 = X-(W/2) end
-				if x1 < X+(W/2) then x1 = X+(W/2) end
-				if y0 > Y then y0 = Y end
-				if y1 < Y+(H) then y1 = Y+(H) end
-				if z0 > Z-(L/2) then z0 = Z-(L/2) end
-				if z1 < Z+(L/2) then z1 = Z+(L/2) end
-				
-			end
-		end
-		
-		-- create bounding box for all objects
-		local width = x1-x0
-		local height = y1-y0
-		local length = z1-z0
-		
-		local offsetX, offsetY, offsetZ = (x0+x1)/2, y0, (z0+z1)/2
-		
-		if debugLoading then
-			print(string.format("(W,H,L) = (%f, %f, %f)", width, height, length))
-			print(string.format("(X,Y,Z) = (%f, %f, %f)", offsetX, offsetY, offsetZ))
-			print(string.format("(X0,Y0,Z0) = (%f, %f, %f)", localToWorld(spec.loadVolume.rootNode, 0, 0, 0)))
-		end
-
-		spec.boundingBox.rootNode = createTransformGroup("loadVolumeCentre")
-		link(spec.loadVolume.rootNode, spec.boundingBox.rootNode)
-		setTranslation(spec.boundingBox.rootNode, offsetX, offsetY, offsetZ)
-		
-		spec.boundingBox.width = x1-x0
-		spec.boundingBox.height = y1-y0
-		spec.boundingBox.length = z1-z0
-	else
-		spec.boundingBox = nil
-	end
-end
 
 -- LOADING AND UNLOADING FUNCTIONS
 function UniversalAutoload:loadObject(object, chargeForLoading)
@@ -3259,7 +3216,7 @@ function UniversalAutoload.buildObjectsToUnloadTable(vehicle, forceUnloadPositio
 		local thisAreaClear = false
 		local x, y, z = getTranslation(unloadPlace.node)
 		
-		if #spec.loadArea > 1 then
+		if spec.loadArea and #spec.loadArea > 1 then
 			local i = spec.loadedObjects[object] or 1
 			local _, offsetY, _ = localToLocal(spec.loadArea[i].rootNode, spec.loadVolume.rootNode, 0, 0, 0)
 			y = y - offsetY
@@ -4037,6 +3994,10 @@ function UniversalAutoload:getIsLoadingAreaAllowed(i)
 	local spec = self.spec_universalAutoload
 	if spec==nil or not spec.isAutoloadAvailable then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - getIsLoadingAreaAllowed") end
+		return false
+	end
+	
+	if not spec.loadArea then
 		return false
 	end
 	
