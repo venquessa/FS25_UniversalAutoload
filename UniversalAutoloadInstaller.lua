@@ -874,7 +874,7 @@ ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStor
 ShopConfigScreen.ualInputCallback = Utils.prependedFunction(ShopConfigScreen.ualInputCallback, UniversalAutoloadManager.ualInputCallback)
 
 ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease,
-function()
+function(self, yes)
 	print("onYesNoLease: " .. tostring(yes))
 	if yes == true then
 		UniversalAutoloadManager.exportVehicleConfigToServer(vehicle)
