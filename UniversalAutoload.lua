@@ -151,7 +151,7 @@ end
 
 -- function UniversalAutoload:getCanStartFieldWork(superFunc)
 	-- local spec = self.spec_universalAutoload
-	-- if spec and spec.isAutoloadAvailable and spec.baleCollectionMode then
+	-- if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.baleCollectionMode then
 		-- if debugSpecial then print("getCanStartFieldWork...") end
 		-- --return true
 	-- end
@@ -159,7 +159,7 @@ end
 -- end
 -- function UniversalAutoload:getCanImplementBeUsedForAI(superFunc)
 	-- local spec = self.spec_universalAutoload
-	-- if spec and spec.isAutoloadAvailable then
+	-- if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		-- if debugSpecial then print("*** getCanImplementBeUsedForAI ***") end
 		-- --DebugUtil.printTableRecursively(self.spec_aiImplement, "--", 0, 1)
 		-- --return true
@@ -169,7 +169,7 @@ end
 --
 function UniversalAutoload:getDynamicMountTimeToMount(superFunc)
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		return superFunc(self)
 	end
 	return UniversalAutoload.getIsLoadingVehicleAllowed(self) and -1 or math.huge
@@ -262,7 +262,7 @@ function UniversalAutoload:updateActionEventKeys()
 	if self.isClient and g_dedicatedServer==nil then
 		local spec = self.spec_universalAutoload
 
-		if spec and spec.isAutoloadAvailable and spec.actionEvents and next(spec.actionEvents) == nil then
+		if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.actionEvents and next(spec.actionEvents) == nil then
 			if debugKeys then print("updateActionEventKeys: "..self:getFullName()) end
 			local actions = UniversalAutoload.ACTIONS
 			local ignoreCollisions = true
@@ -934,7 +934,7 @@ end
 function UniversalAutoload:setBaleCollectionMode(baleCollectionMode, noEventSend)
 	-- print("setBaleCollectionMode: "..self:getFullName().." - "..tostring(baleCollectionMode))
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - setBaleCollectionMode") end
 		return
 	end
@@ -960,7 +960,7 @@ end
 --
 function UniversalAutoload:startLoading(force, noEventSend)
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - startLoading") end
 		return
 	end
@@ -1791,7 +1791,7 @@ end
 function UniversalAutoload:onFoldStateChanged(direction, moveToMiddle)
 	-- print("UniversalAutoload - onFoldStateChanged")
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - onFoldStateChanged") end
 		return
 	end
@@ -1806,7 +1806,7 @@ end
 function UniversalAutoload:onMovingToolChanged(tool, transSpeed, dt)
 	-- print("UniversalAutoload - onMovingToolChanged")
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - onMovingToolChanged") end
 		return
 	end
@@ -2135,7 +2135,7 @@ end
 
 function UniversalAutoload:onDraw()
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		return
 	end
 
@@ -2725,7 +2725,7 @@ end
 function UniversalAutoload:onUpdate(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
 	local spec = self.spec_universalAutoload
 	
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		return
 	end
 
@@ -2756,7 +2756,7 @@ end
 function UniversalAutoload:onActivate(isControlling)
 	-- print("onActivate: "..self:getFullName())
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - onActivate") end
 		return
 	end
@@ -2772,7 +2772,7 @@ end
 function UniversalAutoload:onDeactivate()
 	-- print("onDeactivate: "..self:getFullName())
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - onDeactivate") end
 		return
 	end
@@ -2787,7 +2787,7 @@ end
 function UniversalAutoload:determineTipside()
 	-- currently only used for the KRONE Profi Liner Curtain Trailer
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - determineTipside") end
 		return
 	end
@@ -3880,7 +3880,7 @@ end
 
 function UniversalAutoload:getIsLoadingKeyAllowed()
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - getIsLoadingKeyAllowed") end
 		return
 	end
@@ -3896,7 +3896,7 @@ end
 --
 function UniversalAutoload:getIsUnloadingKeyAllowed()
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - getIsUnloadingKeyAllowed") end
 		return
 	end
@@ -3925,7 +3925,7 @@ end
 --
 function UniversalAutoload:getIsLoadingVehicleAllowed(triggerId)
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - getIsLoadingVehicleAllowed") end
 		return false
 	end
@@ -3995,7 +3995,7 @@ end
 --
 function UniversalAutoload:getIsLoadingAreaAllowed(i)
 	local spec = self.spec_universalAutoload
-	if spec==nil or not spec.isAutoloadAvailable then
+	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - getIsLoadingAreaAllowed") end
 		return false
 	end
@@ -4819,7 +4819,7 @@ end
 function UniversalAutoload:createPallets(pallets)
 	local spec = self.spec_universalAutoload
 	
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		if spec.isLogTrailer then
 			print("Log trailer - cannot load pallets")
 			return false
@@ -4923,7 +4923,7 @@ end
 function UniversalAutoload:createLogs(length, treeType, growthState)
 	local spec = self.spec_universalAutoload
 	
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		if debugConsole then print("ADD LOGS: " .. self:getFullName()) end
 		UniversalAutoload.setMaterialTypeIndex(self, 1)
 		UniversalAutoload.setBaleCollectionMode(self, false)
@@ -4962,7 +4962,7 @@ end
 function UniversalAutoload:createBales(bale)
 	local spec = self.spec_universalAutoload
 	
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		if spec.isLogTrailer then
 			print("Log trailer - cannot load bales")
 			return false
@@ -4982,7 +4982,7 @@ function UniversalAutoload:clearLoadedObjects()
 	local spec = self.spec_universalAutoload
 	local palletCount, balesCount, logCount = 0, 0, 0
 	
-	if spec and spec.isAutoloadAvailable and spec.loadedObjects then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.loadedObjects then
 		if debugLoading or debugConsole then print("CLEAR OBJECTS: " .. self:getFullName()) end
 		self:setAllTensionBeltsActive(false)
 		for object, _ in pairs(spec.loadedObjects or {}) do
@@ -5721,7 +5721,7 @@ UniversalAutoload.AddCustomStrings()
 function UniversalAutoload:onAIImplementStart()
 	--- TODO: Unfolding or opening cover, if needed!
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		print("["..self.rootNode.."] UAL/CP - ACTIVATE BALE COLLECTION MODE (onAIImplementStart)")
 		UniversalAutoload.setBaleCollectionMode(self, true)
 		spec.aiLoadingActive = true
@@ -5731,7 +5731,7 @@ end
 function UniversalAutoload:onAIImplementEnd()
 	--- TODO: Folding or closing cover, if needed!
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable and spec.aiLoadingActive then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.aiLoadingActive then
 		print("["..self.rootNode.."] UAL/CP - DEACTIVATE BALE COLLECTION MODE (onAIImplementEnd)")
 		UniversalAutoload.setBaleCollectionMode(self, false)
 		spec.aiLoadingActive = false
@@ -5741,7 +5741,7 @@ end
 function UniversalAutoload:onAIFieldWorkerStart()
 	--- TODO: Unfolding or opening cover, if needed!
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		print("["..self.rootNode.."] UAL/CP - ACTIVATE BALE COLLECTION MODE (onAIFieldWorkerStart)")
 		UniversalAutoload.setBaleCollectionMode(self, true)
 		spec.aiLoadingActive = true
@@ -5751,7 +5751,7 @@ end
 function UniversalAutoload:onAIFieldWorkerEnd()
 	--- TODO: Folding or closing cover, if needed!
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable and spec.aiLoadingActive then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.aiLoadingActive then
 		print("["..self.rootNode.."] UAL/CP - DEACTIVATE BALE COLLECTION MODE (onAIFieldWorkerEnd)")
 		UniversalAutoload.setBaleCollectionMode(self, false)
 		spec.aiLoadingActive = false
@@ -5761,18 +5761,18 @@ end
 -- CoursePlay interface functions.
 function UniversalAutoload:ualIsFull()
 	local spec = self.spec_universalAutoload
-	return (spec and spec.isAutoloadAvailable) and spec.trailerIsFull
+	return (spec and spec.isAutoloadAvailable and not spec.autoloadDisabled) and spec.trailerIsFull
 end
 --
 function UniversalAutoload:ualGetLoadedBales()
 	local spec = self.spec_universalAutoload
-	return (spec and spec.isAutoloadAvailable) and spec.loadedObjects
+	return (spec and spec.isAutoloadAvailable and not spec.autoloadDisabled) and spec.loadedObjects
 end
 --
 function UniversalAutoload:ualHasLoadedBales()
 	print("["..self.rootNode.."] UAL/CP - ualHasLoadedBales")
 	local spec = self.spec_universalAutoload
-	return (spec and spec.isAutoloadAvailable) and spec.totalUnloadCount > 0
+	return (spec and spec.isAutoloadAvailable and not spec.autoloadDisabled) and spec.totalUnloadCount > 0
 end
 --
 function UniversalAutoload:ualIsObjectLoadable(object)
@@ -5780,7 +5780,7 @@ function UniversalAutoload:ualIsObjectLoadable(object)
 	print("["..self.rootNode.."] UAL/CP - ualIsObjectLoadable")
 	--- TODO: Returns true, if the given object is loadable.
 	--- For CP, the given object is of the class Bale.
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		print("["..self.rootNode.."] UAL/CP - IS BALE = ".. tostring(UniversalAutoload.getContainerTypeName(object) == "BALE"))
 		print("["..self.rootNode.."] UAL/CP - IS VALID = ".. tostring(UniversalAutoload.isValidForLoading(self, object)))
 		return UniversalAutoload.getContainerTypeName(object) == "BALE" and UniversalAutoload.isValidForLoading(self, object)
@@ -5791,14 +5791,14 @@ end
 -- AutoDrive interface functions.
 function UniversalAutoload:ualStartLoad()
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		-- print("UAL/AD - START AUTOLOAD")
 		UniversalAutoload.startLoading(self, true)
 	end
 end
 function UniversalAutoload:ualStopLoad()
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		-- print("UAL/AD - STOP AUTOLOAD")
 		UniversalAutoload.stopLoading(self, true)
 	end
@@ -5806,7 +5806,7 @@ end
 
 function UniversalAutoload:ualUnload()
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		-- print("UAL/AD - UNLOAD")
 		UniversalAutoload.startUnloading(self, true)
 	end
@@ -5814,7 +5814,7 @@ end
 
 function UniversalAutoload:ualSetUnloadPosition(unloadPosition)
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		-- print("UAL/AD - SET UNLOAD POSITION: " .. tostring(unloadPosition))
 		spec.forceUnloadPosition = unloadPosition
 	end
@@ -5832,7 +5832,7 @@ end
 ]]
 function UniversalAutoload:ualGetFillUnitCapacity(fillUnitIndex)
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		return (spec.validUnloadCount and (spec.validUnloadCount + 1)) or 0
 	else
 		return 0
@@ -5841,7 +5841,7 @@ end
 
 function UniversalAutoload:ualGetFillUnitFillLevel(fillUnitIndex)
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		return (spec.validUnloadCount and spec.validUnloadCount) or 0
 	else
 		return 0
@@ -5851,7 +5851,7 @@ end
 -- return 0 if trailer is fully loaded / no capacity left
 function UniversalAutoload:ualGetFillUnitFreeCapacity(fillUnitIndex)
 	local spec = self.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
+	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		if spec.trailerIsFull then
 			return 0
 		else

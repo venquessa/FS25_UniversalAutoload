@@ -114,8 +114,6 @@ UniversalAutoload.CONTAINERS = {
 -- UniversalAutoload.BALE		   = { isBale=true }
 
 UniversalAutoload.VEHICLES = {} -- actual vehicles currently in game
-UniversalAutoload.VEHICLE_CONFIGURATIONS = {} -- settings for each vehicle configuration
-
 UniversalAutoload.VEHICLE_TYPES = {} -- vehicleTypes with autoload spec
 UniversalAutoload.LOADING_TYPES = {} -- known container object types
 
@@ -130,6 +128,7 @@ UniversalAutoload.GLOBAL_DEFAULTS = {
 }
 
 UniversalAutoload.OPTIONS_DEFAULTS = {
+	{id="autoloadDisabled", default=false, valueType="BOOL", key="#autoloadDisabled"}, --If autoload features are disabled for this trailer
 	{id="isBoxTrailer", default=false, valueType="BOOL", key="#isBoxTrailer"}, --If trailer is enclosed with a rear door
 	{id="isLogTrailer", default=false, valueType="BOOL", key="#isLogTrailer"}, --If trailer is a logging trailer - will load only logs, dropped from above
 	{id="isBaleTrailer", default=false, valueType="BOOL", key="#isBaleTrailer"}, --If trailer should use an automatic bale collection mode
@@ -406,6 +405,13 @@ function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(exportSpec, c
 		local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
 		configId = xmlFile:getValue(configKey .. "#selectedConfigs") or configId
 		print("UPDATE CONFIG #" .. index + 1 .. " == " .. configId .. " (#" ..subIndex + 1 .. ")")
+		while true do
+			local loadAreaKey = string.format("%s.loadingArea(%d)", configKey, 0)
+			if not xmlFile:hasProperty(loadAreaKey) then
+				break
+			end
+			xmlFile:removeProperty(loadAreaKey)
+		end
 	else
 		index = size or 0
 		subIndex = 0
@@ -534,21 +540,30 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(exportSpec, con
 	end
 end
 
-function UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile, overwriteExisting)
+function UniversalAutoloadManager.importLocalConfigurations(forceOverwrite)
 	-- print("UAL - IMPORT CONFIGS")
+	local forceOverwrite = forceOverwrite or false
+	local userSettingsFile = Utils.getFilename(UniversalAutoload.userSettingsFile, getUserProfileAppPath())
 
-	if not fileExists(userSettingsFile) then
-		print("CREATING settings file")
-		-- local defaultSettingsFile = Utils.getFilename("config/UniversalAutoload.xml", UniversalAutoload.path)
-		-- copyFile(defaultSettingsFile, userSettingsFile, false)
+	if not fileExists(userSettingsFile) or forceOverwrite then
+		print("CREATING default settings file")
+		local defaultSettingsFile = Utils.getFilename("xml/UniversalAutoloadDefaults.xml", UniversalAutoload.path)
+		copyFile(defaultSettingsFile, userSettingsFile, forceOverwrite)
 	end
 
-	UniversalAutoloadManager.ImportGlobalSettings(userSettingsFile, overwriteExisting)
-	UniversalAutoloadManager.ImportVehicleConfigurations(userSettingsFile, overwriteExisting)
+	UniversalAutoloadManager.importGlobalSettings(userSettingsFile)
+	UniversalAutoloadManager.importVehicleConfigurations(userSettingsFile)
 	
 end
+
+function UniversalAutoloadManager.consoleResetConfigurations()
+	-- print("UAL - RESET CONFIGS")
+	UniversalAutoloadManager.importLocalConfigurations(true)
+	print("UNIVERSAL AUTOLOAD: Configurations were RESET to defaults")
+	print("New configurations will be used for new vehicles, please restart game to apply to all vehicles")
+end
 --
-function UniversalAutoloadManager.ImportGlobalSettings(xmlFilename, overwriteExisting)
+function UniversalAutoloadManager.importGlobalSettings(xmlFilename)
 	-- print("UAL - IMPORT GLOBAL SETTINGS")
 
 	if g_currentMission:getIsServer() then
@@ -557,16 +572,13 @@ function UniversalAutoloadManager.ImportGlobalSettings(xmlFilename, overwriteExi
 		
 		if xmlFile ~= 0 and xmlFile ~= nil then
 		
-			if overwriteExisting or not UniversalAutoload.globalSettingsLoaded then
-				print("IMPORT Universal Autoload global settings")
-				UniversalAutoload.globalSettingsLoaded = true
+			print("IMPORT Universal Autoload global settings")
 
-				iterateDefaultsTable(UniversalAutoload.GLOBAL_DEFAULTS, UniversalAutoload.globalKey, "", UniversalAutoload,
-				function(k, v, parentKey, currentKey, currentValue, finalValue)
-					UniversalAutoload[v.id] = xmlFile:getValue(parentKey..currentKey, v.default)
-					print("  >> " .. tostring(v.id) .. ": " .. tostring(v.default))
-				end)
-			end
+			iterateDefaultsTable(UniversalAutoload.GLOBAL_DEFAULTS, UniversalAutoload.globalKey, "", UniversalAutoload,
+			function(k, v, parentKey, currentKey, currentValue, finalValue)
+				UniversalAutoload[v.id] = xmlFile:getValue(parentKey..currentKey, v.default)
+				print("  >> " .. tostring(v.id) .. ": " .. tostring(v.default))
+			end)
 
 			xmlFile:delete()
 		else
@@ -577,9 +589,10 @@ function UniversalAutoloadManager.ImportGlobalSettings(xmlFilename, overwriteExi
 	end
 end
 --
-function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overwriteExisting)
+function UniversalAutoloadManager.importVehicleConfigurations(xmlFilename)
 	print("UAL - IMPORT VEHICLE CONFIGS")
 
+	UniversalAutoload.VEHICLE_CONFIGURATIONS = {}
 	local xmlFile = UniversalAutoloadManager.openUserSettingsXMLFile(xmlFilename)
 	
 	if xmlFile then
@@ -631,7 +644,7 @@ function UniversalAutoloadManager.ImportVehicleConfigurations(xmlFilename, overw
 						print("*** SUGGEST REPAIRING CONFIG: " .. oldConfig .. " - using " .. selectedConfigs .. " ***")
 					end
 
-					if not configGroup[selectedConfigs] or overwriteExisting then
+					if not configGroup[selectedConfigs] then
 						configuration.useConfigName = useConfigName
 						configuration.configFileName = configFileName
 						configuration.selectedConfigs = selectedConfigs
@@ -739,6 +752,10 @@ function UniversalAutoloadManager.exportVehicleConfigToServer(vehicle)
 		end
 
 		if exportVehicle and exportVehicle.configFileName then
+			
+			if exportVehicle.spec_universalAutoload.autoloadDisabled then
+				print("Autoload is DISABLED for this vehicle")
+			end
 
 			print("SAVE SETTINGS FROM SHOP VEHICLE")
 			local shopVolume = UniversalAutoloadManager.shopConfig.loadingVolume
@@ -976,7 +993,7 @@ function UniversalAutoloadManager:mouseEvent(posX, posY, isDown, isUp, button)
 	if UniversalAutoloadManager.shopVehicle then
 
 		local spec = UniversalAutoloadManager.shopVehicle.spec_universalAutoload
-		if spec and spec.isInsideShop then
+		if spec and spec.isInsideShop and not spec.autoloadDisabled then
 			local shopConfig = UniversalAutoloadManager.shopConfig or {}
 			
 			if button == 3 and isUp then
@@ -1471,69 +1488,6 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 		return configurationAdded
 	end
 end
-
--- IMPORT CONTAINER TYPE DEFINITIONS
-function UniversalAutoloadManager.ImportContainerTypeConfigurations(xmlFilename, overwriteExisting)
-
-	local i = 0
-	local xmlFile = UniversalAutoloadManager.openUserSettingsXMLFile(xmlFilename)
-	if xmlFile ~= 0 then
-	
-		local containerRootKey = "universalAutoload.containerConfigurations"
-		local legacyContainerRootKey = "universalAutoload.containerTypeConfigurations"
-		if not xmlFile:hasProperty(containerRootKey) and xmlFile:hasProperty(legacyContainerRootKey) then
-			print("*** OLD VERSION OF CONFIG FILE DETECTED - please use <containerConfigurations> ***")
-			containerRootKey = legacyContainerRootKey
-		end
-
-		while true do
-			local configKey = string.format(containerRootKey..".containerConfiguration(%d)", i)
-			
-			if not xmlFile:hasProperty(configKey) then
-				break
-			end
-
-			local containerType = xmlFile:getValue(configKey.."#containerType", "ALL")
-			if tableContainsValue(UniversalAutoload.CONTAINERS, containerType) then
-			
-				local default = UniversalAutoload[containerType] or {}
-
-				local name = xmlFile:getValue(configKey.."#name")
-				local customEnvironment, _ = name:match( "^(.-):(.+)$" )
-				if customEnvironment==nil or g_modIsLoaded[customEnvironment] then
-					local config = UniversalAutoload.LOADING_TYPES[name]
-					if config == nil or overwriteExisting then
-						UniversalAutoload.LOADING_TYPES[name] = {}
-						newType = UniversalAutoload.LOADING_TYPES[name]
-						newType.name = name
-						newType.type = containerType
-						newType.containerIndex = UniversalAutoload.CONTAINERS_LOOKUP[containerType] or 1
-						newType.sizeX = xmlFile:getValue(configKey.."#sizeX", default.sizeX or 1.5)
-						newType.sizeY = xmlFile:getValue(configKey.."#sizeY", default.sizeY or 1.5)
-						newType.sizeZ = xmlFile:getValue(configKey.."#sizeZ", default.sizeZ or 1.5)
-						newType.isBale = xmlFile:getValue(configKey.."#isBale", default.isBale or false)
-						newType.flipYZ = xmlFile:getValue(configKey.."#flipYZ", default.flipYZ or false)
-						newType.neverStack = xmlFile:getValue(configKey.."#neverStack", default.neverStack or false)
-						newType.neverRotate = xmlFile:getValue(configKey.."#neverRotate", default.neverRotate or false)
-						newType.alwaysRotate = xmlFile:getValue(configKey.."#alwaysRotate", default.alwaysRotate or false)
-						newType.frontOffset = xmlFile:getValue(configKey.."#frontOffset", default.frontOffset or 0)
-						print(string.format("  >> %s %s [%.3f, %.3f, %.3f]", newType.type, newType.name, newType.sizeX, newType.sizeY, newType.sizeZ ))
-					end				
-				end
-
-			else
-				if UniversalAutoload.showDebug then print("  UNKNOWN CONTAINER TYPE: "..tostring(containerType)) end
-			end
-
-			i = i + 1
-		end
-
-		xmlFile:delete()
-	end
-	return i
-
-end
---
 
 -- DETECT CONFLICTS/ISSUES
 function UniversalAutoloadManager.detectKeybindingConflicts()
@@ -2040,12 +1994,12 @@ function UniversalAutoloadManager:loadMap(name)
 	end
 
 	-- USER SETTINGS FIRST
-	local userSettingsFile = Utils.getFilename(UniversalAutoload.userSettingsFile, getUserProfileAppPath())
-	UniversalAutoloadManager.ImportLocalConfigurations(userSettingsFile)
+	UniversalAutoloadManager.importLocalConfigurations()
 	UniversalAutoloadManager.detectKeybindingConflicts()
 	
 	if g_currentMission:getIsServer() and not g_currentMission.missionDynamicInfo.isMultiplayer then
 		print("ADD console commands:")
+		addConsoleCommand("ualResetConfigurations", "Reset the mod settings file to defaults (requires restart to apply)", "consoleResetConfigurations", UniversalAutoloadManager)
 		addConsoleCommand("ualAddBales", "Fill current vehicle with specified bales", "consoleAddBales", UniversalAutoloadManager)
 		addConsoleCommand("ualAddRoundBales_125", "Fill current vehicle with small round bales", "consoleAddRoundBales_125", UniversalAutoloadManager)
 		addConsoleCommand("ualAddRoundBales_150", "Fill current vehicle with medium round bales", "consoleAddRoundBales_150", UniversalAutoloadManager)

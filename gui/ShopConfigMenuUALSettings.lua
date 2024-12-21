@@ -33,7 +33,7 @@ function ShopConfigMenuUALSettings:updateSettings()
 	local settings = self.ualShopConfigSettingsLayout
 	
 	local isValid = vehicle ~= nil
-	local isEnabled = vehicle and vehicle.isAutoloadAvailable == true
+	local isEnabled = vehicle and vehicle.autoloadDisabled == false
 	for _, item in pairs(settings.elements) do
 		if item.name ~= "enableAutoload" then
 			item:setVisible(isEnabled)
@@ -56,7 +56,7 @@ function ShopConfigMenuUALSettings:updateSettings()
 	
 	if isValid then
 		print("SET ALL")
-		setChecked('enableAutoloadCheckBox', vehicle.isAutoloadAvailable)
+		setChecked('enableAutoloadCheckBox', not vehicle.autoloadDisabled)
 		setChecked('horizontalLoadingCheckBox', vehicle.horizontalLoading)
 		setChecked('disableAutoStrapCheckBox', not vehicle.disableAutoStrap)
 		setChecked('disableHeightLimitCheckBox', not vehicle.disableHeightLimit)
@@ -228,7 +228,7 @@ function ShopConfigMenuUALSettings:onClickBinaryOption(id, control, direction)
 	end
 	
 	if control == self.enableAutoloadCheckBox then
-		vehicle.isAutoloadAvailable = not direction
+		vehicle.autoloadDisabled = direction
 		self:updateSettings()
 	elseif control == self.horizontalLoadingCheckBox then
 		vehicle.horizontalLoading = not direction
