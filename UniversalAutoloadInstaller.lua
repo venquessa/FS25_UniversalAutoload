@@ -19,18 +19,27 @@ TypeManager.validateTypes = Utils.appendedFunction(TypeManager.validateTypes, fu
 end)
 
 local ROOT = getmetatable(_G).__index
+-- DETECT SOLD LOGS
 ROOT.delete = Utils.appendedFunction(ROOT.delete, function(nodeId)
 	if UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] then
-		-- print("DELETED SPLITSHAPE " .. tostring(nodeId))
 		local object = UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] 
 		UniversalAutoload.clearPalletFromAllVehicles(nil, object)
 		UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] = nil
 	end
 end)
-
+-- DETECT SPAWNED LOGS
+ROOT.addToPhysics = Utils.appendedFunction(ROOT.addToPhysics, function(nodeId)
+	if nodeId ~= 0 and nodeId ~= nil then
+		if getRigidBodyType(nodeId) == RigidBodyType.DYNAMIC and getSplitType(nodeId) ~= 0 then
+			if not UniversalAutoload.createdLogId and UniversalAutoload.createdTreeId and nodeId > UniversalAutoload.createdTreeId then
+				UniversalAutoload.createdLogId = nodeId
+			end
+		end
+	end
+end)
+-- DETECT CUT LOGS
 SplitShapeUtil.splitShape = Utils.appendedFunction(SplitShapeUtil.splitShape, function(nodeId)
 	if UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] then
-		-- print("DO SPLIT SPLITSHAPE " .. tostring(nodeId))
 		local object = UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] 
 		UniversalAutoload.clearPalletFromAllVehicles(nil, object)
 		UniversalAutoload.SPLITSHAPES_LOOKUP[nodeId] = nil
@@ -1654,72 +1663,29 @@ end
 function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
 
 	local length = nil
-	local treeTypeName = "TRANSPORT"
+	local treeTypeName = "LODGEPOLEPINE"
 	
 	if tonumber(arg1) then
 		length = tonumber(arg1)
-		treeTypeName = arg2
+		treeTypeName = arg2 or treeTypeName
 	elseif tonumber(arg2) then
 		length = tonumber(arg2)
-		treeTypeName = arg1
-	elseif arg1 ~= nil then
-		treeTypeName = arg1
+		treeTypeName = arg1 or treeTypeName
+	else
+		treeTypeName = arg1 or treeTypeName
 	end
 	
 	local availableLogTypes = {
-		TRANSPORT = 20,
-		
-		-- OAK = 3.3,
-		-- ELM = 3.5,
-		-- PINE = 30,
-		-- BIRCH = 5,
-		-- MAPLE = 2,
-		-- POPLAR = 18,
-		-- SPRUCE = 34,
-		-- WILLOW = 2.5,
-		-- CYPRESS = 2.5,
-		-- HICKORY = 4.2,
-		-- STONEPINE = 8,
+		OAK = 3.2,
+		ASPEN= 10,
+		BEECH = 10,
+		RAVAGED = 8,
+		DEADWOOD = 16,
+		TRANSPORT = 8,
+		LODGEPOLEPINE = 30,
+		SHAGBARKHICKORY = 4,
+		PINUSTABULIFORMIS = 10,
 	}
-
---        OAK :: table: 0x0000014100525398
---        APPLE :: table: 0x0000014100776008
---        ASPEN :: table: 0x0000014100776548
---        BEECH :: table: 0x0000014100525458
---        CHERRY :: table: 0x0000014100775798
---        RAVAGED :: table: 0x000001410078c968
---        BOXELDER :: table: 0x00000141007758b8
---        DEADWOOD :: table: 0x0000014100776878
---        TRANSPORT :: table: 0x00000141007765a8
---        CHINESEELM :: table: 0x00000141007755e8
---        GOLDENRAIN :: table: 0x0000014100775438
---        AMERICANELM :: table: 0x0000014100524048
---        LODGEPOLEPINE :: table: 0x0000014100776a88
---        BETULAERMANII :: table: 0x0000014100775eb8
---        TILIAAMURENSIS :: table: 0x000001410078c9f8
---        JAPANESEZELKOVA :: table: 0x00000141007753d8
---        NORTHERNCATALPA :: table: 0x0000014100774f58
---        PINUSSYLVESTRIS :: table: 0x000001410078c2d8
---        SHAGBARKHICKORY :: table: 0x0000014100777f28
---        DOWNYSERVICEBERRY :: table: 0x0000014100522db8
---        PINUSTABULIFORMIS :: table: 0x000001410078c788
-
---        ASH :: table: 0x0000014100525008
---        PINE :: table: 0x00000141005264a8
---        MAPLE :: table: 0x00000141005253f8
---        LARCH :: table: 0x0000014100525ea8
---        BIRCH :: table: 0x0000014100525b48
---        LOCUST :: table: 0x0000014100524fd8
---        SPRUCE :: table: 0x00000141004f2968
---        POPLAR :: table: 0x0000014100524078
---        WILLOW :: table: 0x0000014100777148
---        CYPRESS :: table: 0x0000014100523da8
---        MAHOGANY :: table: 0x00000141005247f8
---        OLIVETREE :: table: 0x0000014100777058
---        STONEPINE :: table: 0x0000014100777538
---        PAGODADOGWOOD :: table: 0x0000014100522a58
---        PONDEROSAPINE :: table: 0x0000014100776a58
-
 
 	treeTypeName = string.upper(treeTypeName or "")
 	if availableLogTypes[treeTypeName]==nil then
@@ -1727,8 +1693,9 @@ function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
 	end
 	
 	local maxLength = availableLogTypes[treeTypeName]
-	if treeTypeName == 'ELM' then treeTypeName = 'AMERICANELM' end
+	if treeTypeName == 'PINE' then treeTypeName = 'LODGEPOLEPINE' end
 	if treeTypeName == 'HICKORY' then treeTypeName = 'SHAGBARKHICKORY' end
+	if treeTypeName == 'PINUS' then treeTypeName = 'PINUSTABULIFORMIS' end
 	if length == nil then length = maxLength end
 	if length > maxLength then
 		print("using maximum length " .. maxLength .. "m")
@@ -1749,8 +1716,7 @@ function UniversalAutoloadManager:consoleAddLogs(arg1, arg2)
 						length = maxSingleLength - 0.1
 						print("resizing to fit trailer " .. length .. "m")
 					end
-					local growthState = 5 --math.random(5,15)
-					if UniversalAutoload.createLogs(vehicle, length, treeTypeName, growthState) then
+					if UniversalAutoload.createLogs(vehicle, length, treeTypeName) then
 						count = count + 1
 					end
 				end

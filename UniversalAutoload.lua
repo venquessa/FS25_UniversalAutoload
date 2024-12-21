@@ -2388,13 +2388,14 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 					if not UniversalAutoload.spawningLog then
 						log = spec.logToSpawn
 						spec.spawnedLogId = UniversalAutoload.createLog(self, log.length, log.treeType, log.growthState)
-						UniversalAutoload.createdLogId = spec.spawnedLogId
+						UniversalAutoload.createdLogId = nil
+						UniversalAutoload.createdTreeId = spec.spawnedLogId
 						if spec.spawnedLogId == nil then
 							spec.spawnLogsDelayTime = 0
 						end
 					end
 				else
-					if UniversalAutoload.createdLogId then
+					if UniversalAutoload.createdLogId and #g_treePlantManager.loadTreeTrunkDatas == 0 then
 
 						local logId = UniversalAutoload.createdLogId
 						if entityExists(logId) then
@@ -2419,6 +2420,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 							spec.spawnedLogId = nil
 							UniversalAutoload.spawningLog = false
 							UniversalAutoload.createdLogId = nil
+							UniversalAutoload.createdTreeId = nil
 							print("..error spawning log - aborting!")
 						end
 					end
@@ -3436,7 +3438,8 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	else
 		spec.currentLoadWidth = spec.currentLoadWidth + addedLoadWidth
 		
-		if spec.lastAddedLoadLength and spec.lastAddedLoadLength < addedLoadLength then
+		if spec.lastAddedLoadLength and spec.lastAddedLoadLength < addedLoadLength and not containerType.isSplitShape then
+			print("EXCEEDED LAST ADDED LOAD LENGTH")
 			-- local difference = addedLoadLength - spec.lastAddedLoadLength
 			-- spec.currentLoadLength = spec.currentLoadLength + difference
 			-- spec.lastAddedLoadLength = addedLoadLength
@@ -4854,15 +4857,31 @@ function UniversalAutoload:createLog(length, treeType, growthState)
 	dirX, dirY, dirZ = localDirectionToWorld(spec.loadVolume.rootNode, 0, 0, 1)
 	y = y + 20
 
-	local variationIndex = 0
-	local treeTypeDesc = g_treePlantManager.nameToTreeType[treeType]
-	local treeId, splitShapeFileId = g_treePlantManager:loadTreeNode(treeTypeDesc, x, y, z, 0, 0, 0, growthState, variationIndex)
-
+	local length = tonumber(length)
+	local usage = "gsTreeAdd length [type (available: " .. table.concatKeys(g_treePlantManager.nameToTreeType, " ") .. ")] [growthState] [delimb true/false]"
+	if length == nil then
+		print("No length given")
+		return
+	end
+	if treeType == nil then
+		treeType = "beech"
+		growthState = 7
+	end
+	local treeTypeDesc = g_treePlantManager:getTreeTypeDescFromName(treeType)
+	if treeTypeDesc == nil then
+		print("Invalid tree type: " .. treeType)
+		return
+	end
+	local growthState = tonumber(growthState) or #treeTypeDesc.stages
+	local growthStateI = math.clamp(growthState, 1, #treeTypeDesc.stages)
+	local variationIndex = math.random(1, #treeTypeDesc.stages[growthStateI])
+	
+	local treeId, splitShapeFileId = g_treePlantManager:loadTreeNode(treeTypeDesc, x, y, z, 0, 0, 0, growthStateI, variationIndex)
 	if treeId ~= 0 then
 		if getFileIdHasSplitShapes(splitShapeFileId) then
 			local tree = {
 				["node"] = treeId,
-				["growthStateI"] = growthState,
+				["growthStateI"] = growthStateI,
 				["variationIndex"] = variationIndex,
 				["x"] = x,
 				["y"] = y,
@@ -4874,8 +4893,9 @@ function UniversalAutoload:createLog(length, treeType, growthState)
 				["splitShapeFileId"] = splitShapeFileId,
 				["hasSplitShapes"] = true
 			}
-			table.insert(g_treePlantManager.treesData.splitTrees, tree)
-
+			local splitTrees = g_treePlantManager.treesData.splitTrees
+			table.insert(splitTrees, tree)
+			
 			local loadTreeTrunkData = {
 				["framesLeft"] = 2,
 				["shape"] = treeId + 2,
@@ -4888,17 +4908,16 @@ function UniversalAutoload:createLog(length, treeType, growthState)
 				["dirY"] = dirY,
 				["dirZ"] = dirZ,
 				["delimb"] = true,
-				["useOnlyStump"] = false,
+				["useOnlyStump"] = nil,
 				["cutTreeTrunkCallback"] = TreePlantManager.cutTreeTrunkCallback
 			}
-			-- table.insert(g_treePlantManager.loadTreeTrunkDatas, loadTreeTrunkData)
+			local loadTreeTrunkDatas = g_treePlantManager.loadTreeTrunkDatas
+			table.insert(loadTreeTrunkDatas, loadTreeTrunkData)
 			
-		else
-			delete(treeId)
+			return treeId + 2
 		end
+		delete(treeId)
 	end
-	
-	return treeId + 2
 end
 --
 function UniversalAutoload:createLogs(length, treeType, growthState)
