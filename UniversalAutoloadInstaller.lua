@@ -373,7 +373,11 @@ function UniversalAutoloadManager.getConfigSettingsPosition(targetFileName, targ
 					end
 					local selectedConfigs = xmlFile:getValue(configKey .. "#selectedConfigs", "MISSING")
 					print("selectedConfigs: " .. selectedConfigs)
-					if selectedConfigs == UniversalAutoload.ALL then
+					local isMatchAny = selectedConfigs == UniversalAutoload.ALL
+					-- local hasPipeChar = tostring(targetConfigId):find("|")
+					-- local isMatchFull = hasPipeChar and targetConfigId == selectedConfigs
+					-- local isMatchPart = not hasPipeChar and tostring(targetConfigId):find(selectedConfigs)
+					if isMatchAny then
 						print("FOUND 'ALL' CONFIG AT #" .. j+1)
 						break
 					elseif selectedConfigs:find(tostring(targetConfigId)) then
@@ -403,7 +407,14 @@ function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(exportSpec, c
 	if index then
 		local key = string.format(UniversalAutoload.vehicleKey, index)
 		local configKey = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
-		configId = xmlFile:getValue(configKey .. "#selectedConfigs") or configId
+		
+		local fileSelectedConfigs = xmlFile:getValue(configKey .. "#selectedConfigs")
+		if fileSelectedConfigs == UniversalAutoload.ALL and exportSpec.useConfigName then
+			print("SETTINGS FILE using: " .. fileSelectedConfigs)
+			print(" configId: " .. configId)
+			print(" useConfigName: " .. exportSpec.useConfigName)
+		end
+
 		print("UPDATE CONFIG #" .. index + 1 .. " == " .. configId .. " (#" ..subIndex + 1 .. ")")
 		while true do
 			local loadAreaKey = string.format("%s.loadingArea(%d)", configKey, 0)
@@ -420,18 +431,23 @@ function UniversalAutoloadManager.getVehicleConfigIndexesForSaving(exportSpec, c
 		xmlFile:setValue(key.."#configFileName", configFileName)
 	end
 	
+	if exportSpec.useConfigName then
+		local key = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
+		xmlFile:setValue(key.."#useConfigName", exportSpec.useConfigName)
+	end
+
+	print("USING CONFIG SUB-INDEX: #" .. subIndex .. " (" .. configId .. ")")
+	local key = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
+	xmlFile:setValue(key.."#selectedConfigs", tostring(configId))
+	if exportSpec.useConfigName then
+		print("useConfigName: " .. tostring(exportSpec.useConfigName))
+		xmlFile:setValue(key.."#useConfigName", tostring(exportSpec.useConfigName))
+	end
+	
 	if not UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
 		UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] = {}
 	end
-
 	if not UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId] then
-		print("USING CONFIG SUB-INDEX: #" .. subIndex .. " (" .. configId .. ")")
-		local key = string.format(UniversalAutoload.vehicleConfigKey, index, subIndex)
-		xmlFile:setValue(key.."#selectedConfigs", tostring(configId))
-		if exportSpec.useConfigName then
-			print("useConfigName: " .. tostring(exportSpec.useConfigName))
-			xmlFile:setValue(key.."#useConfigName", tostring(exportSpec.useConfigName))
-		end
 		UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][configId] = {}
 	end
 	
@@ -446,11 +462,19 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 	end
 
 	local configFileName, selectedConfigs
+	local didReplaceUseConfigId =  false
 	
 	if spec.selectedConfigs and spec.configFileName then
 		print("WAS ALREADY SET WITH:")
 		selectedConfigs = spec.selectedConfigs
 		configFileName = spec.configFileName
+		if spec.replaceConfigId and spec.replaceConfigId ~= spec.selectedConfigs then
+			local CONFIGS = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName]
+			CONFIGS[spec.replaceConfigId] = deepCopy(CONFIGS[spec.selectedConfigs])
+			CONFIGS[spec.selectedConfigs] = nil
+			selectedConfigs = spec.replaceConfigId
+			didReplaceUseConfigId = true
+		end
 	end
 	
 	if not selectedConfigs or not configFileName then
@@ -464,6 +488,9 @@ function UniversalAutoloadManager.getVehicleConfigNames(vehicle)
 	print(" configFileName = " .. tostring(configFileName))
 	print(" selectedConfig = " .. tostring(selectedConfigs))
 	print(" useConfigName = " .. tostring(spec.useConfigName))
+	if didReplaceUseConfigId then
+		print(" *** REPLACED " .. spec.selectedConfigs .. " with " .. spec.replaceConfigId .. " for saving ***")
+	end
 	
 	return configFileName, selectedConfigs
 end
@@ -520,17 +547,19 @@ function UniversalAutoloadManager.saveVehicleConfigToSettingsXML(exportSpec, con
 			end
 			xmlFile:save()
 			
-			print("UPDATE CONFIG IN MEMORY")
+			print("UPDATE CONFIG IN MEMORY - " .. configId)
 			local CONFIGS = UniversalAutoload.VEHICLE_CONFIGURATIONS
 			local config = CONFIGS[configFileName][configId]
 			for k, v in pairs(UniversalAutoload.OPTIONS_DEFAULTS) do
 				local id = v.id
-				config[id] = exportSpec[id]
+				config[id] = exportSpec[id] or v.default
 			end
 			config.loadArea = {}
 			for i, loadArea in (exportSpec.loadArea) do
 				config.loadArea[i] = deepCopy(exportSpec.loadArea[i])
 			end
+			config.configFileName = configFileName
+			config.selectedConfigs = configId
 			
 		else
 			print("DID NOT SAVE SETTINGS - loading area was missing")
@@ -639,9 +668,10 @@ function UniversalAutoloadManager.importVehicleConfigurations(xmlFilename)
 					local useConfigName = xmlFile:getValue(configKey.."#useConfigName", nil)
 					
 					if useConfigName == nil and tostring(selectedConfigs):find("|") then
-						local oldConfig = selectedConfigs
+						configuration.originalSelectedConfigs = selectedConfigs
 						selectedConfigs = tostring(selectedConfigs):match("^(.-)|")
-						print("*** SUGGEST REPAIRING CONFIG: " .. oldConfig .. " - using " .. selectedConfigs .. " ***")
+						print(" *** SUGGEST REPAIRING CONFIG: '" .. configuration.originalSelectedConfigs
+							.. "' - using '" .. selectedConfigs .. "' OR specify useConfigName='design' ***")
 					end
 
 					if not configGroup[selectedConfigs] then
@@ -687,13 +717,13 @@ function UniversalAutoloadManager.getValidConfigurationId(vehicle)
 		return
 	end
 	
-    local configName = spec.useConfigName
-    local configId = configName and vehicle.configurations[configName] and tostring(vehicle.configurations[configName]) or nil
+    local useConfigName = spec.useConfigName
+    local configName = useConfigName and vehicle.configurations[useConfigName] and tostring(vehicle.configurations[useConfigName]) or nil
     local configurationSets = item.configurationSets or {}
 
     if #configurationSets == 0 then
-        local fullConfigId = UniversalAutoload.ALL .. (configId and ("|" .. configId) or "")
-        return fullConfigId, "UNIQUE"
+        local fullConfigId = UniversalAutoload.ALL .. (configName and ("|" .. configName) or "")
+        return fullConfigId, "UNIQUE" .. (useConfigName and ("|" .. useConfigName) or "")
     end
 
     local bestMatch = { index = nil, count = 0, name = nil }
@@ -709,7 +739,7 @@ function UniversalAutoloadManager.getValidConfigurationId(vehicle)
         end
 
         if match then
-            local fullConfigId = i .. (configId and ("|" .. configId) or "")
+            local fullConfigId = i .. (configName and ("|" .. configName) or "")
             return fullConfigId, config.name
         elseif count > bestMatch.count then
             bestMatch = { index = i, count = count, name = config.name }
@@ -717,7 +747,7 @@ function UniversalAutoloadManager.getValidConfigurationId(vehicle)
     end
 
     if bestMatch.index then
-        local fullConfigId = bestMatch.index .. (configId and ("|" .. configId) or "")
+        local fullConfigId = bestMatch.index .. (configName and ("|" .. configName) or "")
         return fullConfigId, bestMatch.name
     end
 end
@@ -912,6 +942,18 @@ function(self, yes)
 	if yes == true then
 		UniversalAutoloadManager.exportVehicleConfigToServer(vehicle)
 	end
+end)
+
+-- ENABLE WORKSHOP CONFIG BUTTON FOR AUTOLOAD VEHICLES
+ShopConfigScreen.getConfigurationCostsAndChanges = Utils.overwrittenFunction(ShopConfigScreen.getConfigurationCostsAndChanges,
+function(self, superFunc, storeItem, vehicle, saleItem)
+	local basePrice, upgradePrice, hasChanges = superFunc(self, storeItem, vehicle, saleItem)
+	
+	local spec = vehicle.spec_universalAutoload
+	if spec and spec.isAutoloadAvailable then
+		hasChanges = true
+	end
+	return basePrice, upgradePrice, hasChanges
 end)
 
 function UniversalAutoloadManager.injectGlobalMenu()
@@ -1401,6 +1443,9 @@ function UniversalAutoloadManager.addLocalConfigIfAvailable(vehicle)
 	if configFileName == "data/vehicles/international/cvSeries/cvSeries.xml" then
 		spec.useConfigName = "enterablePassenger"
 	end
+	if configFileName == "data/vehicles/riedler/timberTrailer3A/timberTrailer3A.xml" then
+		spec.useConfigName = "design"
+	end
 
 	local configId, description = UniversalAutoloadManager.getValidConfigurationId(vehicle)
 	if configId then
@@ -1432,9 +1477,11 @@ function UniversalAutoloadManager.addLocalConfigIfAvailable(vehicle)
 
 		local configGroup = UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName]
 		if configGroup then
+			print("configId: " .. configId)
 			for selectedConfigs, config in pairs(configGroup) do
 				local selectedConfigsList = tostring(selectedConfigs):split(",")
 				for _, configListPart in pairs(selectedConfigsList) do
+					print("configListPart: " .. configListPart)
 					local isMatchAny = configListPart == UniversalAutoload.ALL
 					local hasPipeChar = tostring(configId):find("|")
 					local isMatchFull = hasPipeChar and configId == configListPart
@@ -1442,15 +1489,26 @@ function UniversalAutoloadManager.addLocalConfigIfAvailable(vehicle)
 					if isMatchAny or isMatchPart or isMatchFull then
 						if config and config.loadArea and #config.loadArea > 0 then
 							print("*** USING CONFIG FROM SETTINGS - "..selectedConfigs.." for #"..configId.." ("..description..") ***")
+							
+							if isMatchAny and hasPipeChar and not isMatchFull then
+								print("useConfigName '" .. tostring(spec.useConfigName) .. "' was MISSING for " .. configId)
+								spec.replaceConfigId = configId
+							end
+							
 							for id, value in pairs(deepCopy(config)) do
+								print(" >> " .. tostring(id) .. " = " .. tostring(value))
 								spec[id] = value
 							end
 							configurationAdded = true
+							break
 						else
 							print("*** LOAD AREA MISSING FROM CONFIG - please check mod settings file ***")
 							DebugUtil.printTableRecursively(config, "  --", 0, 2)
 						end
 					end
+				end
+				if configurationAdded == true then
+					break
 				end
 			end
 			

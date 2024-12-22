@@ -33,7 +33,7 @@ function ShopConfigMenuUALSettings:updateSettings()
 	local settings = self.ualShopConfigSettingsLayout
 	
 	local isValid = vehicle ~= nil
-	local isEnabled = vehicle and vehicle.autoloadDisabled == false
+	local isEnabled = vehicle and vehicle.autoloadDisabled ~= true
 	for _, item in pairs(settings.elements) do
 		if item.name ~= "enableAutoload" then
 			item:setVisible(isEnabled)

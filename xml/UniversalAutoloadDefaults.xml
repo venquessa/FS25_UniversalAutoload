@@ -108,9 +108,29 @@
             </configuration>
         </vehicle>
         <vehicle configFileName="data/vehicles/riedler/timberTrailer3A/timberTrailer3A.xml">
-            <configuration selectedConfigs="ALL">
+            <configuration useConfigName="design" selectedConfigs="ALL|1">
                 <options isLogTrailer="true"/>
-                <loadingArea offset="0.015 1.259 -1.315" width="2.280" length="6.635" height="2.935"/>
+                <loadingArea offset="0.015 1.200 -1.184" width="2.065" length="6.050" height="3.000"/>
+            </configuration>
+            <configuration useConfigName="design" selectedConfigs="ALL|2">
+                <options isLogTrailer="true"/>
+                <loadingArea offset="0.015 1.200 -1.182" width="2.065" length="6.280" height="3.000"/>
+            </configuration>
+            <configuration useConfigName="design" selectedConfigs="ALL|3">
+                <options isLogTrailer="true"/>
+                <loadingArea offset="0.015 1.200 -1.466" width="2.065" length="6.800" height="3.000"/>
+            </configuration>
+            <configuration useConfigName="design" selectedConfigs="ALL|4">
+                <options isLogTrailer="true"/>
+                <loadingArea offset="0.015 1.200 -1.837" width="2.065" length="7.650" height="3.000"/>
+            </configuration>
+            <configuration useConfigName="design" selectedConfigs="ALL|5">
+                <options isLogTrailer="true"/>
+                <loadingArea offset="0.015 1.200 -2.036" width="2.065" length="8.050" height="3.000"/>
+            </configuration>
+            <configuration useConfigName="design" selectedConfigs="ALL|6">
+                <options isLogTrailer="true"/>
+                <loadingArea offset="0.015 1.200 -2.257" width="2.065" length="8.550" height="3.000"/>
             </configuration>
         </vehicle>
     </vehicleConfigurations>
