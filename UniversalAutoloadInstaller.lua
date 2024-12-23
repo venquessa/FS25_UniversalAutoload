@@ -767,7 +767,7 @@ function UniversalAutoloadManager.saveConfigurationToSettings(exportSpec, config
 	UniversalAutoload.UpdateDefaultSettingsEvent.sendEvent(exportSpec, configFileName, configId, noEventSend)
 end
 
-function UniversalAutoloadManager.exportVehicleConfigToServer(vehicle)
+function UniversalAutoloadManager.exportVehicleConfigToServer()
 	
 	if g_localPlayer and g_localPlayer.isClient then
 		
@@ -933,14 +933,14 @@ ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNo
 function(self, yes)
 	print("onYesNoLease: " .. tostring(yes))
 	if yes == true then
-		UniversalAutoloadManager.exportVehicleConfigToServer(vehicle)
+		UniversalAutoloadManager.exportVehicleConfigToServer()
 	end
 end)
 ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBuy,
 function(self, yes)
 	print("onYesNoBuy: " .. tostring(yes))
 	if yes == true then
-		UniversalAutoloadManager.exportVehicleConfigToServer(vehicle)
+		UniversalAutoloadManager.exportVehicleConfigToServer()
 	end
 end)
 

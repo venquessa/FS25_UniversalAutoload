@@ -246,10 +246,14 @@ end
 
 function ShopConfigMenuUALSettings.inputEvent(self, action, value, direction)
 	if action == InputAction.MENU_BACK then
-		-- print("INPUT MENU_BACK")
 		self:onClickClose()
 		return true
 	end
+	if action == InputAction.MENU_ACCEPT then
+		self:onClickSave()
+		return true
+	end
+	print("action: " .. tostring(action))
 end
 
 function ShopConfigMenuUALSettings:onOpen()
@@ -261,6 +265,19 @@ end
 function ShopConfigMenuUALSettings:onClose()
 	print("ShopConfigMenu: onClose")
 	self.isActive = false
+end
+
+function ShopConfigMenuUALSettings:onClickSave()
+	print("CLICKED SAVE")
+	g_inputBinding:setShowMouseCursor(true)
+	self:playSample(GuiSoundPlayer.SOUND_SAMPLES.CLICK)
+	local text = g_i18n:getText("ui_confirm_save_config_ual")
+	local callback = function(self, yes)
+		if yes == true then
+			UniversalAutoloadManager.exportVehicleConfigToServer()
+		end
+	end
+	YesNoDialog.show(callback, self, text, nil, nil, nil, nil, nil, nil, nil, true)
 end
 
 function ShopConfigMenuUALSettings:onClickClose()
