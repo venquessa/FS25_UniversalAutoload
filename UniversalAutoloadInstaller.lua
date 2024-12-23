@@ -949,7 +949,7 @@ ShopConfigScreen.getConfigurationCostsAndChanges = Utils.overwrittenFunction(Sho
 function(self, superFunc, storeItem, vehicle, saleItem)
 	local basePrice, upgradePrice, hasChanges = superFunc(self, storeItem, vehicle, saleItem)
 	
-	local spec = vehicle.spec_universalAutoload
+	local spec = vehicle and vehicle.spec_universalAutoload
 	if spec and spec.isAutoloadAvailable then
 		hasChanges = true
 	end
