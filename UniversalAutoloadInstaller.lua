@@ -206,7 +206,7 @@ UniversalAutoload.SAVEGAME_STATE_DEFAULTS = {
 	{id="layerCount", default=0, valueType="INT", key="#layerCount"}, --Number of layers that are currently loaded
 	{id="layerHeight", default=0, valueType="FLOAT", key="#layerHeight"}, --Total height of the currently loaded layers
 	{id="nextLayerHeight", default=0, valueType="FLOAT", key="#nextLayerHeight"}, --Height for the next layer (highest point in previous layer)
-	{id="lastLoadLength", default=0, valueType="INT", key="#lastLoadLength"}, --Length of the last loaded object
+	{id="lastLoadLength", default=0, valueType="FLOAT", key="#lastLoadLength"}, --Length of the last loaded object
 	{id="loadAreaIndex", default=1, valueType="INT", key="#loadAreaIndex"}, --Last used load area
 	{id="materialIndex", default=1, valueType="INT", key="#materialIndex"}, --Last used material type
 	{id="containerIndex", default=1, valueType="INT", key="#containerIndex"}, --Last used container type
