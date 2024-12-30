@@ -1604,6 +1604,7 @@ function UniversalAutoload:onLoad(savegame)
 	-- print("SPEC")
 	-- DebugUtil.printTableRecursively(spec, "--", 0, 1)
 
+	print("onLoad: " .. tostring(netGetTime()))
 end
 
 -- "ON POST LOAD" CALLED AFTER VEHICLE IS LOADED (not when buying)
@@ -2184,24 +2185,34 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 				spec.wasResetToDefault = true
 			end
 			
-			if spec.selectedConfigs and not spec.wasResetToDefault then
-				UniversalAutoloadManager.resetLoadingVolumeForShopEdit(self)
-			else
-				UniversalAutoloadManager.createLoadingVolumeInsideShop(self)
-				if spec.wasResetToDefault then
-					local configFileName = spec.configFileName
-					local selectedConfigs = spec.selectedConfigs
-					if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
-						print("*** RESET TO DEFAULT CONFIG ***")
-						UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][selectedConfigs] = nil
-						spec.selectedConfigs = nil
-						spec.wasResetToDefault = nil
+			if not spec.loadingVolume or spec.loadingVolume.state < LoadingVolume.STATE.SHOP_CONFIG then
+				print("doUpdate: " .. tostring(netGetTime()))
+				if spec.selectedConfigs and not spec.wasResetToDefault then
+					print("resetLoadingVolumeForShopEdit")
+					UniversalAutoloadManager.resetLoadingVolumeForShopEdit(self)
+				else
+					print("createLoadingVolumeInsideShop")
+					UniversalAutoloadManager.createLoadingVolumeInsideShop(self)
+					if spec.wasResetToDefault then
+						local configFileName = spec.configFileName
+						local selectedConfigs = spec.selectedConfigs
+						if configFileName and selectedConfigs and UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName] then
+							print("*** RESET TO DEFAULT CONFIG ***")
+							UniversalAutoload.VEHICLE_CONFIGURATIONS[configFileName][selectedConfigs] = nil
+							spec.selectedConfigs = nil
+							spec.wasResetToDefault = nil
+						end
 					end
 				end
-			end
+			end --else
 
 			if spec.loadingVolume then
 				spec.loadingVolume:draw(true)
+				if spec.loadingVolume.state == LoadingVolume.STATE.ERROR then
+					print("*** ERROR DETECTING LOADING AREA - ABORTING ***")
+					spec.isAutoloadAvailable = false
+					return
+				end
 				if spec.loadingVolume.state == LoadingVolume.STATE.SHOP_CONFIG then
 					UniversalAutoloadManager.editLoadingVolumeInsideShop(self)
 				end

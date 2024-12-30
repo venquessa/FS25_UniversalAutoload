@@ -771,6 +771,13 @@ end
 function UniversalAutoloadManager.exportVehicleConfigToServer()
 	
 	if g_localPlayer and g_localPlayer.isClient then
+
+		print("SAVE SETTINGS FROM SHOP VEHICLE")
+		local shopVolume = UniversalAutoloadManager.shopConfig and UniversalAutoloadManager.shopConfig.loadingVolume
+		if not shopVolume or not shopVolume.bbs then
+			print("NOTHING TO SAVE: shopVolume or shopVolume.bbs is nil")
+			return
+		end
 		
 		local exportVehicle = nil
 		if UniversalAutoloadManager.shopVehicle then
@@ -788,13 +795,6 @@ function UniversalAutoloadManager.exportVehicleConfigToServer()
 				print("Autoload is DISABLED for this vehicle")
 			end
 
-			print("SAVE SETTINGS FROM SHOP VEHICLE")
-			local shopVolume = UniversalAutoloadManager.shopConfig.loadingVolume
-			if not shopVolume or not shopVolume.bbs then
-				print("ERROR: shopVolume or shopVolume.bbs is nil")
-				return
-			end
-			
 			print("..convert shop volume to loading area")
 			local exportSpec = exportVehicle.spec_universalAutoload
 			exportSpec.loadArea = {}
@@ -1560,6 +1560,7 @@ function UniversalAutoloadManager.handleNewVehicleCreation(vehicle)
 		print("UAL - new vehicle should have SPEC here " .. tostring(vehicle and vehicle.rootNode))
 		return
 	end
+	print("handleNewVehicleCreation: " .. tostring(netGetTime()))
 
 	local configurationAdded = UniversalAutoloadManager.addLocalConfigIfAvailable(vehicle)
 		
