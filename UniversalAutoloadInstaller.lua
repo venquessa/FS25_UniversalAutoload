@@ -889,6 +889,7 @@ function UniversalAutoloadManager:ualInputCallback(target)
 	print("UAL SHOP INPUT CALLBACK")
 	UniversalAutoloadManager:onOpenSettingsEvent('UNIVERSALAUTOLOAD_SHOP_CONFIG', 1)
 end
+ShopConfigScreen.ualInputCallback = UniversalAutoloadManager.ualInputCallback
 
 function UniversalAutoloadManager:onOpenSettingsEvent(actionName, inputValue, callbackState, isAnalog)
 	-- print("onOpenSettingsEvent")
@@ -926,24 +927,24 @@ function UniversalAutoloadManager.onSetStoreItem()
 		UniversalAutoloadManager.shopCongfigMenu:setNewVehicle(nil)
 	end
 end
-
 ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.onSetStoreItem)
-ShopConfigScreen.ualInputCallback = Utils.prependedFunction(ShopConfigScreen.ualInputCallback, UniversalAutoloadManager.ualInputCallback)
 
-ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease,
-function(self, yes)
-	print("onYesNoLease: " .. tostring(yes))
+function UniversalAutoloadManager.onInputEvent(self, action, value, eventUsed)
+	if not eventUsed and action == InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG then
+		UniversalAutoloadManager:ualInputCallback(target)
+		eventUsed = true
+	end
+	return eventUsed
+end
+ShopConfigScreen.inputEvent = Utils.appendedFunction(ShopConfigScreen.inputEvent, UniversalAutoloadManager.onInputEvent)
+
+function UniversalAutoloadManager.onBuyEvent(self, yes)
 	if yes == true then
 		UniversalAutoloadManager.exportVehicleConfigToServer()
 	end
-end)
-ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBuy,
-function(self, yes)
-	print("onYesNoBuy: " .. tostring(yes))
-	if yes == true then
-		UniversalAutoloadManager.exportVehicleConfigToServer()
-	end
-end)
+end
+ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBuy, UniversalAutoloadManager.onBuyEvent)
+ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease, UniversalAutoloadManager.onBuyEvent)
 
 -- ENABLE WORKSHOP CONFIG BUTTON FOR AUTOLOAD VEHICLES
 ShopConfigScreen.getConfigurationCostsAndChanges = Utils.overwrittenFunction(ShopConfigScreen.getConfigurationCostsAndChanges,
@@ -958,7 +959,7 @@ function(self, superFunc, storeItem, vehicle, saleItem)
 end)
 
 function UniversalAutoloadManager.injectGlobalMenu()
-	-- print("UAL - injectGlobalMenu")
+	print("UAL - injectGlobalMenu")
 	
 	local function fixInGameMenu(frame, pageName, position, predicateFunc)
 		local inGameMenu = g_gui.screenControllers[InGameMenu] --g_inGameMenu
@@ -1024,12 +1025,40 @@ function UniversalAutoloadManager.injectGlobalMenu()
 
 	local modSettings = ModSettingsMenu.register()
 	
-	local function isEnabledPredicate()
-		return function () return true end
-	end
-	fixInGameMenu(modSettings,"ModSettingsMenu", 2, isEnabledPredicate())
-	
+	-- local function isEnabledPredicate()
+		-- return function () return true end
+	-- end
+	-- fixInGameMenu(modSettings,"ModSettingsMenu", 2, isEnabledPredicate())
+
 end
+
+InGameMenuSettingsFrame.initializeSubCategoryPages = Utils.prependedFunction(InGameMenuSettingsFrame.initializeSubCategoryPages,
+function(self) 
+	print("initializeSubCategoryPages")
+	local N = 1
+	for _ in pairs(InGameMenuSettingsFrame.SUB_CATEGORY) do
+		N = N + 1
+	end
+	InGameMenuSettingsFrame.SUB_CATEGORY["AUTOLOAD_SETTINGS"] = N
+	InGameMenuSettingsFrame.HEADER_TITLES[N] = "AUTOLOAD SETTINGS"
+	InGameMenuSettingsFrame.HEADER_SLICES[N] = "gui.icon_options_device"
+	
+	local other = g_inGameMenu.subCategoryBox.elements[2]
+	local ualMenu = other:clone(other.parent)
+	
+	--subCategoryTabs[N] = deepCopy(subCategoryTabs[2])
+	ualMenu.id = string.format("subCategoryTabs[%d]", N)
+	ualMenu.text = "MOD SETTINGS"
+	
+	g_inGameMenu.subCategoryBox.elements[N] = ualMenu
+	
+	-- print("*******subCategoryBox.elements[2]*******")
+	-- DebugUtil.printTableRecursively(g_inGameMenu.subCategoryBox.elements[2], "--", 0, 1)
+	-- print("*******subCategoryBox.elements[N]*******")
+	-- DebugUtil.printTableRecursively(g_inGameMenu.subCategoryBox.elements[N], "--", 0, 1)
+	
+end)
+
 
 function UniversalAutoloadManager:mouseEvent(posX, posY, isDown, isUp, button)
 	
