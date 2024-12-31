@@ -1032,32 +1032,32 @@ function UniversalAutoloadManager.injectGlobalMenu()
 
 end
 
-InGameMenuSettingsFrame.initializeSubCategoryPages = Utils.prependedFunction(InGameMenuSettingsFrame.initializeSubCategoryPages,
-function(self) 
-	print("initializeSubCategoryPages")
-	local N = 1
-	for _ in pairs(InGameMenuSettingsFrame.SUB_CATEGORY) do
-		N = N + 1
-	end
-	InGameMenuSettingsFrame.SUB_CATEGORY["AUTOLOAD_SETTINGS"] = N
-	InGameMenuSettingsFrame.HEADER_TITLES[N] = "AUTOLOAD SETTINGS"
-	InGameMenuSettingsFrame.HEADER_SLICES[N] = "gui.icon_options_device"
+-- InGameMenuSettingsFrame.initializeSubCategoryPages = Utils.prependedFunction(InGameMenuSettingsFrame.initializeSubCategoryPages,
+-- function(self) 
+	-- print("initializeSubCategoryPages")
+	-- local N = 1
+	-- for _ in pairs(InGameMenuSettingsFrame.SUB_CATEGORY) do
+		-- N = N + 1
+	-- end
+	-- InGameMenuSettingsFrame.SUB_CATEGORY["AUTOLOAD_SETTINGS"] = N
+	-- InGameMenuSettingsFrame.HEADER_TITLES[N] = "AUTOLOAD SETTINGS"
+	-- InGameMenuSettingsFrame.HEADER_SLICES[N] = "gui.icon_options_device"
 	
-	local other = g_inGameMenu.subCategoryBox.elements[2]
-	local ualMenu = other:clone(other.parent)
+	-- local other = g_inGameMenu.subCategoryBox.elements[2]
+	-- local ualMenu = other:clone(other.parent)
 	
-	--subCategoryTabs[N] = deepCopy(subCategoryTabs[2])
-	ualMenu.id = string.format("subCategoryTabs[%d]", N)
-	ualMenu.text = "MOD SETTINGS"
+	-- --subCategoryTabs[N] = deepCopy(subCategoryTabs[2])
+	-- ualMenu.id = string.format("subCategoryTabs[%d]", N)
+	-- ualMenu.text = "MOD SETTINGS"
 	
-	g_inGameMenu.subCategoryBox.elements[N] = ualMenu
+	-- g_inGameMenu.subCategoryBox.elements[N] = ualMenu
 	
-	-- print("*******subCategoryBox.elements[2]*******")
-	-- DebugUtil.printTableRecursively(g_inGameMenu.subCategoryBox.elements[2], "--", 0, 1)
-	-- print("*******subCategoryBox.elements[N]*******")
-	-- DebugUtil.printTableRecursively(g_inGameMenu.subCategoryBox.elements[N], "--", 0, 1)
+	-- -- print("*******subCategoryBox.elements[2]*******")
+	-- -- DebugUtil.printTableRecursively(g_inGameMenu.subCategoryBox.elements[2], "--", 0, 1)
+	-- -- print("*******subCategoryBox.elements[N]*******")
+	-- -- DebugUtil.printTableRecursively(g_inGameMenu.subCategoryBox.elements[N], "--", 0, 1)
 	
-end)
+-- end)
 
 
 function UniversalAutoloadManager:mouseEvent(posX, posY, isDown, isUp, button)
