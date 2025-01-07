@@ -932,7 +932,7 @@ ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStor
 function UniversalAutoloadManager.onInputEvent(self, superFunc, action, value, eventUsed)
 	if not eventUsed and action == InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG then
 		UniversalAutoloadManager:ualInputCallback(target)
-		return true
+		eventUsed = true
 	end
 	return superFunc(self, action, value, eventUsed)
 end
