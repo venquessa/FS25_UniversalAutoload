@@ -929,14 +929,14 @@ function UniversalAutoloadManager.onSetStoreItem()
 end
 ShopConfigScreen.setStoreItem = Utils.prependedFunction(ShopConfigScreen.setStoreItem, UniversalAutoloadManager.onSetStoreItem)
 
-function UniversalAutoloadManager.onInputEvent(self, action, value, eventUsed)
+function UniversalAutoloadManager.onInputEvent(self, superFunc, action, value, eventUsed)
 	if not eventUsed and action == InputAction.UNIVERSALAUTOLOAD_SHOP_CONFIG then
 		UniversalAutoloadManager:ualInputCallback(target)
-		eventUsed = true
+		return true
 	end
-	return eventUsed
+	return superFunc(self, action, value, eventUsed)
 end
-ShopConfigScreen.inputEvent = Utils.appendedFunction(ShopConfigScreen.inputEvent, UniversalAutoloadManager.onInputEvent)
+ShopConfigScreen.inputEvent = Utils.overwrittenFunction(ShopConfigScreen.inputEvent, UniversalAutoloadManager.onInputEvent)
 
 function UniversalAutoloadManager.onBuyEvent(self, yes)
 	if yes == true then
