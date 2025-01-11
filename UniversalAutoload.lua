@@ -2969,7 +2969,7 @@ function UniversalAutoload.isValidForManualLoading(object)
 	if object.isSplitShape then
 		return false
 	end
-	if object.dynamicMountObject then
+	if object.mountObject or object.dynamicMountObject then
 		return true
 	end
 	local pickedUpObject = UniversalAutoload.getObjectRootNode(object)
@@ -3321,11 +3321,29 @@ function UniversalAutoload.isLoadedOnTrain(self, object)
 end
 --
 function UniversalAutoload.unmountDynamicMount(object)
+
+	if object.mountObject then
+		if object.mountObject.removeMountedObject then
+			object.mountObject:removeMountedObject(object, true)
+		end
+		if object.mountObject.onUnmountObject then
+			object.mountObject:onUnmountObject(object)
+		end
+	end
+	
 	if object.dynamicMountObject then
 		local vehicle = object.dynamicMountObject
-		-- print("Remove Dynamic Mount from: "..vehicle:getFullName())
 		vehicle:removeDynamicMountedObject(object, true)
-		object:unmountDynamic()
+	end
+	
+	if object.unmountDynamic then
+		if object.dynamicMountType == MountableObject.MOUNT_TYPE_DYNAMIC then
+			object:unmountDynamic()
+		elseif object.dynamicMountType == MountableObject.MOUNT_TYPE_KINEMATIC then
+			object:unmountKinematic()
+		end
+		object:unmountDynamic(true)
+
 		if object.additionalDynamicMountJointNode then
 			delete(object.additionalDynamicMountJointNode)
 			object.additionalDynamicMountJointNode = nil
