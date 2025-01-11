@@ -5178,7 +5178,26 @@ function UniversalAutoload.getContainerType(object)
 
 	local objectType = UniversalAutoload.LOADING_TYPES[name]
 	UniversalAutoload.INVALID_OBJECTS = UniversalAutoload.INVALID_OBJECTS or {}
-	if objectType == nil and not UniversalAutoload.INVALID_OBJECTS[name] then
+
+	local itemIsFull = UniversalAutoload.getPalletIsFull(object)
+	UniversalAutoload.PARTIAL_OBJECTS = UniversalAutoload.PARTIAL_OBJECTS or {}
+	UniversalAutoload.OBJECT_FILL_LEVEL = UniversalAutoload.OBJECT_FILL_LEVEL or {}
+	
+	local shouldUpdateSize = objectType == nil and not UniversalAutoload.INVALID_OBJECTS[name]
+	
+	if itemIsFull == false then
+		local oldFillLevel = UniversalAutoload.OBJECT_FILL_LEVEL[object]
+		local newFillLevel = UniversalAutoload.getPalletFillLevel(object)
+		if not oldFillLevel or oldFillLevel ~= newFillLevel then
+			print("  PARTIAL FILL LEVEL: " .. newFillLevel)
+			UniversalAutoload.OBJECT_FILL_LEVEL[object] = newFillLevel
+			shouldUpdateSize = true
+		else
+			return UniversalAutoload.PARTIAL_OBJECTS[object]
+		end
+	end
+	
+	if shouldUpdateSize then
 
 		local size = nil
 		local offset = nil
@@ -5299,13 +5318,16 @@ function UniversalAutoload.getContainerType(object)
 			newType.width = math.min(newType.sizeX, newType.sizeZ)
 			newType.length = math.max(newType.sizeX, newType.sizeZ)
 			
-			if objectIsInitialised then
+			if objectIsInitialised and itemIsFull then
 				print(string.format("  >> %s [%.3f, %.3f, %.3f] - %s", newType.name,
 					newType.sizeX, newType.sizeY, newType.sizeZ, containerType ))
 				
 				UniversalAutoload.LOADING_TYPES[name] = newType
 				objectType = UniversalAutoload.LOADING_TYPES[name]
 			else
+				if itemIsFull == false then
+					UniversalAutoload.PARTIAL_OBJECTS[object] = newType
+				end
 				return newType
 			end
 			
@@ -5482,6 +5504,16 @@ function UniversalAutoload.getPalletIsFull(object)
 		end
 	end
 	return true
+end
+--
+function UniversalAutoload.getPalletFillLevel(object)
+	local total = 0
+	if object.getFillUnits then
+		for k, _ in ipairs(object:getFillUnits() or {}) do
+			total = total + object:getFillUnitFillLevel(k)
+		end
+	end
+	return total
 end
 --
 function UniversalAutoload:getMaxSingleLength()
