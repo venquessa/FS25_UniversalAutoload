@@ -947,16 +947,19 @@ ShopConfigScreen.onYesNoBuy = Utils.prependedFunction(ShopConfigScreen.onYesNoBu
 ShopConfigScreen.onYesNoLease = Utils.prependedFunction(ShopConfigScreen.onYesNoLease, UniversalAutoloadManager.onBuyEvent)
 
 -- ENABLE WORKSHOP CONFIG BUTTON FOR AUTOLOAD VEHICLES
-ShopConfigScreen.getConfigurationCostsAndChanges = Utils.overwrittenFunction(ShopConfigScreen.getConfigurationCostsAndChanges,
-function(self, superFunc, storeItem, vehicle, saleItem)
-	local basePrice, upgradePrice, hasChanges = superFunc(self, storeItem, vehicle, saleItem)
+-- ShopConfigScreen.getConfigurationCostsAndChanges = Utils.overwrittenFunction(ShopConfigScreen.getConfigurationCostsAndChanges,
+-- function(self, superFunc, storeItem, vehicle, saleItem)
+	-- local basePrice, upgradePrice, hasChanges = superFunc(self, storeItem, vehicle, saleItem)
 	
-	local spec = vehicle and vehicle.spec_universalAutoload
-	if spec and spec.isAutoloadAvailable then
-		hasChanges = true
-	end
-	return basePrice, upgradePrice, hasChanges
-end)
+	-- if hasChanges == false then
+		-- local spec = vehicle and vehicle.spec_universalAutoload
+		-- if spec and spec.isAutoloadAvailable then
+			-- hasChanges = true
+			-- UniversalAutoloadManager.resetNewVehicle = vehicle
+		-- end
+	-- end
+	-- return basePrice, upgradePrice, hasChanges
+-- end)
 
 function UniversalAutoloadManager.injectGlobalMenu()
 	print("UAL - injectGlobalMenu")
@@ -2003,7 +2006,6 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 	UniversalAutoload.clearLoadedObjects(vehicle)
 
 	local xmlFile = Vehicle.getReloadXML(vehicle)
-	local key = "vehicles.vehicle(0)"
 
 	if xmlFile ~= nil and xmlFile ~= 0 then
 		local function asyncCallbackFunction(_, newVehicle, vehicleLoadState, arguments)
@@ -2037,8 +2039,8 @@ function UniversalAutoloadManager.resetVehicle(vehicle)
 			UniversalAutoloadManager.resetNextVehicle()
 		end
 		
-		VehicleLoadingUtil.loadVehicleFromSavegameXML(xmlFile, key, true, true, nil, true, asyncCallbackFunction, nil, {})
-		--(xmlFile, key, resetVehicle, allowDelayed, xmlFilename, keepPosition, asyncCallbackFunction, asyncCallbackObject, asyncCallbackArguments)
+		local vehicleSystem = g_currentMission.vehicleSystem
+		vehicleSystem:loadFromXMLFile(xmlFile, asyncCallbackFunction, nil, {}, true, true)
 
 	end
 	return true

@@ -1766,6 +1766,16 @@ function UniversalAutoload:onDelete()
 	local shopVehicle = UniversalAutoloadManager.shopVehicle
 	if shopVehicle and self == shopVehicle then
 		print("DELETE SHOP VEHICLE: " .. shopVehicle:getFullName())
+		
+		-- local vehicle = UniversalAutoloadManager.resetNewVehicle
+		-- if vehicle then
+			-- print("RESET VEHICLE: " .. vehicle:getFullName())
+			-- print("shop vehicle: " .. tostring(shopVehicle))
+			-- print("reset vehicle: " .. tostring(vehicle))
+			-- g_client:getServerConnection():sendEvent(ResetVehicleEvent.new(vehicle))
+			-- UniversalAutoloadManager.resetNewVehicle = nil
+		-- end
+		
 		UniversalAutoloadManager.lastShopVehicle = shopVehicle
 		UniversalAutoloadManager.shopVehicle = nil
 	end
