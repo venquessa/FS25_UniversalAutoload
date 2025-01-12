@@ -3912,10 +3912,10 @@ function UniversalAutoload:getIsValidObject(object)
 	end
 	
 	if object.i3dFilename then
-		-- object.typeName
-		-- object.isRoundbale ~= nil
-		
-		if g_currentMission.accessHandler:canFarmAccess(self:getActiveFarm(), object) then
+		local accessHandler = g_currentMission.accessHandler
+		local farmId = self:getActiveFarm()
+		local ownerFarmId = object:getOwnerFarmId()
+		if ownerFarmId == AccessHandler.NOBODY or accessHandler:canFarmAccess(farmId, object) then
 			return UniversalAutoload.getContainerType(object) ~= nil
 		end
 	end
