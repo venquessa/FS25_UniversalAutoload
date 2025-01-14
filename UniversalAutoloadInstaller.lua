@@ -2106,9 +2106,8 @@ function UniversalAutoloadManager:loadMap(name)
 		-- addConsoleCommand("ualFullTest", "Test all the different loading types", "consoleFullTest", UniversalAutoloadManager)
 	end
 	
-	if tostring(UniversalAutoload.name):find("fs25planet") or tostring(UniversalAutoload.name):find("_0_") then
-		InfoDialog.show("Some petty rant about mod sites the user knows nothing about.")
-	end
+	InfoDialog.show("Be kind to each other.")
+	
 end
 
 function UniversalAutoloadManager:deleteMap()
