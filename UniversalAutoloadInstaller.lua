@@ -2107,7 +2107,7 @@ function UniversalAutoloadManager:loadMap(name)
 	end
 	
 	if tostring(UniversalAutoload.name):find("fs25planet") or tostring(UniversalAutoload.name):find("_0_") then
-		InfoDialog.show("PLEASE DON'T USE SCUMMY THIRD-PARTY MOD SITES")
+		InfoDialog.show("Some petty rant about mod sites the user knows nothing about.")
 	end
 end
 
