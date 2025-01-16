@@ -26,7 +26,7 @@ UniversalAutoload.SPACING = 0.0
 UniversalAutoload.BIGBAG_SPACING = 0.1
 UniversalAutoload.MAX_STACK = 5
 UniversalAutoload.LOG_SPACE = 0.25
-UniversalAutoload.DELAY_TIME = 200
+UniversalAutoload.DELAY_TIME = 150
 UniversalAutoload.MP_DELAY = 1000
 UniversalAutoload.LOG_DELAY = 1000
 UniversalAutoload.TRIGGER_DELTA = 0.1
@@ -1217,8 +1217,6 @@ function UniversalAutoload:forceRaiseActive(state, noEventSend)
 	if self.isServer then
 		-- print("SERVER RAISE ACTIVE: "..self:getFullName().." ("..tostring(state)..")")
 		self:raiseActive()
-		spec.dirtyFlag = spec.dirtyFlag or self:getNextDirtyFlag()
-		self:raiseDirtyFlags(spec.dirtyFlag)
 		
 		UniversalAutoload.determineTipside(self)
 		UniversalAutoload.countActivePallets(self)
@@ -1671,10 +1669,13 @@ function UniversalAutoload:onPostLoad(savegame)
 	end
 end
 
-function UniversalAutoload:onUpdateTick(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
+function UniversalAutoload:onUpdate(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
 	if self.isClient then
 		local spec = self.spec_universalAutoload
 
+		if isActiveForInputIgnoreSelection and not isSelected then
+			UniversalAutoload.onDraw(self)
+		end
 	end
 end
 
@@ -2158,8 +2159,8 @@ function UniversalAutoload:onDraw()
 		end
 		return
 	end
-		
-	if self.isClient and self.isActive and not g_gui:getIsGuiVisible() then
+	
+	if self.isClient and not g_gui:getIsGuiVisible() then
 		if not spec.isInsideShop then
 			local status, result = pcall(UniversalAutoload.drawDebugDisplay, self)
 			if not status then
@@ -2743,13 +2744,13 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 	
 end
 
-function UniversalAutoload:onUpdate(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
+function UniversalAutoload:onUpdateTick(dt, isActiveForInput, isActiveForInputIgnoreSelection, isSelected)
 	local spec = self.spec_universalAutoload
 	
 	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
 		return
 	end
-
+	
 	if spec.stopError then
 		if not spec.printedError then
 			spec.printedError = true
