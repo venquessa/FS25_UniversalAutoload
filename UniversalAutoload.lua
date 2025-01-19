@@ -1823,7 +1823,7 @@ function UniversalAutoload:onMovingToolChanged(tool, transSpeed, dt)
 		return
 	end
 	
-	if self.isServer and tool.axis then
+	if self.isServer and tool.axis and spec.loadVolume then
 		-- print("onMovingToolChanged: "..self:getFullName().." - "..tool.axis)
 		UniversalAutoload.updateWidthAxis(self)
 		UniversalAutoload.updateLengthAxis(self)
@@ -1833,6 +1833,9 @@ end
 --
 function UniversalAutoload:updateWidthAxis()
 	local spec = self.spec_universalAutoload
+	if not spec.loadVolume then
+		return
+	end
 	
 	for i, loadArea in pairs(spec.loadArea or {}) do
 		if loadArea.widthAxis and self.spec_cylindered then
@@ -1858,6 +1861,9 @@ end
 --
 function UniversalAutoload:updateHeightAxis()
 	local spec = self.spec_universalAutoload
+	if not spec.loadVolume then
+		return
+	end
 
 	for i, loadArea in pairs(spec.loadArea or {}) do
 		if loadArea.heightAxis and self.spec_cylindered then
@@ -1884,6 +1890,9 @@ end
 --
 function UniversalAutoload:updateLengthAxis()
 	local spec = self.spec_universalAutoload
+	if not spec.loadVolume then
+		return
+	end
 	
 	for i, loadArea in pairs(spec.loadArea or {}) do
 		if self.spec_cylindered and (loadArea.lengthAxis or loadArea.offsetFrontAxis or loadArea.offsetRearAxis) then
@@ -2695,7 +2704,10 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 									spec.partiallyUnloaded = true
 									spec.resetLoadingPattern = true
 								end
-								print("STOP LOADING (items loaded = " .. tostring(spec.totalUnloadCount) .. ")")
+								if spec.lastUnloadCount ~= spec.totalUnloadCount then
+									print("STOP LOADING (items loaded = " .. tostring(spec.totalUnloadCount) .. ")")
+								end
+								spec.lastUnloadCount = spec.totalUnloadCount
 								UniversalAutoload.stopLoading(self)
 							
 							end
@@ -3473,7 +3485,7 @@ function UniversalAutoload:createLoadingPlace(containerType)
 	else
 		spec.currentLoadWidth = spec.currentLoadWidth + addedLoadWidth
 		
-		if spec.lastAddedLoadLength and spec.lastAddedLoadLength < addedLoadLength then
+		if spec.lastAddedLoadLength and spec.lastAddedLoadLength + UniversalAutoload.DELTA < addedLoadLength then
 			if containerType.isSplitShape then
 				local difference = addedLoadLength - spec.lastAddedLoadLength
 				spec.currentLoadLength = spec.currentLoadLength + difference
@@ -3748,12 +3760,13 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 								
 								if debugLoading then print("LOG TRAILER") end
 								if not self:ualGetIsMoving() then
-									local logLoadHeight = maxLoadAreaHeight + 0.1
+									local heightOffset = 0.1
+									local logLoadHeight = maxLoadAreaHeight + heightOffset
 									if not spec.zonesOverlap then
-										logLoadHeight = math.min(spec.currentLayerHeight, maxLoadAreaHeight) + 0.1
+										logLoadHeight = math.min(spec.currentLayerHeight, maxLoadAreaHeight) + heightOffset
 									end
 									setTranslation(thisLoadPlace.node, x0, logLoadHeight+offset.y, z0)
-									if UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object, 0.1, CollisionFlag.TREE) then
+									if UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object, heightOffset, CollisionFlag.TREE) then
 										spec.currentLoadHeight = spec.currentLayerHeight
 										local massFactor = math.clamp((1/mass)/2, 0.2, 1)
 										local heightFactor = maxLoadAreaHeight/(maxLoadAreaHeight+spec.currentLoadHeight)
