@@ -50,6 +50,7 @@ UniversalAutoload.MASK = {}
 UniversalAutoload.MASK.object = CollisionFlag.VEHICLE + CollisionFlag.DYNAMIC_OBJECT + CollisionFlag.TREE
 UniversalAutoload.MASK.everything = UniversalAutoload.MASK.object + CollisionFlag.STATIC_OBJECT + CollisionFlag.PLAYER
 
+InputHelpDisplay.MAX_NUM_ELEMENTS = InputHelpDisplay.MAX_NUM_ELEMENTS_HIGH_PRIORITY
 
 -- EVENTS
 source(g_currentModDirectory.."events/CycleContainerEvent.lua")
