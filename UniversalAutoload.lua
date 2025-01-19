@@ -3500,16 +3500,10 @@ function UniversalAutoload:createLoadingPlace(containerType)
 		end
 	else
 		spec.currentLoadWidth = spec.currentLoadWidth + addedLoadWidth
-		
-		if spec.lastAddedLoadLength and spec.lastAddedLoadLength + UniversalAutoload.DELTA < addedLoadLength then
-			if containerType.isSplitShape then
-				local difference = addedLoadLength - spec.lastAddedLoadLength
-				spec.currentLoadLength = spec.currentLoadLength + difference
-				spec.lastAddedLoadLength = addedLoadLength
-			-- else
-				-- print("EXCEEDED LAST ADDED LOAD LENGTH")
-				-- return
-			end
+		if spec.lastAddedLoadLength and spec.lastAddedLoadLength < addedLoadLength then
+			local difference = addedLoadLength - spec.lastAddedLoadLength
+			spec.currentLoadLength = spec.currentLoadLength + difference
+			spec.lastAddedLoadLength = addedLoadLength
 		end
 	end
 
