@@ -3506,9 +3506,9 @@ function UniversalAutoload:createLoadingPlace(containerType)
 				local difference = addedLoadLength - spec.lastAddedLoadLength
 				spec.currentLoadLength = spec.currentLoadLength + difference
 				spec.lastAddedLoadLength = addedLoadLength
-			else
-				print("EXCEEDED LAST ADDED LOAD LENGTH")
-				return
+			-- else
+				-- print("EXCEEDED LAST ADDED LOAD LENGTH")
+				-- return
 			end
 		end
 	end
