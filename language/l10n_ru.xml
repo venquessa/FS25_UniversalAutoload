@@ -127,7 +127,7 @@
 		<text name="input_UNIVERSALAUTOLOAD_SHOP_CONFIG" text="Open configuration settings menu (in shop)"/>
 		<text name="input_UNIVERSALAUTOLOAD_SHOP_ADJUST" text="Enable editing of loading volume (in shop)"/>
 		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_LOADING" text="Переключить загрузку"/>
-		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_BALE_COLLECTION" text="Автоматический сбор тюков"/>
+		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_COLLECTION" text="Автоматический режим сбора"/>
 		<text name="input_UNIVERSALAUTOLOAD_UNLOAD_ALL" text="Разгрузка"/>
 		<text name="input_UNIVERSALAUTOLOAD_UNLOAD_ALL_FORCE" text="Принудительная разгрузка"/>
 		<text name="input_UNIVERSALAUTOLOAD_TOGGLE_TIPSIDE" text="Сменить сторону разгрузки"/>
@@ -165,7 +165,9 @@
 		<text name="universalAutoload_stopLoading" text="Остановить загрузку"/>
 		<text name="universalAutoload_unloadAll" text="Разгрузка"/>
 		<text name="universalAutoload_unloadAllForce" text="Принудительная разгрузка"/>
-		<text name="universalAutoload_baleMode" text="Автосбор тюков"/>
+		<text name="universalAutoload_baleMode" text="Режим тюков"/>
+		<text name="universalAutoload_palletMode" text="Режим паллет"/>
+		<text name="universalAutoload_collectionMode" text="Режим сбора"/>
 		<text name="universalAutoload_enabled" text="Включено"/>
 		<text name="universalAutoload_disabled" text="Отключено"/>
 		<text name="universalAutoload_activate" text="Активировать"/>

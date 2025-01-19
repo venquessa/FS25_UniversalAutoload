@@ -77,7 +77,7 @@ UniversalAutoload.ACTIONS = {
 	-- ["TOGGLE_CURTAIN"]		   = "UNIVERSALAUTOLOAD_TOGGLE_CURTAIN",
 	["TOGGLE_SHOW_DEBUG"]	   = "UNIVERSALAUTOLOAD_TOGGLE_SHOW_DEBUG",
 	["TOGGLE_SHOW_LOADING"]	   = "UNIVERSALAUTOLOAD_TOGGLE_SHOW_LOADING",
-	["TOGGLE_BALE_COLLECTION"] = "UNIVERSALAUTOLOAD_TOGGLE_BALE_COLLECTION",
+	["TOGGLE_COLLECTION"]	   = "UNIVERSALAUTOLOAD_TOGGLE_COLLECTION",
 }
 
 UniversalAutoload.WARNINGS = {
@@ -212,7 +212,7 @@ UniversalAutoload.SAVEGAME_STATE_DEFAULTS = {
 	{id="containerIndex", default=1, valueType="INT", key="#containerIndex"}, --Last used container type
 	{id="loadingFilter", default=false, valueType="BOOL", key="#loadingFilter"}, --TRUE=Load full pallets only; FALSE=Load any pallets
 	{id="useHorizontalLoading", default=false, valueType="BOOL", key="#useHorizontalLoading"}, --Last used horizontal loading state
-	{id="baleCollectionMode", default=false, valueType="BOOL", key="#baleCollectionMode"}, --Enable manual toggling of the automatic bale collection mode
+	{id="autoCollectionMode", default=false, valueType="BOOL", key="#autoCollectionMode"}, --Enable manual toggling of the automatic collection mode
 }
 
 function iterateDefaultsTable(tbl, parentKey, currentKey, currentValue, action)

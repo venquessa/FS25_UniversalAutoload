@@ -57,7 +57,7 @@ source(g_currentModDirectory.."events/CycleMaterialEvent.lua")
 source(g_currentModDirectory.."events/PlayerTriggerEvent.lua")
 source(g_currentModDirectory.."events/RaiseActiveEvent.lua")
 source(g_currentModDirectory.."events/ResetLoadingEvent.lua")
-source(g_currentModDirectory.."events/SetBaleCollectionModeEvent.lua")
+source(g_currentModDirectory.."events/SetCollectionModeEvent.lua")
 source(g_currentModDirectory.."events/SetContainerTypeEvent.lua")
 source(g_currentModDirectory.."events/SetFilterEvent.lua")
 source(g_currentModDirectory.."events/SetHorizontalLoadingEvent.lua")
@@ -151,7 +151,7 @@ end
 
 -- function UniversalAutoload:getCanStartFieldWork(superFunc)
 	-- local spec = self.spec_universalAutoload
-	-- if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.baleCollectionMode then
+	-- if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.autoCollectionMode then
 		-- if debugSpecial then print("getCanStartFieldWork...") end
 		-- --return true
 	-- end
@@ -336,10 +336,7 @@ function UniversalAutoload:updateActionEventKeys()
 			spec.updateToggleLoading = true
 			registerActionEvent('UNLOAD_ALL', 'unloadAllActionEventId', 'actionEventUnloadAll', topPriority, true)
 			registerActionEvent('TOGGLE_LOADING', 'toggleLoadingActionEventId', 'actionEventToggleLoading', topPriority)
-
-			if spec.isBaleTrailer then
-				registerActionEvent('TOGGLE_BALE_COLLECTION', 'toggleBaleCollectionModeEventId', 'actionEventToggleBaleCollectionMode', topPriority)
-			end
+			registerActionEvent('TOGGLE_COLLECTION', 'toggleCollectionModeEventId', 'actionEventToggleCollectionMode', topPriority)
 
 			if not spec.isLogTrailer then
 				registerActionEvent('TOGGLE_FILTER', 'toggleLoadingFilterActionEventId', 'actionEventToggleFilter', midPriority)
@@ -551,26 +548,32 @@ function UniversalAutoload:updateToggleLoadingActionEvent()
 	--if debugKeys then print("updateToggleLoadingActionEvent") end
 	local spec = self.spec_universalAutoload
 	
-	if spec and spec.isAutoloadAvailable and spec.toggleBaleCollectionModeEventId then
+	if spec and spec.isAutoloadAvailable and spec.toggleCollectionModeEventId then
 		-- Activate/Deactivate the AUTO-BALE key binding
-		if spec.baleCollectionMode==true or spec.validUnloadCount==0 then
-			local baleCollectionModeText
-			if spec.baleCollectionMode then
-				baleCollectionModeText = g_i18n:getText("universalAutoload_baleMode")..": "..g_i18n:getText("universalAutoload_enabled")
+		if spec.autoCollectionMode==true or spec.validUnloadCount==0 then
+			local autoCollectionModeText = g_i18n:getText("universalAutoload_collectionMode")
+			if spec.autoCollectionMode then
+				if spec.baleCollectionActive == true then
+					autoCollectionModeText = g_i18n:getText("universalAutoload_baleMode")
+				elseif spec.baleCollectionActive == false then
+					autoCollectionModeText = g_i18n:getText("universalAutoload_palletMode")
+				end
+				autoCollectionModeText = autoCollectionModeText..": "..g_i18n:getText("universalAutoload_enabled")
 			else
-				baleCollectionModeText = g_i18n:getText("universalAutoload_baleMode")..": "..g_i18n:getText("universalAutoload_disabled")
+				autoCollectionModeText = autoCollectionModeText..": "..g_i18n:getText("universalAutoload_disabled")
 			end
-			g_inputBinding:setActionEventText(spec.toggleBaleCollectionModeEventId, baleCollectionModeText)
-			g_inputBinding:setActionEventTextVisibility(spec.toggleBaleCollectionModeEventId, true)
-			if debugKeys then print("   >> " .. baleCollectionModeText) end
+				
+			g_inputBinding:setActionEventText(spec.toggleCollectionModeEventId, autoCollectionModeText)
+			g_inputBinding:setActionEventTextVisibility(spec.toggleCollectionModeEventId, true)
+			if debugKeys then print("   >> " .. autoCollectionModeText) end
 		else
-			g_inputBinding:setActionEventActive(spec.toggleBaleCollectionModeEventId, false)
+			g_inputBinding:setActionEventActive(spec.toggleCollectionModeEventId, false)
 		end
 	end
 	
 	if spec and spec.isAutoloadAvailable and spec.toggleLoadingActionEventId then
 		-- Activate/Deactivate the LOAD key binding
-		if spec.isLoading and not self.baleCollectionMode==true then
+		if spec.isLoading and not self.autoCollectionMode==true then
 			local stopLoadingText = g_i18n:getText("universalAutoload_stopLoading")
 			g_inputBinding:setActionEventText(spec.toggleLoadingActionEventId, stopLoadingText)
 			if debugKeys then print("   >> " .. stopLoadingText) end
@@ -665,10 +668,10 @@ function UniversalAutoload.actionEventToggleShowLoading(self, actionName, inputV
 	end
 end
 --
-function UniversalAutoload.actionEventToggleBaleCollectionMode(self, actionName, inputValue, callbackState, isAnalog)
-	-- print("actionEventToggleBaleCollectionMode: "..self:getFullName())
+function UniversalAutoload.actionEventToggleCollectionMode(self, actionName, inputValue, callbackState, isAnalog)
+	-- print("actionEventToggleCollectionMode: "..self:getFullName())
 	local spec = self.spec_universalAutoload
-	UniversalAutoload.setBaleCollectionMode(self, not spec.baleCollectionMode)
+	UniversalAutoload.setAutoCollectionMode(self, not spec.autoCollectionMode)
 end
 --
 function UniversalAutoload.actionEventCycleMaterial_FW(self, actionName, inputValue, callbackState, isAnalog)
@@ -931,30 +934,42 @@ function UniversalAutoload:setCurrentLoadside(loadside, noEventSend)
 end
 --
 
-function UniversalAutoload:setBaleCollectionMode(baleCollectionMode, noEventSend)
-	-- print("setBaleCollectionMode: "..self:getFullName().." - "..tostring(baleCollectionMode))
+function UniversalAutoload:setAutoCollectionMode(autoCollectionMode, noEventSend)
+	-- print("setAutoCollectionMode: "..self:getFullName().." - "..tostring(autoCollectionMode))
 	local spec = self.spec_universalAutoload
 	if spec==nil or not spec.isAutoloadAvailable or spec.autoloadDisabled then
-		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - setBaleCollectionMode") end
+		if debugVehicles then print(self:getFullName() .. ": UAL DISABLED - setAutoCollectionMode") end
 		return
 	end
 		
-	if self.isServer and spec.baleCollectionMode ~= baleCollectionMode then
-		if baleCollectionMode then
-			if spec.availableBaleCount and spec.availableBaleCount > 0 and not spec.trailerIsFull then
-				if debugSpecial then print("baleCollectionMode: startLoading") end
+	if self.isServer and spec.autoCollectionMode ~= autoCollectionMode then
+		if autoCollectionMode then
+			if not spec.trailerIsFull then
+				local balesAvailable = spec.availableBaleCount and spec.availableBaleCount > 0
+				local palletsAvailable = spec.totalAvailableCount and spec.totalAvailableCount > 0
+				if balesAvailable then
+					if debugSpecial then print("autoCollectionMode: startLoading (bales)") end
+					spec.baleCollectionActive = true
+				elseif palletsAvailable then
+					if debugSpecial then print("autoCollectionMode: startLoading (pallets)") end
+					spec.baleCollectionActive = false
+				else
+					if debugSpecial then print("autoCollectionMode: startLoading (unknown)") end
+					spec.baleCollectionActive = nil
+				end
 				UniversalAutoload.startLoading(self)
 			end
 		else
-			if debugSpecial then print("baleCollectionMode: stopLoading") end
+			if debugSpecial then print("autoCollectionMode: stopLoading") end
 			UniversalAutoload.stopLoading(self)
-			spec.baleCollectionModeDeactivated = true
+			spec.baleCollectionActive = nil
+			spec.autoCollectionModeDeactivated = true
 		end
 	end
 	
-	spec.baleCollectionMode = baleCollectionMode
+	spec.autoCollectionMode = autoCollectionMode
 
-	UniversalAutoload.SetBaleCollectionModeEvent.sendEvent(self, baleCollectionMode, noEventSend)
+	UniversalAutoload.SetCollectionModeEvent.sendEvent(self, autoCollectionMode, noEventSend)
 	spec.updateToggleLoading = true
 end
 --
@@ -978,7 +993,7 @@ function UniversalAutoload:startLoading(force, noEventSend)
 		if self.isServer then
 		
 			spec.loadDelayTime = math.huge
-			if not spec.baleCollectionMode and UniversalAutoload.testLoadAreaIsEmpty(self) then
+			if not spec.autoCollectionMode and UniversalAutoload.testLoadAreaIsEmpty(self) then
 				UniversalAutoload.resetLoadingArea(self)
 			end
 		
@@ -997,9 +1012,9 @@ function UniversalAutoload:createSortedObjectsToLoad(availableObjects)
 	if not spec.loadArea then
 		return sortedObjectsToLoad
 	end
-
-	for object, _ in pairs(availableObjects or {}) do
 	
+	for object, _ in pairs(availableObjects or {}) do
+
 		local node = UniversalAutoload.getObjectPositionNode(object)
 		if node~=nil and UniversalAutoload.isValidForLoading(self, object) then
 		
@@ -1064,7 +1079,7 @@ function UniversalAutoload:stopLoading(force, noEventSend)
 		if self.isServer then
 			spec.loadDelayTime = 0
 
-			if not self.spec_tensionBelts.areBeltsFasten then
+			if spec.validUnloadCount > 0 and not self.spec_tensionBelts.areBeltsFasten and not spec.baleCollectionActive then
 				spec.doSetTensionBelts = true
 			end
 		end
@@ -1157,7 +1172,7 @@ function UniversalAutoload:resetLoadingState(noEventSend)
 	local spec = self.spec_universalAutoload
 	
 	if self.isServer then
-		if spec.doSetTensionBelts and not spec.baleCollectionMode and UniversalAutoload.isUsingAutoStrap(self) then
+		if spec.doSetTensionBelts and not spec.baleCollectionActive and UniversalAutoload.isUsingAutoStrap(self) then
 			self:setAllTensionBeltsActive(true)
 		end
 		spec.postLoadDelayTime = 0
@@ -1593,7 +1608,7 @@ function UniversalAutoload:onLoad(savegame)
 	spec.currentMaterialIndex = 1
 	spec.currentContainerIndex = 1
 	spec.currentLoadingFilter = false
-	spec.baleCollectionMode = false
+	spec.autoCollectionMode = false
 	spec.useHorizontalLoading = spec.horizontalLoading or false
 	
 	-- print("SPEC")
@@ -1619,7 +1634,7 @@ function UniversalAutoload:onPostLoad(savegame)
 			spec.currentMaterialIndex = 1
 			spec.currentContainerIndex = 1
 			spec.currentLoadingFilter = false
-			spec.baleCollectionMode = false
+			spec.autoCollectionMode = false
 			spec.useHorizontalLoading = spec.horizontalLoading or false
 			--server only
 			spec.currentLoadWidth = 0
@@ -1644,7 +1659,7 @@ function UniversalAutoload:onPostLoad(savegame)
 			spec.currentMaterialIndex = savegame.xmlFile:getValue(key.."#materialIndex", 1)
 			spec.currentContainerIndex = savegame.xmlFile:getValue(key.."#containerIndex", 1)
 			spec.currentLoadingFilter = savegame.xmlFile:getValue(key.."#loadingFilter", false)
-			spec.baleCollectionMode = savegame.xmlFile:getValue(key.."#baleCollectionMode", false)
+			spec.autoCollectionMode = savegame.xmlFile:getValue(key.."#autoCollectionMode", false)
 			spec.useHorizontalLoading = savegame.xmlFile:getValue(key.."#useHorizontalLoading", spec.horizontalLoading or false)
 			--server only
 			spec.currentLoadWidth = savegame.xmlFile:getValue(key.."#loadWidth", 0)
@@ -1696,8 +1711,8 @@ function UniversalAutoload:saveToXMLFile(xmlFile, key, usedModNames)
 	end
 
 	-- print("UniversalAutoload - saveToXMLFile: "..self:getFullName())
-	if spec.baleCollectionMode then
-		UniversalAutoload.setBaleCollectionMode(self, false)
+	if spec.autoCollectionMode then
+		UniversalAutoload.setAutoCollectionMode(self, false)
 		for object, _ in pairs(spec.loadedObjects or {}) do
 			if object and object.isRoundbale ~= nil then
 				UniversalAutoload.unlinkObject(object)
@@ -1722,7 +1737,7 @@ function UniversalAutoload:saveToXMLFile(xmlFile, key, usedModNames)
 	xmlFile:setValue(saveKey.."#materialIndex", spec.currentMaterialIndex or 1)
 	xmlFile:setValue(saveKey.."#containerIndex", spec.currentContainerIndex or 1)
 	xmlFile:setValue(saveKey.."#loadingFilter", spec.currentLoadingFilter or false)
-	xmlFile:setValue(saveKey.."#baleCollectionMode", spec.baleCollectionMode or false)
+	xmlFile:setValue(saveKey.."#autoCollectionMode", spec.autoCollectionMode or false)
 	xmlFile:setValue(saveKey.."#useHorizontalLoading", spec.useHorizontalLoading or false)
 	--server only
 	xmlFile:setValue(saveKey.."#loadWidth", spec.currentLoadWidth or 0)
@@ -2064,7 +2079,7 @@ function UniversalAutoload:onReadStream(streamId, connection)
 		spec.currentContainerIndex = streamReadInt32(streamId)
 		spec.currentLoadingFilter = streamReadBool(streamId)
 		spec.useHorizontalLoading = streamReadBool(streamId)
-		spec.baleCollectionMode = streamReadBool(streamId)
+		spec.autoCollectionMode = streamReadBool(streamId)
 		spec.isLoading = streamReadBool(streamId)
 		spec.isUnloading = streamReadBool(streamId)
 		spec.activeLoading = streamReadBool(streamId)
@@ -2083,7 +2098,7 @@ function UniversalAutoload:onReadStream(streamId, connection)
 		print("currentContainerIndex: " .. tostring(spec.currentContainerIndex))
 		print("currentLoadingFilter: " .. tostring(spec.currentLoadingFilter))
 		print("useHorizontalLoading: " .. tostring(spec.useHorizontalLoading))
-		print("baleCollectionMode: " .. tostring(spec.baleCollectionMode))
+		print("autoCollectionMode: " .. tostring(spec.autoCollectionMode))
 		print("isLoading: " .. tostring(spec.isLoading))
 		print("isUnloading: " .. tostring(spec.isUnloading))
 		print("activeLoading: " .. tostring(spec.activeLoading))
@@ -2118,7 +2133,7 @@ function UniversalAutoload:onWriteStream(streamId, connection)
 		spec.currentContainerIndex = spec.currentContainerIndex or 1
 		spec.currentLoadingFilter = spec.currentLoadingFilter or false
 		spec.useHorizontalLoading = spec.useHorizontalLoading or false
-		spec.baleCollectionMode = spec.baleCollectionMode or false
+		spec.autoCollectionMode = spec.autoCollectionMode or false
 		spec.isLoading = spec.isLoading or false
 		spec.isUnloading = spec.isUnloading or false
 		spec.activeLoading = spec.activeLoading or false
@@ -2137,7 +2152,7 @@ function UniversalAutoload:onWriteStream(streamId, connection)
 		streamWriteInt32(streamId, spec.currentContainerIndex)
 		streamWriteBool(streamId, spec.currentLoadingFilter)
 		streamWriteBool(streamId, spec.useHorizontalLoading)
-		streamWriteBool(streamId, spec.baleCollectionMode)
+		streamWriteBool(streamId, spec.autoCollectionMode)
 		streamWriteBool(streamId, spec.isLoading)
 		streamWriteBool(streamId, spec.isUnloading)
 		streamWriteBool(streamId, spec.activeLoading)
@@ -2612,18 +2627,18 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 		-- end
 		
 		local isActiveForLoading = spec.isLoading or spec.isUnloading or spec.doPostLoadDelay
-		if isActiveForInputIgnoreSelection or isActiveForLoading or spec.baleCollectionModeDeactivated or spec.aiLoadingActive or spec.baleCollectionMode then
+		if isActiveForInputIgnoreSelection or isActiveForLoading or spec.autoCollectionMode or spec.autoCollectionModeDeactivated or spec.aiLoadingActive then
 		
-			if spec.baleCollectionMode and not isActiveForLoading or spec.aiLoadingActive then
-				if spec.availableBaleCount > 0 and not spec.trailerIsFull then
+			if spec.autoCollectionMode and not isActiveForLoading or spec.aiLoadingActive then
+				if spec.totalAvailableCount > 0 and not spec.trailerIsFull then
 					UniversalAutoload.startLoading(self)
 				end
 			end
 			
 			-- RETURN BALES TO PHYSICS WHEN NOT MOVING
-			if spec.baleCollectionModeDeactivated and not self:ualGetIsMoving() then
+			if spec.autoCollectionModeDeactivated and not self:ualGetIsMoving() then
 				-- print("ADDING BALES BACK TO PHYSICS")
-				spec.baleCollectionModeDeactivated = false
+				spec.autoCollectionModeDeactivated = false
 				for object, _ in pairs(spec.loadedObjects) do
 					if object and object.isRoundbale ~= nil then
 						UniversalAutoload.unlinkObject(object)
@@ -2681,7 +2696,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 							end
 						end
 						if #spec.sortedObjectsToLoad > 0 then
-							if spec.trailerIsFull or (UniversalAutoload.testLoadAreaIsEmpty(self) and not spec.baleCollectionMode) then
+							if spec.trailerIsFull or (UniversalAutoload.testLoadAreaIsEmpty(self) and not spec.autoCollectionMode) then
 								if debugLoading then print("RESET PATTERN to fill in any gaps") end
 								spec.partiallyUnloaded = true
 								spec.resetLoadingPattern = true
@@ -2694,7 +2709,7 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 								end
 							else
 							
-								if spec.firstAttemptToLoad and not spec.baleCollectionMode and not self:ualGetIsMoving() then
+								if spec.firstAttemptToLoad and not spec.autoCollectionMode and not self:ualGetIsMoving() then
 									--UNABLE_TO_LOAD_OBJECT
 									if spec.trailerIsFull then
 										UniversalAutoload.showWarningMessage(self, "UNABLE_TO_LOAD_FULL")
@@ -2885,9 +2900,9 @@ function UniversalAutoload:isValidForLoading(object)
 		end
 		return false
 	end
-	if spec.baleCollectionMode and UniversalAutoload.isValidForManualLoading(object) then
+	if spec.autoCollectionMode and UniversalAutoload.isValidForManualLoading(object) then
 		if debugPallets then
-			g_currentMission:addExtraPrintText(object.i3dFilename, "Bale Collection Mode - manual loading")
+			g_currentMission:addExtraPrintText(object.i3dFilename, "Auto Collection Mode - manual loading")
 		end
 		return false
 	end
@@ -2910,9 +2925,9 @@ function UniversalAutoload:isValidForLoading(object)
 		end
 		return false
 	end
-	if spec.baleCollectionMode and object.isRoundbale == nil then
+	if spec.autoCollectionMode and spec.baleCollectionActive and object.isRoundbale == nil then
 		if debugPallets then
-			g_currentMission:addExtraPrintText(object.i3dFilename, "Bale Collection Mode - not a bale")
+			g_currentMission:addExtraPrintText(object.i3dFilename, "Auto Collection Mode - not a bale")
 		end
 		return false
 	end
@@ -3059,7 +3074,7 @@ function UniversalAutoload:countActivePallets()
 			if UniversalAutoload.isValidForUnloading(self, object) then
 				validUnloadCount = validUnloadCount + 1
 			end
-			if isActiveForLoading or spec.baleCollectionMode then
+			if isActiveForLoading or spec.autoCollectionMode then
 				UniversalAutoload.raiseObjectDirtyFlags(object)
 			end
 		end
@@ -3636,7 +3651,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 		return
 	end
 	
-	if not self:ualGetIsMoving() or spec.baleCollectionMode then
+	if not self:ualGetIsMoving() or (spec.baleCollectionActive and containerType.isBale) then
 		if debugLoading then
 			print("")
 			print("===============================")
@@ -3775,9 +3790,9 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 									end
 								end
 
-							elseif spec.baleCollectionMode then
+							elseif spec.autoCollectionMode and spec.baleCollectionActive then
 								
-								if debugLoading then print("BALE COLLECTION MODE") end
+								if debugLoading then print("AUTO BALE COLLECTION MODE") end
 								if (containerType.isBale and not spec.zonesOverlap and not spec.partiallyUnloaded) then
 									if spec.useHorizontalLoading then
 										spec.currentLoadHeight = spec.currentLayerHeight
@@ -3865,7 +3880,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 		spec.currentLoadAreaIndex = 1
 		if UniversalAutoload.isUsingLayerLoading(self) and
 		--not (spec.nextLayerHeight == 0 or spec.trailerIsFull == true) then
-		not (spec.baleCollectionMode and spec.nextLayerHeight == 0) then
+		not (spec.autoCollectionMode and spec.nextLayerHeight == 0) then
 			spec.currentLayerCount = spec.currentLayerCount + 1
 			spec.currentLoadingPlace = nil
 			if not spec.isLogTrailer or (spec.isLogTrailer and spec.nextLayerHeight > 0) then
@@ -3881,14 +3896,14 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 		else
 			print("FULL - NO MORE ROOM")
 			spec.trailerIsFull = true
-			if spec.baleCollectionMode == true then
-				if debugSpecial then print("baleCollectionMode: trailerIsFull") end
-				UniversalAutoload.setBaleCollectionMode(self, false)
+			if spec.autoCollectionMode == true then
+				if debugSpecial then print("autoCollectionMode: trailerIsFull") end
+				UniversalAutoload.setAutoCollectionMode(self, false)
 			end
 		end
 		if debugLoading then print("===============================") end
 	else
-		if not spec.activeLoading then
+		if not spec.activeLoading and not spec.autoCollectionMode then
 			if debugLoading then print("CAN'T LOAD WHEN MOVING...") end
 			--NO_LOADING_UNLESS_STATIONARY
 			UniversalAutoload.showWarningMessage(self, "NO_LOADING_UNLESS_STATIONARY")
@@ -3933,7 +3948,7 @@ function UniversalAutoload:getIsLoadingKeyAllowed()
 	if spec.doPostLoadDelay or spec.validLoadCount == 0 or spec.currentLoadside == "none" then
 		return false
 	end
-	if spec.baleCollectionMode then
+	if spec.trailerIsFull or spec.autoCollectionMode then
 		return false
 	end
 	return UniversalAutoload.getIsLoadingVehicleAllowed(self)
@@ -3962,7 +3977,7 @@ function UniversalAutoload:getIsUnloadingKeyAllowed()
 	if spec.noLoadingIfUncovered and not self:ualGetIsCovered() then
 		return false
 	end
-	if spec.baleCollectionMode then
+	if spec.autoCollectionMode then
 		return false
 	end
 	return true
@@ -4581,7 +4596,7 @@ function UniversalAutoload:moveObjectNodes( object, position, isLoading, rotateL
 
 		end
 
-		if spec.baleCollectionMode==true and object.isRoundbale~=nil then
+		if spec.autoCollectionMode==true and spec.baleCollectionActive and object.isRoundbale~=nil then
 			UniversalAutoload.addBaleModeBale(self, node)
 		else
 			UniversalAutoload.addToPhysics(self, object)
@@ -4727,6 +4742,16 @@ function UniversalAutoload:addAvailableObject(object)
 		if object.addDeleteListener then
 			object:addDeleteListener(self, "ualOnDeleteAvailableObject_Callback")
 		end
+				
+		if spec.autoCollectionMode and spec.baleCollectionActive == nil then
+			if object.isRoundbale ~= nil then
+				print("FOUND A BALE - set bale collection mode")
+				spec.baleCollectionActive = true
+			else
+				print("FOUND A PALLET - set pallet collection mode")
+				spec.baleCollectionActive = false
+			end
+		end
 		
 		if spec.isLoading and UniversalAutoload.isValidForLoading(self, object) then
 			table.insert(spec.sortedObjectsToLoad, object)
@@ -4870,7 +4895,7 @@ function UniversalAutoload:createPallets(pallets)
 		end
 		if debugConsole then print("ADD PALLETS: " .. self:getFullName()) end
 		UniversalAutoload.setMaterialTypeIndex(self, 1)
-		UniversalAutoload.setBaleCollectionMode(self, false)
+		UniversalAutoload.setAutoCollectionMode(self, false)
 		if palletsOnly then
 			UniversalAutoload.setContainerTypeIndex(self, 2)
 		else
@@ -4970,7 +4995,7 @@ function UniversalAutoload:createLogs(length, treeType, growthState)
 	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		if debugConsole then print("ADD LOGS: " .. self:getFullName()) end
 		UniversalAutoload.setMaterialTypeIndex(self, 1)
-		UniversalAutoload.setBaleCollectionMode(self, false)
+		UniversalAutoload.setAutoCollectionMode(self, false)
 		UniversalAutoload.setContainerTypeIndex(self, 1)
 		UniversalAutoload.clearLoadedObjects(self)		
 		self:setAllTensionBeltsActive(false)
@@ -5801,7 +5826,7 @@ function UniversalAutoload:onAIImplementStart()
 	local spec = self.spec_universalAutoload
 	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		print("["..self.rootNode.."] UAL/CP - ACTIVATE BALE COLLECTION MODE (onAIImplementStart)")
-		UniversalAutoload.setBaleCollectionMode(self, true)
+		UniversalAutoload.setAutoCollectionMode(self, true)
 		spec.aiLoadingActive = true
 	end
 end
@@ -5811,7 +5836,7 @@ function UniversalAutoload:onAIImplementEnd()
 	local spec = self.spec_universalAutoload
 	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.aiLoadingActive then
 		print("["..self.rootNode.."] UAL/CP - DEACTIVATE BALE COLLECTION MODE (onAIImplementEnd)")
-		UniversalAutoload.setBaleCollectionMode(self, false)
+		UniversalAutoload.setAutoCollectionMode(self, false)
 		spec.aiLoadingActive = false
 	end
 end
@@ -5821,7 +5846,7 @@ function UniversalAutoload:onAIFieldWorkerStart()
 	local spec = self.spec_universalAutoload
 	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled then
 		print("["..self.rootNode.."] UAL/CP - ACTIVATE BALE COLLECTION MODE (onAIFieldWorkerStart)")
-		UniversalAutoload.setBaleCollectionMode(self, true)
+		UniversalAutoload.setAutoCollectionMode(self, true)
 		spec.aiLoadingActive = true
 	end
 end
@@ -5831,7 +5856,7 @@ function UniversalAutoload:onAIFieldWorkerEnd()
 	local spec = self.spec_universalAutoload
 	if spec and spec.isAutoloadAvailable and not spec.autoloadDisabled and spec.aiLoadingActive then
 		print("["..self.rootNode.."] UAL/CP - DEACTIVATE BALE COLLECTION MODE (onAIFieldWorkerEnd)")
-		UniversalAutoload.setBaleCollectionMode(self, false)
+		UniversalAutoload.setAutoCollectionMode(self, false)
 		spec.aiLoadingActive = false
 	end
 end  
