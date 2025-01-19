@@ -4756,6 +4756,7 @@ function UniversalAutoload:addAvailableObject(object)
 		
 		if spec.isLoading and UniversalAutoload.isValidForLoading(self, object) then
 			table.insert(spec.sortedObjectsToLoad, object)
+			UniversalAutoload.raiseObjectDirtyFlags(object)
 		end
 		
 		return true
