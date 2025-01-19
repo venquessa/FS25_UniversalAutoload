@@ -165,7 +165,7 @@ function BoundingBox:isEmpty(delta, drawAll)
 				local object = g_currentMission:getNodeObject(nodeId)
 				if object ~= nil then
 					print("--- testLocationOverlap - OTHER ---")
-					DebugUtil.drawDebugNode(nodeId, getName(nodeId))
+					-- DebugUtil.drawDebugNode(nodeId, getName(nodeId))
 					target.isVolumeEmpty = false
 				end
 			end
