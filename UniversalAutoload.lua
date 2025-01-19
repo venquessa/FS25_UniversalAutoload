@@ -403,7 +403,7 @@ function UniversalAutoload:updateToggleBeltsActionEvent()
 		g_inputBinding:setActionEventActive(spec.toggleBeltsActionEventId, true)
 		
 		local tensionBeltsText
-		if self.spec_tensionBelts.areBeltsFasten then
+		if self.spec_tensionBelts.areAllBeltsFastened then
 			tensionBeltsText = g_i18n:getText("action_unfastenTensionBelts")
 		else
 			tensionBeltsText = g_i18n:getText("action_fastenTensionBelts")
@@ -611,7 +611,7 @@ end
 function UniversalAutoload.actionEventToggleBelts(self, actionName, inputValue, callbackState, isAnalog)
 	-- print("actionEventToggleBelts: "..self:getFullName())
 	local spec = self.spec_universalAutoload
-	if self.spec_tensionBelts.areBeltsFasten then
+	if self.spec_tensionBelts.areAllBeltsFastened then
 		self:setAllTensionBeltsActive(false)
 	else
 		self:setAllTensionBeltsActive(true)
@@ -1079,7 +1079,7 @@ function UniversalAutoload:stopLoading(force, noEventSend)
 		if self.isServer then
 			spec.loadDelayTime = 0
 
-			if spec.validUnloadCount > 0 and not self.spec_tensionBelts.areBeltsFasten and not spec.baleCollectionActive then
+			if spec.validUnloadCount > 0 and not self.spec_tensionBelts.areAllBeltsFastened and not spec.baleCollectionActive then
 				spec.doSetTensionBelts = true
 			end
 		end
@@ -3304,7 +3304,7 @@ function UniversalAutoload.clearPalletFromAllVehicles(self, object)
 						UniversalAutoload.resetLoadingArea(vehicle)
 						vehicle:setAllTensionBeltsActive(false)
 					elseif loadedObjectRemoved then
-						if vehicle.spec_tensionBelts.areBeltsFasten then
+						if vehicle.spec_tensionBelts.areAllBeltsFastened then
 							vehicle:setAllTensionBeltsActive(false)
 							vehicle:setAllTensionBeltsActive(true)
 						end
@@ -3320,7 +3320,7 @@ function UniversalAutoload.isStrappedOnOtherVehicle(self, object)
 	for _, vehicle in pairs(UniversalAutoload.VEHICLES) do
 		if vehicle and self ~= vehicle then
 			if vehicle.spec_universalAutoload.loadedObjects[object] then
-				if vehicle.spec_tensionBelts.areBeltsFasten then
+				if vehicle.spec_tensionBelts.areAllBeltsFastened then
 					return vehicle
 				end
 			end
@@ -4659,7 +4659,7 @@ function UniversalAutoload:ualUnloadingTrigger_Callback(triggerId, otherActorId,
 					UniversalAutoload.addLoadedObject(self, object)
 				elseif onLeave then
 					if debugLoading then print(" UnloadingTrigger LEAVE: " .. tostring(object.id)) end
-					if self.spec_tensionBelts.areBeltsFasten and self:ualGetIsMoving() then
+					if self.spec_tensionBelts.areAllBeltsFastened and self:ualGetIsMoving() then
 						print("*** DID WE ACTUALLY UNLOAD THIS? ***")
 					else
 						UniversalAutoload.removeLoadedObject(self, object)
