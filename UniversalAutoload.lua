@@ -574,7 +574,7 @@ function UniversalAutoload:updateToggleLoadingActionEvent()
 	
 	if spec and spec.isAutoloadAvailable and spec.toggleLoadingActionEventId then
 		-- Activate/Deactivate the LOAD key binding
-		if spec.isLoading and not self.autoCollectionMode==true then
+		if spec.isLoading and not spec.autoCollectionMode==true then
 			local stopLoadingText = g_i18n:getText("universalAutoload_stopLoading")
 			g_inputBinding:setActionEventText(spec.toggleLoadingActionEventId, stopLoadingText)
 			if debugKeys then print("   >> " .. stopLoadingText) end
@@ -1094,6 +1094,11 @@ function UniversalAutoload:startUnloading(force, noEventSend)
 	local spec = self.spec_universalAutoload
 
 	if not spec.isUnloading then
+		
+		if spec.autoCollectionMode then
+			UniversalAutoload.setAutoCollectionMode(self, false)
+		end
+		
 		-- print("Start Unloading: "..self:getFullName() )
 		spec.isUnloading = true
 
@@ -3968,7 +3973,7 @@ function UniversalAutoload:getIsUnloadingKeyAllowed()
 	if spec.noLoadingIfUncovered and not self:ualGetIsCovered() then
 		return false
 	end
-	if spec.autoCollectionMode then
+	if spec.baleCollectionActive then
 		return false
 	end
 	return true
