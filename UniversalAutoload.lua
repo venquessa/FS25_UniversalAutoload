@@ -3487,6 +3487,7 @@ function UniversalAutoload:createLoadingPlace(containerType)
 		addedLoadWidth = loadSizeY
 	end
 	spec.currentLoadHeight = 0
+	spec.lastAddedLoadDifference = 0
 	local tooWideForSpace = spec.currentLoadWidth + addedLoadWidth > spec.loadArea[i].width
 	local shouldStartNewRow = spec.currentLoadWidth == 0 or tooWideForSpace
 	if shouldStartNewRow then
@@ -3500,16 +3501,17 @@ function UniversalAutoload:createLoadingPlace(containerType)
 		end
 	else
 		spec.currentLoadWidth = spec.currentLoadWidth + addedLoadWidth
-		if spec.lastAddedLoadLength and spec.lastAddedLoadLength < addedLoadLength then
+		if spec.lastAddedLoadLength and spec.lastAddedLoadLength + UniversalAutoload.DELTA < addedLoadLength then
 			local difference = addedLoadLength - spec.lastAddedLoadLength
 			spec.currentLoadLength = spec.currentLoadLength + difference
 			spec.lastAddedLoadLength = addedLoadLength
+			spec.lastAddedLoadDifference = difference
 		end
 	end
 
 	if spec.currentLoadLength == 0 then
 		print("LOAD LENGTH WAS ZERO")
-		spec.currentLoadLength = sizeZ
+		spec.currentLoadLength = loadSizeZ
 	end
 	
 	if useRoundbalePacking == false then
@@ -3805,27 +3807,16 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 								
 								if not self:ualGetIsMoving() then
 									
-									local increment = 0.1
 									local thisLoadHeight = spec.currentLoadHeight
 									if spec.useHorizontalLoading then
-										if isFirstLayer and layerOverMaxHeight and ignoreHeightForContainer then
-											if debugLoading then print("IGNORE HEIGHT FOR CONTAINER") end
+										local placeEmpty = UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object)
+										local placeBelowFull = UniversalAutoload.testLocationIsFull(self, thisLoadPlace, -containerSizeY)
+										if placeEmpty and (thisLoadHeight<=0 or placeBelowFull) then
 											spec.currentLoadHeight = thisLoadHeight
 											useThisLoadSpace = true
-										else
-											while thisLoadHeight+offset.y <= maxLoadAreaHeight - containerSizeY do
-												setTranslation(thisLoadPlace.node, x0, thisLoadHeight+offset.y, z0)
-												local placeEmpty = UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object)
-												local placeBelowFull = UniversalAutoload.testLocationIsFull(self, thisLoadPlace, -containerSizeY)
-												if placeEmpty and (thisLoadHeight<=0 or placeBelowFull) then
-													spec.currentLoadHeight = thisLoadHeight
-													useThisLoadSpace = true
-													break
-												end
-												thisLoadHeight = thisLoadHeight + increment
-											end
 										end
 									else
+										local increment = 0.1
 										while thisLoadHeight+offset.y >= -increment do
 											setTranslation(thisLoadPlace.node, x0, thisLoadHeight+offset.y, z0)
 											if UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object)
@@ -3859,6 +3850,11 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 
 					if debugLoading then print("DID NOT FIT HERE...") end
 					spec.currentLoadingPlace = nil
+					if spec.lastAddedLoadDifference then
+						-- print("RESET currentLoadLength")
+						spec.currentLoadLength = spec.currentLoadLength - spec.lastAddedLoadDifference
+						spec.lastAddedLoadDifference = 0
+					end
 					if appliedFrontOffset then
 						spec.currentLoadLength = 0
 					end
@@ -4082,7 +4078,7 @@ end
 --
 function UniversalAutoload:testLocationIsFull(loadPlace, offset)
 	local spec = self.spec_universalAutoload
-	local r = 0.025
+	local r = 0.005
 	local sizeX, sizeY, sizeZ = (loadPlace.sizeX/2)-r, (loadPlace.sizeY/2)-r, (loadPlace.sizeZ/2)-r
 	local x, y, z = localToWorld(loadPlace.node, 0, offset or 0, 0)
 	local rx, ry, rz = getWorldRotation(loadPlace.node)
@@ -5230,56 +5226,58 @@ function UniversalAutoload.getContainerType(object)
 		if isPallet or isBale then
 			local objectIsInitialised = (isPallet and object.updateLoopIndex > 0) or true
 			if objectIsInitialised then
-				print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
-				if UniversalAutoload.OBJECT_FILL_LEVEL[object] then
-					print("  PARTIAL FILL LEVEL: " .. UniversalAutoload.OBJECT_FILL_LEVEL[object])
-				end
-				if isPallet then
-					print("Pallet")
-					print("  width: " .. object.size.width)
-					print("  height: " .. object.size.height)
-					print("  length: " .. object.size.length)
-				elseif isBale then
-					if isRoundbale then
-						print("Round Bale")
-						print("  width: " .. object.width)
-						print("  height: " .. object.diameter)
-						print("  length: " .. object.diameter)
-					else
-						print("Square Bale")
-						print("  width: " .. object.width)
-						print("  height: " .. object.height)
-						print("  length: " .. object.length)
-					end
-				end
-			
+				
 				local boundingBox = BoundingBox.new(object)
 				size = boundingBox:getSize()
 				offset = boundingBox:getOffset()
-				print("  size X: " .. size.x)
-				print("  size Y: " .. size.y)
-				print("  size Z: " .. size.z)
-				print("  offset X: " .. offset.x)
-				print("  offset Y: " .. offset.y)
-				print("  offset Z: " .. offset.z)
 				
+				if not size or size.x==0 or size.y==0 or size.z==0 then
+					print("*** UNIVERSAL AUTOLOAD - ZERO SIZE OBJECT: ".. name.." ***")
+					-- UniversalAutoload.INVALID_OBJECTS[name] = true
+					return nil
+				else
+					print("*** UNIVERSAL AUTOLOAD - FOUND NEW OBJECT TYPE: ".. name.." ***")
+					if UniversalAutoload.OBJECT_FILL_LEVEL[object] then
+						print("  PARTIAL FILL LEVEL: " .. UniversalAutoload.OBJECT_FILL_LEVEL[object])
+					end
+					if isPallet then
+						print("Pallet")
+						print("  width: " .. object.size.width)
+						print("  height: " .. object.size.height)
+						print("  length: " .. object.size.length)
+					elseif isBale then
+						if isRoundbale then
+							print("Round Bale")
+							print("  width: " .. object.width)
+							print("  height: " .. object.diameter)
+							print("  length: " .. object.diameter)
+						else
+							print("Square Bale")
+							print("  width: " .. object.width)
+							print("  height: " .. object.height)
+							print("  length: " .. object.length)
+						end
+					end
+					print("  size X: " .. size.x)
+					print("  size Y: " .. size.y)
+					print("  size Z: " .. size.z)
+					print("  offset X: " .. offset.x)
+					print("  offset Y: " .. offset.y)
+					print("  offset Z: " .. offset.z)
+				end
+
 			else
 				-- print("*** UNIVERSAL AUTOLOAD - OBJECT NOT INITIALISED: ".. name.." ***")
-				if object.size then
-					size = {x=object.size.width, y=object.size.height, z=object.size.length}
-				elseif isBale then
-					if isRoundbale then
-						size = {x=object.width, y=object.diameter, z=object.diameter}
-					else
-						size = {x=object.width, y=object.height, z=object.length}
-					end
-				end
+				-- if object.size then
+					-- size = {x=object.size.width, y=object.size.height, z=object.size.length}
+				-- elseif isBale then
+					-- if isRoundbale then
+						-- size = {x=object.width, y=object.diameter, z=object.diameter}
+					-- else
+						-- size = {x=object.width, y=object.height, z=object.length}
+					-- end
+				-- end
 				-- DebugUtil.printTableRecursively(object or {}, "  ", 0, 1)
-			end
-			
-			if not size or size.x==0 or size.y==0 or size.z==0 then
-				print("ZERO SIZE OBJECT")
-				UniversalAutoload.INVALID_OBJECTS[name] = true
 				return nil
 			end
 
