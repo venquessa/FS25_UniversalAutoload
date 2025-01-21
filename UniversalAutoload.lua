@@ -31,7 +31,7 @@ UniversalAutoload.MP_DELAY = 1000
 UniversalAutoload.LOG_DELAY = 1000
 UniversalAutoload.TRIGGER_DELTA = 0.1
 UniversalAutoload.MAX_LAYER_COUNT = 20
-UniversalAutoload.ROTATED_BALE_FACTOR = 0.75
+UniversalAutoload.ROTATED_BALE_FACTOR = 0.80
 -- 0.85355339
 
 UniversalAutoload.showLoading = false
@@ -3811,9 +3811,11 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 							else
 								
 								if not self:ualGetIsMoving() then
-									
-									local thisLoadHeight = spec.currentLoadHeight
+
 									if spec.useHorizontalLoading then
+										local thisLoadHeight = spec.currentLayerHeight
+										spec.currentLoadHeight = spec.currentLayerHeight
+										setTranslation(thisLoadPlace.node, x0, thisLoadHeight+offset.y, z0)
 										local placeEmpty = UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object)
 										local placeBelowFull = UniversalAutoload.testLocationIsFull(self, thisLoadPlace, -containerSizeY)
 										if placeEmpty and (thisLoadHeight<=0 or placeBelowFull) then
@@ -3822,6 +3824,7 @@ function UniversalAutoload:getLoadPlace(containerType, object)
 										end
 									else
 										local increment = 0.1
+										local thisLoadHeight = spec.currentLoadHeight
 										while thisLoadHeight+offset.y >= -increment do
 											setTranslation(thisLoadPlace.node, x0, thisLoadHeight+offset.y, z0)
 											if UniversalAutoload.testLocationIsEmpty(self, thisLoadPlace, object)
@@ -4140,12 +4143,12 @@ function UniversalAutoload:testLocationIsEmpty(loadPlace, object, offset, mask)
 			rx = rx, ry = ry, rz = rz,
 			sizeX = sizeX, sizeY = sizeY, sizeZ = sizeZ,
 		}
-		spec.testLocation = {
-			node = loadPlace.node,
-			sizeX = 2*sizeX,
-			sizeY = 2*sizeY,
-			sizeZ = 2*sizeZ,
-		}
+		-- spec.testLocation = {
+			-- node = loadPlace.node,
+			-- sizeX = 2*sizeX,
+			-- sizeY = 2*sizeY,
+			-- sizeZ = 2*sizeZ,
+		-- }
 	end
 
 	return not spec.foundObject
