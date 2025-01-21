@@ -30,7 +30,7 @@ end
 
 function SetCollectionModeEvent:run(connection)
 	if self.vehicle ~= nil and self.vehicle:getIsSynchronized() then
-		UniversalAutoload.setCollectionMode(self.vehicle, self.autoCollectionMode, true)
+		UniversalAutoload.setAutoCollectionMode(self.vehicle, self.autoCollectionMode, true)
 	end
 end
 
