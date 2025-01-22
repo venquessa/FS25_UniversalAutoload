@@ -5330,6 +5330,10 @@ function UniversalAutoload.getContainerType(object)
 				newType.sizeX = size.x + UniversalAutoload.BIGBAG_SPACING
 				newType.sizeZ = size.z + UniversalAutoload.BIGBAG_SPACING
 			end
+			if UniversalAutoload.getMaterialTypeName(object) == "PREFABWALL" then
+				newType.sizeX = size.x + UniversalAutoload.BIGBAG_SPACING/2
+				newType.sizeZ = size.z + UniversalAutoload.BIGBAG_SPACING
+			end
 			
 			if isRoundbale == true then
 				print("Round Bale flipYZ")
