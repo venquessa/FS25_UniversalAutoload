@@ -2263,7 +2263,10 @@ function UniversalAutoload:doUpdate(dt, isActiveForInput, isActiveForInputIgnore
 		
 		if not spec.loadArea or #spec.loadArea == 0 then
 			-- print this on the server for debugging (SP or player host)
-			g_currentMission:addExtraPrintText(tostring(self.rootNode) .. " *** LOAD AREAS MISSING ***")
+			if not spec.printedLoadAreaMissingWarning then
+				print(tostring(self.rootNode) .. " *** LOAD AREAS MISSING *** " .. self:getFullName())
+				spec.printedLoadAreaMissingWarning = true
+			end
 		end
 		
 		if spec.isAutoloadAvailable == false then
